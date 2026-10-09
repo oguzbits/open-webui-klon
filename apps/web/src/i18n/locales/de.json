@@ -1,6 +1,11 @@
 {
   "app": { "name": "Open-WebUI-Klon", "skipToContent": "Zum Inhalt springen" },
-  "nav": { "home": "Start", "toggle": "Seitenleiste ein- oder ausblenden" },
+  "nav": {
+    "title": "Navigation",
+    "description": "Das Menü der mobilen Ansicht.",
+    "home": "Start",
+    "toggle": "Seitenleiste ein- oder ausblenden"
+  },
   "theme": {
     "toggle": "Darstellung wechseln (aktuell: {{current}})",
     "light": "Hell",
