@@ -1,0 +1,26 @@
+{
+  "app": { "name": "Open-WebUI-Klon", "skipToContent": "Zum Inhalt springen" },
+  "nav": { "home": "Start", "toggle": "Seitenleiste ein- oder ausblenden" },
+  "theme": {
+    "toggle": "Darstellung wechseln (aktuell: {{current}})",
+    "light": "Hell",
+    "dark": "Dunkel",
+    "system": "Wie das Gerät"
+  },
+  "status": {
+    "title": "Verbindung zum Server",
+    "checking": "Die Verbindung wird geprüft …",
+    "ok": "Der Server ist erreichbar.",
+    "error": "Der Server antwortet gerade nicht.",
+    "retry": "Erneut versuchen"
+  },
+  "home": {
+    "title": "Willkommen",
+    "intro": "Hier entsteht dein persönlicher Chat-Assistent."
+  },
+  "notFound": {
+    "title": "Seite nicht gefunden",
+    "body": "Diese Adresse gibt es nicht.",
+    "back": "Zur Startseite"
+  }
+}

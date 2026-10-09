@@ -5,6 +5,7 @@ pnpm-lock.yaml
 apps/api/openapi.json
 apps/web/src/api/generated
 apps/web/src/components/ui
+apps/web/src/hooks/use-mobile.ts
 docs/superpowers
 .claude/worktrees
 .superpowers

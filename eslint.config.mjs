@@ -1,6 +1,8 @@
 import js from '@eslint/js';
 import { defineConfig } from 'eslint/config';
 import prettier from 'eslint-config-prettier';
+import jsxA11y from 'eslint-plugin-jsx-a11y';
+import reactHooks from 'eslint-plugin-react-hooks';
 import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
@@ -12,6 +14,7 @@ export default defineConfig(
       '**/coverage/**',
       'apps/web/src/api/generated/**',
       'apps/web/src/components/ui/**',
+      'apps/web/src/hooks/use-mobile.ts',
     ],
   },
   js.configs.recommended,
@@ -98,6 +101,11 @@ export default defineConfig(
       'no-restricted-globals': 'off',
       'no-restricted-properties': 'off',
     },
+  },
+  {
+    files: ['apps/web/**/*.{ts,tsx}'],
+    extends: [reactHooks.configs.flat.recommended, jsxA11y.flatConfigs.recommended],
+    languageOptions: { globals: globals.browser },
   },
   prettier
 );

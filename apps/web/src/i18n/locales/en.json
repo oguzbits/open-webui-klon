@@ -1,0 +1,26 @@
+{
+  "app": { "name": "Open WebUI Clone", "skipToContent": "Skip to content" },
+  "nav": { "home": "Home", "toggle": "Show or hide the sidebar" },
+  "theme": {
+    "toggle": "Change appearance (current: {{current}})",
+    "light": "Light",
+    "dark": "Dark",
+    "system": "Like the device"
+  },
+  "status": {
+    "title": "Connection to the server",
+    "checking": "Checking the connection …",
+    "ok": "The server is reachable.",
+    "error": "The server is not answering right now.",
+    "retry": "Try again"
+  },
+  "home": {
+    "title": "Welcome",
+    "intro": "Your personal chat assistant will live here."
+  },
+  "notFound": {
+    "title": "Page not found",
+    "body": "This address does not exist.",
+    "back": "Back to the start page"
+  }
+}
