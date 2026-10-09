@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { NavLink, Outlet } from 'react-router';
 
 import { errorMessageKey } from '@/api/error-message';
+import { UserDtoRole } from '@/api/generated/model';
 import { ThemeToggle } from '@/components/theme/theme-toggle';
 import { Button } from '@/components/ui/button';
 import {
@@ -63,6 +64,7 @@ function UserFooter() {
 
 export function AppLayout() {
   const { t } = useTranslation();
+  const user = useCurrentUser();
   return (
     <SidebarProvider>
       <a
@@ -91,6 +93,13 @@ export function AppLayout() {
                     <NavLink to="/settings/account">{t('nav.account')}</NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
+                {user.role === UserDtoRole.admin && (
+                  <SidebarMenuItem>
+                    <SidebarMenuButton asChild>
+                      <NavLink to="/admin/users">{t('nav.users')}</NavLink>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                )}
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>

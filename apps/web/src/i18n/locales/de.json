@@ -5,6 +5,7 @@
     "description": "Das Menü der mobilen Ansicht.",
     "home": "Start",
     "account": "Konto",
+    "users": "Nutzer",
     "toggle": "Seitenleiste ein- oder ausblenden"
   },
   "theme": {
@@ -126,6 +127,60 @@
       "revokeTitle": "Schlüssel „{{name}}“ widerrufen?",
       "revokeBody": "Programme, die diesen Schlüssel benutzen, verlieren sofort den Zugriff. Das lässt sich nicht rückgängig machen.",
       "error": { "nameRequired": "Bitte gib einen Namen ein." }
+    }
+  },
+  "admin": {
+    "title": "Nutzerverwaltung",
+    "users": {
+      "description": "Hier legst du Konten an, schaltest sie frei und verwaltest ihre Rollen.",
+      "fields": {
+        "name": "Name",
+        "email": "E-Mail-Adresse",
+        "password": "Passwort",
+        "role": "Rolle"
+      },
+      "columns": {
+        "name": "Name",
+        "email": "E-Mail-Adresse",
+        "role": "Rolle",
+        "status": "Status",
+        "createdAt": "Erstellt",
+        "actions": "Aktionen"
+      },
+      "roles": { "pending": "Wartend", "user": "Nutzer", "admin": "Administrator" },
+      "status": {
+        "active": "Aktiv",
+        "pending": "Wartet auf Freischaltung",
+        "disabled": "Gesperrt"
+      },
+      "roleOf": "Rolle von {{name}}",
+      "you": "Das bist du.",
+      "approve": "Freischalten",
+      "approveNamed": "{{name}} freischalten",
+      "disable": "Sperren",
+      "disableNamed": "{{name}} sperren",
+      "enable": "Entsperren",
+      "enableNamed": "{{name}} entsperren",
+      "create": "Nutzer anlegen",
+      "createHint": "Das Konto kann sich sofort mit diesem Passwort anmelden.",
+      "createSubmit": "Anlegen",
+      "creating": "Wird angelegt …",
+      "password": {
+        "action": "Passwort setzen",
+        "named": "Passwort für {{name}} setzen",
+        "title": "Passwort für {{name}} setzen",
+        "description": "{{name}} wird dadurch auf allen Geräten abgemeldet und muss sich mit dem neuen Passwort anmelden.",
+        "label": "Neues Passwort",
+        "submit": "Passwort setzen",
+        "submitting": "Wird gespeichert …"
+      },
+      "delete": {
+        "action": "Löschen",
+        "named": "{{name}} löschen",
+        "title": "Konto von {{name}} löschen?",
+        "body": "Das Konto und alle zugehörigen Daten werden gelöscht. Das lässt sich nicht rückgängig machen."
+      },
+      "error": { "lastAdmin": "Es muss mindestens ein aktiver Administrator bleiben." }
     }
   },
   "home": {

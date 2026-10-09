@@ -5,6 +5,7 @@
     "description": "The mobile menu.",
     "home": "Home",
     "account": "Account",
+    "users": "Users",
     "toggle": "Show or hide the sidebar"
   },
   "theme": {
@@ -126,6 +127,56 @@
       "revokeTitle": "Revoke key “{{name}}”?",
       "revokeBody": "Programs that use this key lose access at once. This cannot be undone.",
       "error": { "nameRequired": "Please enter a name." }
+    }
+  },
+  "admin": {
+    "title": "User management",
+    "users": {
+      "description": "Create accounts here, approve them and manage their roles.",
+      "fields": {
+        "name": "Name",
+        "email": "Email address",
+        "password": "Password",
+        "role": "Role"
+      },
+      "columns": {
+        "name": "Name",
+        "email": "Email address",
+        "role": "Role",
+        "status": "Status",
+        "createdAt": "Created",
+        "actions": "Actions"
+      },
+      "roles": { "pending": "Waiting", "user": "User", "admin": "Administrator" },
+      "status": { "active": "Active", "pending": "Waiting for approval", "disabled": "Blocked" },
+      "roleOf": "Role of {{name}}",
+      "you": "That is you.",
+      "approve": "Approve",
+      "approveNamed": "Approve {{name}}",
+      "disable": "Block",
+      "disableNamed": "Block {{name}}",
+      "enable": "Unblock",
+      "enableNamed": "Unblock {{name}}",
+      "create": "Create user",
+      "createHint": "The account can sign in with this password right away.",
+      "createSubmit": "Create",
+      "creating": "Creating …",
+      "password": {
+        "action": "Set password",
+        "named": "Set password for {{name}}",
+        "title": "Set password for {{name}}",
+        "description": "{{name}} is signed out on all devices and has to sign in with the new password.",
+        "label": "New password",
+        "submit": "Set password",
+        "submitting": "Saving …"
+      },
+      "delete": {
+        "action": "Delete",
+        "named": "Delete {{name}}",
+        "title": "Delete the account of {{name}}?",
+        "body": "The account and all its data are deleted. This cannot be undone."
+      },
+      "error": { "lastAdmin": "At least one active administrator has to remain." }
     }
   },
   "home": {
