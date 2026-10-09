@@ -1,0 +1,7 @@
+pnpm exec lint-staged
+pnpm check
+if command -v gitleaks >/dev/null 2>&1; then
+  gitleaks git --staged --redact --config .gitleaks.toml
+else
+  echo "gitleaks not installed: skipped locally (CI runs it)"
+fi

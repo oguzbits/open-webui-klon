@@ -1,0 +1,8 @@
+title = "open-webui-klon"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Documented, non-secret development defaults"
+paths = ['''^\.env\.example$''']

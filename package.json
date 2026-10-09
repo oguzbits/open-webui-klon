@@ -11,21 +11,35 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "typecheck": "pnpm -r --if-present typecheck",
-    "check": "pnpm typecheck && pnpm lint && pnpm format:check",
+    "check": "pnpm typecheck && pnpm lint && pnpm format:check && pnpm depcruise",
     "test": "pnpm -r --if-present test",
     "test:db": "pnpm --filter @owui/api test:db",
     "db:up": "docker compose -f compose.yml -f compose.dev.yml up -d --wait db",
     "db:down": "docker compose -f compose.yml -f compose.dev.yml down",
-    "openapi": "pnpm --filter @owui/api build && pnpm --filter @owui/api openapi && pnpm --filter @owui/web api:generate"
+    "openapi": "pnpm --filter @owui/api build && pnpm --filter @owui/api openapi && pnpm --filter @owui/web api:generate",
+    "depcruise": "depcruise --config config/dependency-cruiser.cjs apps",
+    "prepare": "husky"
   },
   "packageManager": "pnpm@12.6.0",
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "dependency-cruiser": "^18.5.0",
     "eslint": "^10.11.0",
     "eslint-config-prettier": "^10.1.8",
     "globals": "^17.13.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^17.6.0",
     "prettier": "^3.9.9",
     "typescript": "~6.0.3",
     "typescript-eslint": "^8.71.0"
+  },
+  "lint-staged": {
+    "*.{ts,tsx,js,mjs,cjs}": [
+      "eslint --fix --no-warn-ignored",
+      "prettier --write"
+    ],
+    "*.{json,md,yml,yaml,css,html}": [
+      "prettier --write"
+    ]
   }
 }
