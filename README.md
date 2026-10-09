@@ -14,7 +14,8 @@ Voraussetzung: Docker.
 docker compose up --build
 ```
 
-Dann http://localhost:8080 öffnen. Stoppen mit `docker compose down` (die Daten bleiben erhalten), vollständig
+Dann http://localhost:8080 öffnen. Beim ersten Start legt das erste Konto (Registrierung auf `/login`) den
+Administrator an; weitere Konten wartet der Administrator unter „Nutzer“ frei (Standard). Stoppen mit `docker compose down` (die Daten bleiben erhalten), vollständig
 löschen mit `docker compose down -v`. Prüfen, ob der laufende Stack richtig konfiguriert ist:
 `node scripts/smoke.mjs`.
 
