@@ -2,6 +2,7 @@ import { createBrowserRouter, type RouteObject } from 'react-router';
 
 import { AppLayout } from '@/components/layout/app-layout';
 import { GATE, SessionGate } from '@/features/auth/session-gate';
+import { AccountPage } from '@/pages/account-page';
 import { HomePage } from '@/pages/home-page';
 import { LoginPage } from '@/pages/login-page';
 import { NotFoundPage } from '@/pages/not-found-page';
@@ -24,6 +25,7 @@ export const routes: RouteObject[] = [
         element: <AppLayout />,
         children: [
           { index: true, element: <HomePage /> },
+          { path: 'settings/account', element: <AccountPage /> },
           { path: '*', element: <NotFoundPage /> },
         ],
       },

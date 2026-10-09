@@ -4,6 +4,7 @@
     "title": "Navigation",
     "description": "The mobile menu.",
     "home": "Home",
+    "account": "Account",
     "toggle": "Show or hide the sidebar"
   },
   "theme": {
@@ -77,6 +78,55 @@
   "userMenu": {
     "signOut": "Sign out",
     "signingOut": "Signing out …"
+  },
+  "account": {
+    "title": "Account",
+    "profile": { "title": "Profile", "name": "Name", "email": "Email address" },
+    "password": {
+      "title": "Change password",
+      "description": "After the change you are signed out on all other devices.",
+      "current": "Current password",
+      "next": "New password",
+      "repeat": "Repeat new password",
+      "submit": "Change password",
+      "submitting": "Changing …",
+      "done": "Your password is changed. You are now signed out on all other devices.",
+      "error": {
+        "mismatch": "The two new passwords are not the same.",
+        "rejected": "The current password is wrong, or the new password is not accepted."
+      }
+    },
+    "keys": {
+      "title": "API keys",
+      "description": "A key lets scripts and other programs reach the server on your behalf.",
+      "off": "API keys are switched off on this server.",
+      "empty": "You have no API keys yet.",
+      "name": "Name",
+      "prefix": "Start",
+      "createdAt": "Created",
+      "lastUsed": "Last used",
+      "expiresAt": "Expires",
+      "actions": "Actions",
+      "neverUsed": "Never used",
+      "neverExpires": "Never expires",
+      "create": "Create new key",
+      "createHint": "Give the key a name you will recognise later.",
+      "createSubmit": "Create",
+      "creating": "Creating …",
+      "expiry": "Lifetime",
+      "expiryNever": "Unlimited",
+      "expiryDays": "{{count}} days",
+      "shownTitle": "Your new key",
+      "shownWarning": "Save the key now: it is shown only now and cannot be retrieved later.",
+      "copy": "Copy",
+      "copied": "Copied.",
+      "copyFailed": "Copying is not possible. Select the key and copy it by hand.",
+      "revoke": "Revoke",
+      "revokeNamed": "Revoke {{name}}",
+      "revokeTitle": "Revoke key “{{name}}”?",
+      "revokeBody": "Programs that use this key lose access at once. This cannot be undone.",
+      "error": { "nameRequired": "Please enter a name." }
+    }
   },
   "home": {
     "title": "Welcome",

@@ -4,6 +4,7 @@
     "title": "Navigation",
     "description": "Das Menü der mobilen Ansicht.",
     "home": "Start",
+    "account": "Konto",
     "toggle": "Seitenleiste ein- oder ausblenden"
   },
   "theme": {
@@ -77,6 +78,55 @@
   "userMenu": {
     "signOut": "Abmelden",
     "signingOut": "Abmeldung läuft …"
+  },
+  "account": {
+    "title": "Konto",
+    "profile": { "title": "Profil", "name": "Name", "email": "E-Mail-Adresse" },
+    "password": {
+      "title": "Passwort ändern",
+      "description": "Nach der Änderung bist du auf allen anderen Geräten abgemeldet.",
+      "current": "Aktuelles Passwort",
+      "next": "Neues Passwort",
+      "repeat": "Neues Passwort wiederholen",
+      "submit": "Passwort ändern",
+      "submitting": "Wird geändert …",
+      "done": "Dein Passwort ist geändert. Auf allen anderen Geräten bist du jetzt abgemeldet.",
+      "error": {
+        "mismatch": "Die beiden neuen Passwörter sind nicht gleich.",
+        "rejected": "Das aktuelle Passwort stimmt nicht, oder das neue Passwort wird nicht akzeptiert."
+      }
+    },
+    "keys": {
+      "title": "API-Schlüssel",
+      "description": "Mit einem Schlüssel greifen Skripte und andere Programme in deinem Namen auf den Server zu.",
+      "off": "API-Schlüssel sind auf diesem Server ausgeschaltet.",
+      "empty": "Du hast noch keine API-Schlüssel.",
+      "name": "Name",
+      "prefix": "Anfang",
+      "createdAt": "Erstellt",
+      "lastUsed": "Zuletzt benutzt",
+      "expiresAt": "Läuft ab",
+      "actions": "Aktionen",
+      "neverUsed": "Nie benutzt",
+      "neverExpires": "Läuft nie ab",
+      "create": "Neuen Schlüssel erstellen",
+      "createHint": "Gib dem Schlüssel einen Namen, an dem du ihn später erkennst.",
+      "createSubmit": "Erstellen",
+      "creating": "Wird erstellt …",
+      "expiry": "Laufzeit",
+      "expiryNever": "Unbegrenzt",
+      "expiryDays": "{{count}} Tage",
+      "shownTitle": "Dein neuer Schlüssel",
+      "shownWarning": "Speichere den Schlüssel jetzt: Er wird nur jetzt angezeigt und lässt sich später nicht mehr abrufen.",
+      "copy": "Kopieren",
+      "copied": "Kopiert.",
+      "copyFailed": "Kopieren ist nicht möglich. Markiere den Schlüssel und kopiere ihn von Hand.",
+      "revoke": "Widerrufen",
+      "revokeNamed": "{{name}} widerrufen",
+      "revokeTitle": "Schlüssel „{{name}}“ widerrufen?",
+      "revokeBody": "Programme, die diesen Schlüssel benutzen, verlieren sofort den Zugriff. Das lässt sich nicht rückgängig machen.",
+      "error": { "nameRequired": "Bitte gib einen Namen ein." }
+    }
   },
   "home": {
     "title": "Willkommen",
