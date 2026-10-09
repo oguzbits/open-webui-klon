@@ -18,6 +18,9 @@ export class AppConfigModule {
         ConfigModule.forRoot({
           isGlobal: true,
           cache: true,
+          // Never fall back to raw process.env text: a value the validation turned into undefined (an empty
+          // variable) must stay undefined.
+          skipProcessEnv: true,
           ignoreEnvFile: options.ignoreEnvFile ?? false,
           envFilePath: ['.env', '../../.env'],
           // A load factory keeps the validated values out of process.env (no cross-test leakage).
