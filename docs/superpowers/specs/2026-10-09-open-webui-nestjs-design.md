@@ -83,15 +83,45 @@ Jedes Teilprojekt bekommt eigene Spec, eigenen Plan und eigene Umsetzung in vert
 | 1  | Auth + Nutzer/Rollen       | Signup/Login/Logout, Cookie-Session, Argon2, Rollen Admin/User, API-Keys, Nutzerverwaltung (Admin), erster Admin beim ersten Start                                                      |
 | 2  | Modell-Anbindung           | Provider-Abstraktion (Ollama, OpenAI-kompatibel), Verbindungen im Admin-Bereich, Modellliste                                                                                             |
 | 3  | Chat + Streaming           | Chats, Nachrichten, Ordner, Tags, SSE-Streaming, Abbruch, Regenerieren, Titelgenerierung (pg-boss-Job), Markdown/Code-Anzeige. Entscheidung dort: `useChat` aus `@ai-sdk/react` oder eigener Stream-Client |
-| 4  | RAG                        | Upload (PDF, DOCX, Markdown, TXT), Chunking, Embeddings, pgvector-Suche, Wissenssammlungen, Quellenangaben im Chat, Ingestion als pg-boss-Job                                            |
+| 4  | RAG                        | Upload (PDF, DOCX, Markdown, TXT), Chunking, Embeddings, Hybrid-Suche (pgvector plus Postgres-Volltextsuche, Rangfusion; Reranker später), Wissenssammlungen, Quellenangaben im Chat, Ingestion als pg-boss-Job                                            |
 | 5  | Tools                      | Eingebaute Tools (z. B. Rechner, URL-Abruf mit SSRF-Schutz) und MCP-Client, Tool-Calling-Schleife                                                                                        |
 | 6  | Härtung                    | k6-Lasttests (Last, Stress, Spike, Soak) mit Fake-Provider, Chaos-/Resilienztests (DB weg, Anbieter hängt, Worker stirbt), Mutation-Testing für kritische Logik, WCAG-2.2-AA-Audit, Backup-/Restore-Übung, SBOM und Image-Signierung, Security-Review gegen Abschnitt 6.1 und OWASP ASVS L2 |
-| 7  | Websuche (optional)        | Suchanbieter hinter Interface, Abruf nur über den `SafeFetchService`                                                                                                                      |
+| 7  | Websuche                   | Suchanbieter hinter Interface, Abruf nur über den `SafeFetchService`                                                                                                                      |
 | 8  | Nutzer-Tools mit Sandbox   | Nutzercode in isoliertem Worker-Container ohne Netzwerk- und DB-Zugriff (nur nach Sicherheitsdesign)                                                                                     |
 | 9  | Enterprise-Funktionen (optional) | OIDC/SSO (später SAML), MFA (TOTP, Passkeys), Gruppen-/ACL-Oberfläche, Workspaces, Quoten und Budgets, SCIM. Jeweils eigene Spec.                                                |
 | 10 | Deployment (zurückgestellt)| Eigener Hetzner-Server empfohlen (der Server des notebooklm-klon hat 4 GB RAM und ist mit eigenen Diensten ausgelastet); Muster aus `notebooklm-klon/deploy` übernehmen. Wird nicht vor Teilprojekt 6 angefasst. |
+| 11 | Workspace                  | Eigene Modelle (Basismodell, System-Prompt, Wissen, Tools) und Prompt-Bibliothek, mit Besitzer und „mit allen teilen"; ein eigenes Modell braucht Zugriff auf sein Basismodell. Eigene Spec. |
+| 12 | Memory und Notizen         | Memory pro Nutzer (Schalter, Tool zum Merken, löschbar), Notizen als eigene Seite mit Markdown und KI-Chat daneben. Eigene Spec. |
+
+**Reihenfolge:** 0, 1, 2, 3, 4, 5, 7, 11, 12, 6; danach optional 8, 9 und zuletzt 10. Der Workspace folgt auf RAG,
+Tools und Websuche, weil eigene Modelle Wissen und Tools bündeln. Die Härtung (6) kommt nach den Funktionen, damit
+sie alles prüft. Die Nummern bleiben stabil, weil Abschnitt 6 auf sie verweist.
 
 Offen bis zur jeweiligen Spec: OCR, Bilder und Web-Loader für RAG; Playwright über den Hauptpfad hinaus.
+
+### 4.1 Abgrenzung zu Open WebUI
+
+Stand der Recherche: 2026-10-09 (Code und Doku von Open WebUI; Sicherheitsangaben aus Sammelseiten für
+Schwachstellen, nicht gegen die GitHub-Advisories geprüft). Fachlich bleiben wir nah am Original; anders ist
+der Stack und, wo Open WebUI unseren Sicherheitsvorgaben widerspricht, das Verhalten.
+
+| Bereich | Open WebUI | Hier | Grund |
+| --- | --- | --- | --- |
+| Datenbank, Vektoren | SQLite als Standard, Chroma als Standard | nur Postgres mit pgvector | eine Datenbank; Filter nach `userId` und ACL im selben SQL |
+| Streaming | Socket.IO mit Redis | SSE | genügt für Chat, kein Redis; Widerruf von Tokens war bei Websockets eine Lücke |
+| Jobs | im Prozess (vermutet) | pg-boss | überlebt Neustarts, transaktional |
+| Session | JWT, Widerruf über Redis | Cookie-Session in Postgres | sofort widerrufbar, kein Token im JS ([Teilprojekt 1](2026-10-09-teilprojekt-1-auth-design.md)) |
+| Zitate | Kontext wird eingefügt, serverseitige Prüfung nicht gefunden | Prüfung gegen den gesendeten Kontext | Modelle erfinden Zitate |
+| Nutzer-Code | Python im Server-Prozess, keine Sandbox | nur Sandbox (Teilprojekt 8, optional) | Ausführung fremden Codes ist sonst Remote Code Execution |
+| HTML-Artefakte | iframe, `allow-same-origin` schaltbar | kein HTML-Rendering, höchstens Sandbox-iframe | bekannte XSS-Lücke an dieser Stelle |
+| Code-Interpreter | Pyodide, Jupyter, Open Terminal | nicht geplant | Pyodide im selben Origin war Ursache einer RCE-Lücke |
+| Beobachtbarkeit | OpenTelemetry, standardmäßig aus | von Anfang an | Fehlersuche |
+
+**Bewusst nicht geplant:** Channels, Bild-Erzeugung, Sprache (STT/TTS), Code-Interpreter, Arena/Evaluation,
+OpenAPI-Tool-Server (wir nutzen MCP), LDAP und SCIM. Gruppen, ACL und SSO bleiben bei Teilprojekt 9.
+**Zur Roadmap hinzugefügt am 2026-10-09:** Workspace (11), Memory und Notizen (12), Websuche fest (7),
+Hybrid-Suche (in 4). Nicht belegt: Umfang von Ordnern, Tags, Teilen und Archiv bei Open WebUI (Doku nicht
+abrufbar).
 
 ## 5. Agentic-Software-Engineering-Setup
 
