@@ -24,7 +24,10 @@ jobs:
           node-version-file: .nvmrc
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      # Gate on what ships; advisories in build tooling (no patch yet) are reported but do not block.
+      - run: pnpm audit --prod --audit-level high
       - run: pnpm audit --audit-level high
+        continue-on-error: true
       - run: pnpm check
       - name: Generated API files are up to date
         run: |

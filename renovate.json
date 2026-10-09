@@ -2,9 +2,18 @@
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": ["config:best-practices"],
   "minimumReleaseAge": "7 days",
-  "lockFileMaintenance": { "enabled": true, "schedule": ["before 6am on monday"] },
-  "vulnerabilityAlerts": { "labels": ["security"] },
+  "lockFileMaintenance": {
+    "enabled": true,
+    "schedule": ["before 6am on monday"]
+  },
+  "vulnerabilityAlerts": {
+    "labels": ["security"]
+  },
   "packageRules": [
+    {
+      "matchPackageNames": ["*"],
+      "minimumReleaseAge": "7 days"
+    },
     {
       "matchDepTypes": ["devDependencies"],
       "matchUpdateTypes": ["minor", "patch"],

@@ -3,6 +3,12 @@ packages:
 # Supply-chain hardening: ignore versions younger than 7 days (minutes) and run install scripts
 # only for explicitly approved packages. Extend allowBuilds consciously, one package at a time.
 minimumReleaseAge: 10080
+blockExoticSubdeps: true
+trustPolicy: no-downgrade
+# semver 6.3.1 (a Babel transitive dependency) was published without the provenance of its newer 7.x line;
+# it is an old, widely used release, not a takeover.
+trustPolicyExclude:
+  - semver@6.3.1
 allowBuilds:
   '@swc/core': true
   esbuild: true
