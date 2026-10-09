@@ -1,0 +1,8 @@
+packages:
+  - apps/*
+# Supply-chain hardening: ignore versions younger than 7 days (minutes) and run install scripts
+# only for explicitly approved packages. Extend onlyBuiltDependencies consciously, one package at a time.
+minimumReleaseAge: 10080
+onlyBuiltDependencies:
+  - '@swc/core'
+  - esbuild

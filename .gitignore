@@ -1,0 +1,12 @@
+node_modules/
+dist/
+coverage/
+.env
+.env.*
+!.env.example
+*.log
+.DS_Store
+.claude/settings.local.json
+.claude/worktrees/
+.claude/.cc-writes/
+.superpowers/

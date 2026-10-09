@@ -1,0 +1,10 @@
+node_modules
+dist
+coverage
+pnpm-lock.yaml
+apps/api/openapi.json
+apps/web/src/api/generated
+apps/web/src/components/ui
+docs/superpowers
+.claude/worktrees
+.superpowers
