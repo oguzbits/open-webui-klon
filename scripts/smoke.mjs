@@ -1,5 +1,5 @@
-// Checks a running stack from the outside. Usage: node scripts/smoke.mjs  (BASE_URL optional)
-const BASE_URL = process.env.BASE_URL ?? 'http://127.0.0.1:8080';
+// Checks a running stack from the outside. Usage: node scripts/smoke.mjs  (BASE_URL optional; it must match PUBLIC_ORIGIN, or the origin check refuses the POST checks)
+const BASE_URL = process.env.BASE_URL ?? 'http://localhost:8080';
 const TIMEOUT_MS = Number(process.env.SMOKE_TIMEOUT_MS ?? 90_000);
 
 const failures = [];
@@ -71,6 +71,32 @@ const preflight = await fetch(`${BASE_URL}/api/health/live`, {
 check(
   'CORS: a foreign origin gets no allow header',
   !preflight.headers.has('access-control-allow-origin')
+);
+
+const anonymousMe = await fetch(`${BASE_URL}/api/auth/me`);
+check(
+  'anonymous /auth/me answers 401 problem details',
+  anonymousMe.status === 401 &&
+    (anonymousMe.headers.get('content-type') ?? '').includes('application/problem+json')
+);
+
+const anonymousUsers = await fetch(`${BASE_URL}/api/users`);
+check('anonymous /users answers 401', anonymousUsers.status === 401);
+
+const authConfig = await fetch(`${BASE_URL}/api/auth/config`);
+check(
+  'public auth config answers 200 without a login',
+  authConfig.status === 200 && 'signupEnabled' in (await authConfig.json())
+);
+
+const badSignup = await fetch(`${BASE_URL}/api/auth/signup`, {
+  method: 'POST',
+  headers: { 'content-type': 'application/json', origin: BASE_URL },
+  body: '{}',
+});
+check(
+  'invalid sign-up answers 400 and sets no cookie',
+  badSignup.status === 400 && !badSignup.headers.has('set-cookie')
 );
 
 if (failures.length > 0) {

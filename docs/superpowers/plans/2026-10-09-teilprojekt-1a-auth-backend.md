@@ -85,7 +85,7 @@ apps/api/src/
 **Interfaces:**
 - Produces: `USER_ROLE`, `UserRole`; `PASSWORD_MIN_LENGTH` (12), `PASSWORD_MAX_LENGTH` (128); erweiterte `AUDIT_ACTION`; `Env`-Felder `ENABLE_SIGNUP: boolean`, `DEFAULT_USER_ROLE: 'pending' | 'user'`, `ENABLE_API_KEYS: boolean`, `SESSION_LIFETIME_HOURS: number`, `LOGIN_MAX_ATTEMPTS: number`, `LOGIN_WINDOW_SECONDS: number`, `ADMIN_EMAIL?: string`, `ADMIN_PASSWORD?: string`, `ADMIN_NAME?: string`.
 
-- [ ] **Step 1: Wörterbücher anlegen**
+- [x] **Step 1: Wörterbücher anlegen**
 
 `apps/api/src/users/user-role.ts`:
 
@@ -129,7 +129,7 @@ export const AUDIT_ACTION = {
 export type AuditAction = (typeof AUDIT_ACTION)[keyof typeof AUDIT_ACTION];
 ```
 
-- [ ] **Step 2: Fehlschlagende Env-Tests schreiben**
+- [x] **Step 2: Fehlschlagende Env-Tests schreiben**
 
 An `apps/api/src/config/env.spec.ts` anhängen (vor dem letzten `});` des äußeren `describe`, oder als eigenes `describe` am Dateiende; Importe oben ergänzen: `import { USER_ROLE } from '../users/user-role.js';`):
 
@@ -206,12 +206,12 @@ describe('validateEnv: auth settings', () => {
 });
 ```
 
-- [ ] **Step 3: Test laufen lassen, Fehlschlag prüfen**
+- [x] **Step 3: Test laufen lassen, Fehlschlag prüfen**
 
 Run: `pnpm --filter @owui/api exec vitest run src/config/env.spec.ts`
 Expected: FAIL (die neuen Felder sind `undefined`).
 
-- [ ] **Step 4: Env erweitern**
+- [x] **Step 4: Env erweitern**
 
 In `apps/api/src/config/env.ts` die Importe erweitern:
 
@@ -301,12 +301,12 @@ In der Klasse `Env` nach `SHUTDOWN_DRAIN_MS` einfügen:
   ADMIN_NAME?: string;
 ```
 
-- [ ] **Step 5: Tests laufen lassen**
+- [x] **Step 5: Tests laufen lassen**
 
 Run: `pnpm --filter @owui/api exec vitest run src/config/env.spec.ts`
 Expected: PASS. Wenn `ENABLE_SIGNUP` ohne Wert nicht `true` ergibt (Standardwert durch `@Transform` überschrieben), `toBoolean` so anpassen, dass `undefined` unverändert durchgereicht wird (tut es bereits) und prüfen, dass `exposeDefaultValues` greift; das Muster ist dasselbe wie bei `CORS_ORIGINS`.
 
-- [ ] **Step 6: `.env.example` und `compose.yml`**
+- [x] **Step 6: `.env.example` und `compose.yml`**
 
 An `.env.example` anhängen:
 
@@ -335,7 +335,7 @@ In `compose.yml` unter `api.environment` nach `OTEL_EXPORTER_OTLP_ENDPOINT` erg�
       ADMIN_NAME: ${ADMIN_NAME:-}
 ```
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add apps/api/src/users apps/api/src/auth apps/api/src/database/audit apps/api/src/config .env.example compose.yml
@@ -353,7 +353,7 @@ git commit -m "feat(api): add auth settings, role dictionary and audit actions" 
 **Interfaces:**
 - Produces: `User` (`id`, `email` kleingeschrieben, `name`, `passwordHash`, `role: UserRole`, `disabledAt: Date | null`, `createdAt`, `updatedAt`), `Session` (`id`, `userId`, `user`, `tokenHash`, `csrfToken`, `expiresAt`, `lastUsedAt`, `createdAt`), `ApiKey` (`id`, `userId`, `user`, `name`, `keyHash`, `prefix`, `expiresAt: Date | null`, `revokedAt: Date | null`, `lastUsedAt: Date | null`, `createdAt`). Tabellen `app_user`, `session`, `api_key`.
 
-- [ ] **Step 1: Entities schreiben**
+- [x] **Step 1: Entities schreiben**
 
 `apps/api/src/users/user.entity.ts`:
 
@@ -516,7 +516,7 @@ import { AuditLog } from './audit/audit-log.entity.js';
 export const ENTITIES = [AuditLog, User, Session, ApiKey];
 ```
 
-- [ ] **Step 2: Schema-Test schreiben (schlägt zunächst fehl)**
+- [x] **Step 2: Schema-Test schreiben (schlägt zunächst fehl)**
 
 `apps/api/src/database/auth-schema.db.spec.ts`:
 
@@ -603,7 +603,7 @@ describe('auth schema (database)', () => {
 });
 ```
 
-- [ ] **Step 3: `uuidExtension` setzen**
+- [x] **Step 3: `uuidExtension` setzen**
 
 TypeORM erzeugt für `PrimaryGeneratedColumn('uuid')` sonst `uuid_generate_v4()` und braucht `uuid-ossp`; die Test-DB wird per `DROP SCHEMA public CASCADE` zurückgesetzt und verliert die Erweiterung. `gen_random_uuid()` (Postgres-Kern) passt außerdem zur bestehenden Migration. In `apps/api/src/database/data-source-options.ts` im Rückgabeobjekt nach `type: 'postgres',` ergänzen:
 
@@ -612,7 +612,7 @@ TypeORM erzeugt für `PrimaryGeneratedColumn('uuid')` sonst `uuid_generate_v4()`
     uuidExtension: 'pgcrypto',
 ```
 
-- [ ] **Step 4: Migration generieren**
+- [x] **Step 4: Migration generieren**
 
 ```bash
 pnpm db:up
@@ -633,12 +633,12 @@ import { AddAuth<Zeitstempel> } from './<Zeitstempel>-add-auth.js';
 export const MIGRATIONS = [InitFoundation1791504000000, AddAuth<Zeitstempel>];
 ```
 
-- [ ] **Step 5: Datenbank-Tests laufen lassen**
+- [x] **Step 5: Datenbank-Tests laufen lassen**
 
 Run: `pnpm --filter @owui/api exec vitest run --config vitest.db.config.ts`
 Expected: PASS, auch die bestehenden `audit.service.db.spec.ts` und `migrate.db.spec.ts` (das Schema wird aus allen Migrationen neu aufgebaut). Zusätzlich: `pnpm --filter @owui/api migration:generate src/database/migrations/check-drift` darf **keine** Änderungen finden ("No changes in database schema were found"); eine dabei entstandene Datei löschen.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add apps/api/src/users/user.entity.ts apps/api/src/auth apps/api/src/database
@@ -661,14 +661,14 @@ git commit -m "feat(api): add user, session and api key tables" -m "Co-Authored-
   - `PasswordHasher` (`@Injectable`): `hash(password: string): Promise<string>`, `verify(hashed: string, password: string): Promise<boolean>`, `dummyHash(): Promise<string>`
   - `normalizeEmail(value: string): string`, `emailTransform({ value }: { value: unknown }): unknown`
 
-- [ ] **Step 1: Abhängigkeit hinzufügen**
+- [x] **Step 1: Abhängigkeit hinzufügen**
 
 Grund: Argon2id ohne Installationsskript (vorkompilierte Pakete je Plattform, deshalb kein Eintrag in `allowBuilds` nötig). Die Alternative `argon2` (node-gyp) braucht ein Build-Skript.
 
 Run: `pnpm --filter @owui/api add @node-rs/argon2`
 Expected: Eintrag in `apps/api/package.json` und `pnpm-lock.yaml`. Wählt pnpm wegen `minimumReleaseAge` eine ältere Version als die neueste, ist das gewollt. Die Installationsskripte-Ausgabe darf keinen Hinweis auf nicht freigegebene Build-Skripte für dieses Paket zeigen.
 
-- [ ] **Step 2: Fehlschlagende Tests schreiben**
+- [x] **Step 2: Fehlschlagende Tests schreiben**
 
 `apps/api/src/auth/tokens.spec.ts`:
 
@@ -824,12 +824,12 @@ describe('emailTransform', () => {
 });
 ```
 
-- [ ] **Step 3: Tests laufen lassen, Fehlschlag prüfen**
+- [x] **Step 3: Tests laufen lassen, Fehlschlag prüfen**
 
 Run: `pnpm --filter @owui/api exec vitest run src/auth src/users/email.spec.ts`
 Expected: FAIL ("Cannot find module").
 
-- [ ] **Step 4: Implementieren**
+- [x] **Step 4: Implementieren**
 
 `apps/api/src/auth/tokens.ts`:
 
@@ -929,12 +929,12 @@ export function emailTransform({ value }: { value: unknown }): unknown {
 }
 ```
 
-- [ ] **Step 5: Tests laufen lassen**
+- [x] **Step 5: Tests laufen lassen**
 
 Run: `pnpm --filter @owui/api exec vitest run src/auth src/users/email.spec.ts`
 Expected: PASS. Meldet TypeScript, dass `@node-rs/argon2` kein `hash` mit der Signatur `(password: string)` hat, die Typen in `node_modules/@node-rs/argon2/index.d.ts` lesen (die Optionen sind optional).
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add apps/api/package.json pnpm-lock.yaml apps/api/src/auth apps/api/src/users/email.ts apps/api/src/users/email.spec.ts
@@ -957,7 +957,7 @@ git commit -m "feat(api): add token, cookie, password and email helpers" -m "Add
   - `CreatedApiKey { apiKey: ApiKey; key: string }`
   - `ApiKeyService`: `create(userId: string, name: string, expiresAt?: Date | null): Promise<CreatedApiKey>`, `list(userId: string): Promise<ApiKey[]>`, `revoke(userId: string, id: string, now?: Date): Promise<boolean>`, `resolve(key: string, now?: Date): Promise<ApiKey | null>` (mit geladenem `user`)
 
-- [ ] **Step 1: Testhilfen schreiben**
+- [x] **Step 1: Testhilfen schreiben**
 
 `apps/api/src/testing/db-fixtures.ts`:
 
@@ -991,7 +991,7 @@ export async function insertUser(
 }
 ```
 
-- [ ] **Step 2: Fehlschlagende Tests schreiben**
+- [x] **Step 2: Fehlschlagende Tests schreiben**
 
 `apps/api/src/auth/session.service.db.spec.ts`:
 
@@ -1232,12 +1232,12 @@ describe('ApiKeyService (database)', () => {
 });
 ```
 
-- [ ] **Step 3: Tests laufen lassen, Fehlschlag prüfen**
+- [x] **Step 3: Tests laufen lassen, Fehlschlag prüfen**
 
 Run: `pnpm --filter @owui/api exec vitest run --config vitest.db.config.ts src/auth`
 Expected: FAIL ("Cannot find module './session.service.js'").
 
-- [ ] **Step 4: Implementieren**
+- [x] **Step 4: Implementieren**
 
 `apps/api/src/auth/session.service.ts`:
 
@@ -1386,12 +1386,12 @@ export class ApiKeyService {
 }
 ```
 
-- [ ] **Step 5: Tests laufen lassen**
+- [x] **Step 5: Tests laufen lassen**
 
 Run: `pnpm --filter @owui/api exec vitest run --config vitest.db.config.ts src/auth`
 Expected: PASS. Schlägt der `lastUsedAt`-Test um Millisekunden fehl (Postgres speichert Mikrosekunden, JS Millisekunden), ist das ein Testfehler: dann nur auf Gleichheit der Sekunden prüfen, nicht die Implementierung ändern.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add apps/api/src/testing apps/api/src/auth
@@ -1412,7 +1412,7 @@ git commit -m "feat(api): add session and api key services" -m "Co-Authored-By: 
   - Dekoratoren `Public()`, `AllowPending()`, `SessionOnly()`, `Roles(...roles: UserRole[])`; Parameter-Dekoratoren `CurrentAuth()` (liefert `AuthContext`) und `CurrentUser()` (liefert `User`)
   - `AuthGuard`: geschlossen per Standard. 401 ohne gültige Anmeldung oder bei gesperrtem Konto, 403 für `pending` (außer `@AllowPending()` mit Session; ein API-Key eines `pending`-Kontos kommt nirgends durch), für zu geringe Rolle, für API-Keys auf `@SessionOnly()` und auf Routen mit `@Roles(USER_ROLE.ADMIN)`, und für schreibende Session-Anfragen ohne passenden `X-CSRF-Token`.
 
-- [ ] **Step 1: Fehlschlagenden Test schreiben**
+- [x] **Step 1: Fehlschlagenden Test schreiben**
 
 `apps/api/src/auth/auth.guard.spec.ts`:
 
@@ -1698,12 +1698,12 @@ describe('AuthGuard', () => {
 });
 ```
 
-- [ ] **Step 2: Test laufen lassen, Fehlschlag prüfen**
+- [x] **Step 2: Test laufen lassen, Fehlschlag prüfen**
 
 Run: `pnpm --filter @owui/api exec vitest run src/auth/auth.guard.spec.ts`
 Expected: FAIL (Module fehlen).
 
-- [ ] **Step 3: Implementieren**
+- [x] **Step 3: Implementieren**
 
 `apps/api/src/auth/auth-context.ts`:
 
@@ -1888,16 +1888,16 @@ export class AuthGuard implements CanActivate {
 }
 ```
 
-- [ ] **Step 4: Tests laufen lassen**
+- [x] **Step 4: Tests laufen lassen**
 
 Run: `pnpm --filter @owui/api exec vitest run src/auth/auth.guard.spec.ts`
 Expected: PASS. Hinweis: Der Bearer-Test mit `'Bearer sk-nope'` (Format ungültig) und der Test mit dem Session-Token im Key-Platz laufen über `KEY_FORMAT` in 401, ohne den Dienst zu fragen.
 
-- [ ] **Step 5: Mutation prüfen (Beleg, dass die Tests den Guard bewachen)**
+- [x] **Step 5: Mutation prüfen (Beleg, dass die Tests den Guard bewachen)**
 
 Ändere kurz in `auth.guard.ts` die erste Zeile von `canActivate` zu `return true;` und führe den Test aus. Erwartet: viele rote Tests. Danach die Änderung zurücknehmen (`git checkout apps/api/src/auth/auth.guard.ts` geht nicht, die Datei ist neu: mit dem Editor zurücksetzen) und den Test erneut grün sehen.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add apps/api/src/auth
@@ -1925,7 +1925,7 @@ git commit -m "feat(api): add closed-by-default auth guard with roles, api keys 
     - `resetPassword(actorId: string, id: string, passwordHash: string): Promise<void>` (setzt das Passwort, löscht alle Sessions, schreibt Audit)
     - `remove(actorId: string, id: string): Promise<void>`
 
-- [ ] **Step 1: Fehlschlagenden Test schreiben**
+- [x] **Step 1: Fehlschlagenden Test schreiben**
 
 `apps/api/src/users/users.service.db.spec.ts`:
 
@@ -2212,12 +2212,12 @@ describe('UsersService (database)', () => {
 
 (`identifiers[0] as { id: string }`: TypeORM liefert die Primärschlüssel als lose getypte Objekte; die Zuweisung ist hier die einzige Stelle, an der eine Typangabe nötig ist. Gefällt dem Linter das nicht, stattdessen `repository.save(repository.create({...}))` verwenden und `.id` lesen.)
 
-- [ ] **Step 2: Test laufen lassen, Fehlschlag prüfen**
+- [x] **Step 2: Test laufen lassen, Fehlschlag prüfen**
 
 Run: `pnpm --filter @owui/api exec vitest run --config vitest.db.config.ts src/users`
 Expected: FAIL ("Cannot find module './users.service.js'").
 
-- [ ] **Step 3: Implementieren**
+- [x] **Step 3: Implementieren**
 
 `apps/api/src/users/users.service.ts`:
 
@@ -2449,12 +2449,12 @@ export class UsersService {
 }
 ```
 
-- [ ] **Step 4: Tests laufen lassen**
+- [x] **Step 4: Tests laufen lassen**
 
 Run: `pnpm --filter @owui/api exec vitest run --config vitest.db.config.ts src/users`
 Expected: PASS. Kennt TypeORM `existsBy`/`countBy` in der installierten Version nicht, in `node_modules/typeorm` die Methoden von `EntityManager` nachsehen und durch `exists({ where })`/`count({ where })` ersetzen.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add apps/api/src/users
@@ -2479,7 +2479,7 @@ git commit -m "feat(api): add users service with first-admin and last-admin prot
   - `UsersModule` (exportiert `UsersService`, `PasswordHasher`), `AuthModule` (registriert den globalen `AuthGuard`)
   - Testhilfen: `createDbTestApp(databaseUrl: string, env?: Record<string, string>, options?: { resetUsers?: boolean }): Promise<NestExpressApplication>`; `TEST_PASSWORD`, `Http`, `Login`, `cookieFrom(response)`, `signupUser(http, body, expected?)`, `loginUser(http, email, password)`, `authed(http, login)` mit `get/post/patch/delete`
 
-- [ ] **Step 1: Begrenzer testen (schlägt fehl)**
+- [x] **Step 1: Begrenzer testen (schlägt fehl)**
 
 `apps/api/src/auth/attempt-limiter.spec.ts`:
 
@@ -2534,7 +2534,7 @@ describe('AttemptLimiter', () => {
 });
 ```
 
-- [ ] **Step 2: Begrenzer implementieren und Test grün sehen**
+- [x] **Step 2: Begrenzer implementieren und Test grün sehen**
 
 `apps/api/src/auth/attempt-limiter.ts`:
 
@@ -2598,7 +2598,7 @@ export class AttemptLimiter {
 Run: `pnpm --filter @owui/api exec vitest run src/auth/attempt-limiter.spec.ts`
 Expected: PASS.
 
-- [ ] **Step 3: DTOs, Dienst, Controller, Module schreiben**
+- [x] **Step 3: DTOs, Dienst, Controller, Module schreiben**
 
 `apps/api/src/users/users.dto.ts` (Create/Update-DTOs kommen in Task 8 dazu):
 
@@ -2973,7 +2973,7 @@ import { SessionService } from './session.service.js';
 export class AuthModule {}
 ```
 
-- [ ] **Step 4: Testhilfen schreiben**
+- [x] **Step 4: Testhilfen schreiben**
 
 `apps/api/src/testing/create-db-test-app.ts`:
 
@@ -3092,7 +3092,7 @@ export function authed(http: Http, login: Login) {
 }
 ```
 
-- [ ] **Step 5: Fehlschlagenden Ablauf-Test schreiben**
+- [x] **Step 5: Fehlschlagenden Ablauf-Test schreiben**
 
 `apps/api/src/auth/auth.db.spec.ts`:
 
@@ -3471,12 +3471,12 @@ describe('auth flows (database)', () => {
 });
 ```
 
-- [ ] **Step 6: Test laufen lassen**
+- [x] **Step 6: Test laufen lassen**
 
 Run: `pnpm --filter @owui/api exec vitest run --config vitest.db.config.ts src/auth/auth.db.spec.ts`
 Expected: PASS. Typische Stolpersteine: (a) fehlt `password-hasher.ts` unter `users/`, siehe Task 3 (die Datei liegt in `apps/api/src/users/`, nicht in `auth/`); (b) schlägt der Test "adds Secure" fehl, weil `BASE_TEST_ENV.PUBLIC_ORIGIN` die `CORS_ORIGINS`-Prüfung stört, nur `PUBLIC_ORIGIN` ersetzen, nicht `CORS_ORIGINS`; (c) die 413-Fälle brauchen das Express-Standardlimit von 100 kB, nichts konfigurieren.
 
-- [ ] **Step 7: `pnpm check` und Commit**
+- [x] **Step 7: `pnpm check` und Commit**
 
 Run: `pnpm check`
 Expected: grün (Typen, ESLint, Prettier, dependency-cruiser). Die Zyklenprüfung muss ohne Treffer laufen: `users` importiert `auth/session.entity` (nur die Entity), `auth` importiert `users`-Dienste.
@@ -3504,7 +3504,7 @@ Die Anmeldeseite muss vor der Anmeldung wissen, ob sie „Registrieren“ zeigen
   - `AuthService.publicConfig(): Promise<AuthConfigDto>`: `onboarding` ist wahr, solange kein Konto existiert; `signupEnabled` ist `onboarding || ENABLE_SIGNUP` (das erste Konto geht immer, siehe `registerSelf`)
   - Route `GET /api/auth/config` (`@Public()`, 200, Operation-ID `authConfig`)
 
-- [ ] **Step 1: Fehlschlagenden Test schreiben**
+- [x] **Step 1: Fehlschlagenden Test schreiben**
 
 `apps/api/src/auth/auth-config.db.spec.ts`:
 
@@ -3572,7 +3572,7 @@ describe('public auth config (database)', () => {
 Run: `pnpm --filter @owui/api exec vitest run --config vitest.db.config.ts src/auth/auth-config.db.spec.ts`
 Expected: FAIL (404).
 
-- [ ] **Step 2: Implementieren**
+- [x] **Step 2: Implementieren**
 
 In `apps/api/src/users/users.service.ts` neben `list()` ergänzen:
 
@@ -3620,7 +3620,7 @@ In `apps/api/src/auth/auth.controller.ts` ergänzen (Import `AuthConfigDto`):
   }
 ```
 
-- [ ] **Step 3: Test grün sehen, `pnpm check`, Commit**
+- [x] **Step 3: Test grün sehen, `pnpm check`, Commit**
 
 Run: `pnpm --filter @owui/api exec vitest run --config vitest.db.config.ts src/auth/auth-config.db.spec.ts && pnpm check`
 Expected: PASS und grün.
@@ -3644,7 +3644,7 @@ git commit -m "feat(api): expose public auth config for the sign-in page" -m "Co
   - DTOs `CreateUserDto { email; name; password; role: UserRole }`, `UpdateUserDto { name?; role?; disabled? }`, `SetUserPasswordDto { password }`
   - Routen (alle `@Roles(USER_ROLE.ADMIN)`, damit per Guard nur mit Session erreichbar): `GET /api/users` (200, `UserDto[]`), `POST /api/users` (201, `UserDto`), `PATCH /api/users/:id` (200, `UserDto`), `POST /api/users/:id/password` (204), `DELETE /api/users/:id` (204)
 
-- [ ] **Step 1: Fehlschlagenden Test schreiben**
+- [x] **Step 1: Fehlschlagenden Test schreiben**
 
 `apps/api/src/users/users.db.spec.ts`:
 
@@ -3963,12 +3963,12 @@ describe('users admin routes (database)', () => {
 });
 ```
 
-- [ ] **Step 2: Test laufen lassen, Fehlschlag sehen**
+- [x] **Step 2: Test laufen lassen, Fehlschlag sehen**
 
 Run: `pnpm --filter @owui/api exec vitest run --config vitest.db.config.ts src/users/users.db.spec.ts`
 Expected: FAIL (alle `/api/users`-Routen liefern 404, weil der Controller fehlt).
 
-- [ ] **Step 3: DTOs ergänzen**
+- [x] **Step 3: DTOs ergänzen**
 
 In `apps/api/src/users/users.dto.ts` die Importe ersetzen und ans Ende anhängen:
 
@@ -4047,7 +4047,7 @@ export class SetUserPasswordDto {
 
 (`ApiProperty` und die Importe von `User`/`USER_ROLE`/`UserRole` standen schon in der Datei aus Task 7; die Importzeile oben ersetzt den alten Block, damit nichts doppelt steht.)
 
-- [ ] **Step 4: Controller schreiben und eintragen**
+- [x] **Step 4: Controller schreiben und eintragen**
 
 `apps/api/src/users/users.controller.ts`:
 
@@ -4149,12 +4149,12 @@ export class UsersController {
 
 In `apps/api/src/users/users.module.ts` den Controller eintragen (`import { UsersController } from './users.controller.js';` und `controllers: [UsersController],` vor `providers`).
 
-- [ ] **Step 5: Test laufen lassen, grün sehen**
+- [x] **Step 5: Test laufen lassen, grün sehen**
 
 Run: `pnpm --filter @owui/api exec vitest run --config vitest.db.config.ts src/users/users.db.spec.ts`
 Expected: PASS. Stolpersteine: (a) `UsersService.update` muss `name` trimmen lassen? Nein, das erledigt `trimTransform` im DTO; (b) das `Promise.all`-Rennen ergibt je nach Reihenfolge `[200, 409]` oder `[409, 200]`, daher das Sortieren.
 
-- [ ] **Step 6: `pnpm check` und Commit**
+- [x] **Step 6: `pnpm check` und Commit**
 
 Run: `pnpm check`
 Expected: grün.
@@ -4179,7 +4179,7 @@ git commit -m "feat(api): add admin user management routes" -m "Co-Authored-By: 
   - `ApiKeyManagementService`: `list(userId: string): Promise<ApiKey[]>`, `create(userId: string, input: { name: string; expiresInDays?: number }): Promise<CreatedApiKey>`, `revoke(userId: string, id: string): Promise<void>` (alle werfen `NotFoundException`, solange `ENABLE_API_KEYS` aus ist; `revoke` wirft sie auch für fremde, unbekannte und schon widerrufene Keys)
   - Routen (alle `@SessionOnly()`): `GET /api/auth/api-keys` (200), `POST /api/auth/api-keys` (201, Klartext-Key genau einmal), `DELETE /api/auth/api-keys/:id` (204)
 
-- [ ] **Step 1: Fehlschlagenden Test schreiben**
+- [x] **Step 1: Fehlschlagenden Test schreiben**
 
 `apps/api/src/auth/api-keys.db.spec.ts`:
 
@@ -4402,12 +4402,12 @@ describe('api keys (database)', () => {
 });
 ```
 
-- [ ] **Step 2: Test laufen lassen, Fehlschlag sehen**
+- [x] **Step 2: Test laufen lassen, Fehlschlag sehen**
 
 Run: `pnpm --filter @owui/api exec vitest run --config vitest.db.config.ts src/auth/api-keys.db.spec.ts`
 Expected: FAIL (Routen fehlen: 404 statt 201/200).
 
-- [ ] **Step 3: DTOs, Dienst und Controller schreiben**
+- [x] **Step 3: DTOs, Dienst und Controller schreiben**
 
 `apps/api/src/auth/api-keys.dto.ts`:
 
@@ -4588,12 +4588,12 @@ export class ApiKeysController {
 
 In `apps/api/src/auth/auth.module.ts` ergänzen: Importe `ApiKeyManagementService`, `ApiKeysController`; `controllers: [AuthController, ApiKeysController]`; `ApiKeyManagementService` in `providers`.
 
-- [ ] **Step 4: Test laufen lassen, grün sehen**
+- [x] **Step 4: Test laufen lassen, grün sehen**
 
 Run: `pnpm --filter @owui/api exec vitest run --config vitest.db.config.ts src/auth`
 Expected: PASS (auch die früheren DB-Tests im Ordner). Stolperstein: `ApiKey.createdAt` muss ein `Date` sein (Entity aus Task 2 mit `@CreateDateColumn`); `save` liefert es nach dem Insert.
 
-- [ ] **Step 5: `pnpm check` und Commit**
+- [x] **Step 5: `pnpm check` und Commit**
 
 Run: `pnpm check`
 Expected: grün.
@@ -4615,7 +4615,7 @@ git commit -m "feat(api): add api key management for signed-in users" -m "Co-Aut
 - Consumes: `UsersService.bootstrapAdmin` (Task 6), `PasswordHasher`, `Env.ADMIN_EMAIL`/`ADMIN_PASSWORD`/`ADMIN_NAME` (Task 1), `createDbTestApp(..., { resetUsers })` (Task 7).
 - Produces: `AdminBootstrapService` (`OnApplicationBootstrap`): legt beim Start den Admin aus `ADMIN_EMAIL` und `ADMIN_PASSWORD` an, **nur wenn kein Nutzer existiert**. Name: `ADMIN_NAME`, sonst `Admin`. Ein Fehler beim Anlegen bricht den Start ab (fail fast).
 
-- [ ] **Step 1: Fehlschlagenden Test schreiben**
+- [x] **Step 1: Fehlschlagenden Test schreiben**
 
 `apps/api/src/users/admin-bootstrap.db.spec.ts`:
 
@@ -4720,12 +4720,12 @@ describe('admin from the environment (database)', () => {
 });
 ```
 
-- [ ] **Step 2: Test laufen lassen, Fehlschlag sehen**
+- [x] **Step 2: Test laufen lassen, Fehlschlag sehen**
 
 Run: `pnpm --filter @owui/api exec vitest run --config vitest.db.config.ts src/users/admin-bootstrap.db.spec.ts`
 Expected: FAIL (es wird kein Admin angelegt, die Anmeldung liefert 401).
 
-- [ ] **Step 3: Dienst schreiben und eintragen**
+- [x] **Step 3: Dienst schreiben und eintragen**
 
 `apps/api/src/users/admin-bootstrap.service.ts`:
 
@@ -4775,12 +4775,12 @@ export class AdminBootstrapService implements OnApplicationBootstrap {
 
 In `apps/api/src/users/users.module.ts`: `import { AdminBootstrapService } from './admin-bootstrap.service.js';` und `AdminBootstrapService` in `providers` ergänzen (nicht in `exports`).
 
-- [ ] **Step 4: Test laufen lassen, grün sehen**
+- [x] **Step 4: Test laufen lassen, grün sehen**
 
 Run: `pnpm --filter @owui/api exec vitest run --config vitest.db.config.ts src/users`
 Expected: PASS. Stolpersteine: (a) der Log-Test verlangt, dass wenigstens eine Logzeile entstand (`written.length > 0`): die Zeile "Created the first admin" liefert das; (b) `Logger.prototype.log` ist die Methode der Nest-Klasse; ruft der Dienst eine andere Logger-Klasse auf (etwa `nestjs-pino`), den Spion dort setzen.
 
-- [ ] **Step 5: `pnpm check` und Commit**
+- [x] **Step 5: `pnpm check` und Commit**
 
 Run: `pnpm check`
 Expected: grün.
@@ -4802,7 +4802,7 @@ git commit -m "feat(api): create the first admin from ADMIN_* on an empty databa
 - Consumes: `UsersModule`, `AuthModule` (Task 7), `Public` (Task 5).
 - Produces: `AppModule` importiert beide Module; `GET /api/health/live` und `/ready` bleiben ohne Anmeldung erreichbar (`@Public()`); der OpenAPI-Vertrag enthält alle neuen Routen mit stabilen Operation-IDs (`authSignup`, `authLogin`, `authLogout`, `authMe`, `authConfig`, `authChangePassword`, `apiKeysList`, `apiKeysCreate`, `apiKeysRevoke`, `usersList`, `usersCreate`, `usersUpdate`, `usersSetPassword`, `usersRemove`).
 
-- [ ] **Step 1: Fehlschlagende Tests schreiben**
+- [x] **Step 1: Fehlschlagende Tests schreiben**
 
 `apps/api/src/app.module.spec.ts`:
 
@@ -4882,18 +4882,18 @@ Importe oben ergänzen: `ApiKeyManagementService` (`../auth/api-key-management.s
 Run: `pnpm --filter @owui/api exec vitest run src/app.module.spec.ts src/openapi`
 Expected: FAIL (AppModule kennt die Module noch nicht).
 
-- [ ] **Step 2: Einbinden**
+- [x] **Step 2: Einbinden**
 
 `apps/api/src/app.module.ts`: Importe `AuthModule` (`./auth/auth.module.js`) und `UsersModule` (`./users/users.module.js`) ergänzen und in `imports` nach `AuditModule` eintragen: `AuditModule, UsersModule, AuthModule, HealthModule`. Die Reihenfolge ist wichtig: `SecurityModule` steht vor `AuthModule`, damit Throttler und Origin-Prüfung vor dem `AuthGuard` laufen.
 
 `apps/api/src/health/health.controller.ts`: Import `import { Public } from '../auth/decorators.js';` und `@Public()` über `@SkipThrottle()` an die Klasse setzen (Liveness und Readiness müssen für Docker und Caddy ohne Anmeldung antworten).
 
-- [ ] **Step 3: Tests laufen lassen**
+- [x] **Step 3: Tests laufen lassen**
 
 Run: `pnpm --filter @owui/api exec vitest run`
 Expected: PASS.
 
-- [ ] **Step 4: Vertrag und Client erzeugen**
+- [x] **Step 4: Vertrag und Client erzeugen**
 
 Run: `pnpm openapi`
 Expected: `apps/api/openapi.json` und `apps/web/src/api/generated/**` ändern sich (neue Modelle und Hooks). Danach `git diff --stat` ansehen: es dürfen nur diese Pfade betroffen sein.
@@ -4901,7 +4901,7 @@ Expected: `apps/api/openapi.json` und `apps/web/src/api/generated/**` ändern si
 Run: `pnpm check`
 Expected: grün (der Web-Typecheck bleibt grün, weil nur Dateien dazukommen).
 
-- [ ] **Step 5: Alle Tests, Commit**
+- [x] **Step 5: Alle Tests, Commit**
 
 Run: `pnpm test && pnpm db:up && pnpm test:db`
 Expected: alle grün.
@@ -4923,7 +4923,7 @@ git commit -m "feat(api): wire auth and users into the app and publish the contr
 - Consumes: laufender Stack (`docker compose up -d --build --wait`).
 - Produces: Beleg `docs/dod/01-auth-backend.md`; aktualisierte Docs.
 
-- [ ] **Step 1: Smoke-Test erweitern**
+- [x] **Step 1: Smoke-Test erweitern**
 
 In `scripts/smoke.mjs` vor dem Block `if (failures.length > 0)` ergänzen (die Prüfungen verändern keine Daten):
 
@@ -4955,7 +4955,7 @@ check(
 );
 ```
 
-- [ ] **Step 2: Stack starten, Smoke-Test und Handprobe**
+- [x] **Step 2: Stack starten, Smoke-Test und Handprobe**
 
 Run: `docker compose up -d --build --wait && node scripts/smoke.mjs`
 Expected: `smoke test passed`.
@@ -4973,7 +4973,7 @@ curl -s -o /dev/null -w '%{http_code}\n' -b "$JAR" "${H[@]}" -X POST "$B/api/aut
 
 Expected: erste Antwort enthält `"role":"admin"` und ein `csrfToken`; `me` liefert denselben Nutzer; der Logout ohne `X-CSRF-Token` liefert `403`. Mit `-H "X-CSRF-Token: <Wert aus signup>"` liefert er `204`, danach liefert `me` `401`. Danach `docker compose down -v`.
 
-- [ ] **Step 3: Docs aktualisieren**
+- [x] **Step 3: Docs aktualisieren**
 
 - `docs/THREAT-MODEL.md`: In der Tabelle die Zeile "Konto-Übernahme, Brute Force" ergänzen um "Cookie `httpOnly`/`SameSite=Lax`, Token nur als SHA-256, CSRF-Header (1)" und neue Zeilen anfügen:
   - Spoofing: "Gestohlener Session-Cookie oder Key" mit "Session und Key sofort widerrufbar, Sperren/Löschen/Passwortwechsel löschen Sessions, Keys nur als Hash (1)".
@@ -4984,7 +4984,7 @@ Expected: erste Antwort enthält `"role":"admin"` und ein `csrfToken`; `me` lief
 - `docs/PLAN.md`: Teilprojekt 1 auf "Backend fertig (1a), Web offen (1b), Plan: [1a](superpowers/plans/2026-10-09-teilprojekt-1a-auth-backend.md), Beleg: [DoD](dod/01-auth-backend.md)" setzen; "Als Nächstes" Punkt 1 auf "Plan 1b (Web) umsetzen".
 - `README.md`: falls es einen Abschnitt zu Umgebungsvariablen gibt, die neuen Variablen aus `.env.example` (`ENABLE_SIGNUP`, `DEFAULT_USER_ROLE`, `ENABLE_API_KEYS`, `SESSION_LIFETIME_HOURS`, `LOGIN_MAX_ATTEMPTS`, `LOGIN_WINDOW_SECONDS`, `ADMIN_*`) in einem Satz verweisen: "Konfiguration: siehe `.env.example`". Gibt es keinen solchen Abschnitt, nichts ändern.
 
-- [ ] **Step 4: Beleg schreiben**
+- [x] **Step 4: Beleg schreiben**
 
 `docs/dod/01-auth-backend.md` nach dem Muster von [DoD 00](../../dod/00-fundament.md) anlegen, mit den echten Zahlen aus den Läufen von Task 11 Step 5 (Anzahl der API-, DB- und Web-Tests aus der Vitest-Ausgabe):
 
@@ -4996,12 +4996,12 @@ Expected: erste Antwort enthält `"role":"admin"` und ein `csrfToken`; `me` lief
 - [x] Invarianten: jede Route außer `@Public()` geschlossen; Rolle aus der DB; Keys nie auf Admin-/Key-Routen und nie für `pending`; Passwörter Argon2id, Sessions und Keys nur als SHA-256; keine Geheimnisse in Logs und Audit
 - [x] Betrieb: `docker compose up` grün, Smoke-Test inklusive Auth-Prüfungen, Handprobe (Signup, `me`, Logout mit und ohne CSRF-Header)
 - [x] Docs: PLAN, BACKLOG, THREAT-MODEL, Spec aktualisiert
-- [ ] Offen: Web (Teilprojekt 1b), siehe docs/BACKLOG.md
+- [x] Offen: Web (Teilprojekt 1b), siehe docs/BACKLOG.md
 ```
 
 Die spitzen Klammern durch die gemessenen Zahlen ersetzen, bevor die Datei committet wird.
 
-- [ ] **Step 5: Plan abhaken, Commit, Push, CI**
+- [x] **Step 5: Plan abhaken, Commit, Push, CI**
 
 In diesem Plan alle erledigten Schritte mit `- [x]` markieren.
 
