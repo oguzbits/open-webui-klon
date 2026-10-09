@@ -15,6 +15,8 @@ statt Redis (ab Teilprojekt 3); Vercel AI SDK für Modellanbieter; DTOs mit clas
 Orval-generierter Client; React, Vite, Tailwind, shadcn/ui, TanStack Query, react-i18next; ESLint + Prettier;
 Vitest; OpenTelemetry; Caddy als Reverse Proxy im Web-Image.
 
+Modulsystem: ESM (`"type": "module"`, `nodenext`, Importe mit `.js`-Endung), weil das Nest-12-Gerüst so erzeugt wird.
+
 ## Folgen
 
 - Weniger bewegliche Teile (kein Redis, kein WebSocket-Gateway).
