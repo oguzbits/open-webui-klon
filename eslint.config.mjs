@@ -65,9 +65,16 @@ export default defineConfig(
       'no-restricted-imports': [
         'error',
         {
-          paths: ['axios', 'node-fetch', 'got', 'undici', 'node:https', 'https'].map((name) => ({
+          paths: [
+            'axios',
+            'node-fetch',
+            'got',
+            'undici',
+            ...['http', 'https', 'http2', 'net', 'tls'].flatMap((name) => [name, `node:${name}`]),
+          ].map((name) => ({
             name,
             message: 'Use SafeFetchService (src/http/safe-fetch) for outgoing requests.',
+            allowTypeImports: true,
           })),
           patterns: [],
         },
@@ -81,6 +88,16 @@ export default defineConfig(
             message: 'Use SafeFetchService for outgoing requests.',
           }))
         ),
+        {
+          object: 'globalThis',
+          property: 'fetch',
+          message: 'Use SafeFetchService for outgoing requests.',
+        },
+        {
+          object: 'process',
+          property: 'env',
+          message: 'Read configuration through config/env.ts (validated, typed).',
+        },
       ],
     },
   },
@@ -92,6 +109,11 @@ export default defineConfig(
       '@typescript-eslint/no-unsafe-member-access': 'off',
       '@typescript-eslint/no-unsafe-assignment': 'off',
     },
+  },
+  {
+    // The two places that read the process environment: validation and the Nest config module.
+    files: ['apps/api/src/config/env.ts', 'apps/api/src/config/app-config.module.ts'],
+    rules: { 'no-restricted-properties': 'off' },
   },
   {
     // The one place that is allowed to open outgoing connections.

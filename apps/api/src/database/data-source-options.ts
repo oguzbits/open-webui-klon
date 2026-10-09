@@ -11,6 +11,8 @@ export function buildDataSourceOptions(url: string): DataSourceOptions {
     migrations: MIGRATIONS,
     synchronize: false,
     migrationsRun: false,
-    logging: ['error', 'warn'],
+    // The TypeORM console logger prints failed queries with their parameters (user content), past pino's
+    // redaction. Failures surface as thrown errors and are logged through serializeError.
+    logging: false,
   };
 }

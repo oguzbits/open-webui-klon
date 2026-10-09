@@ -5,6 +5,7 @@ import { LoggerModule } from 'nestjs-pino';
 import type { Env } from '../config/env.js';
 import { REDACT_CENSOR, REDACT_PATHS } from './redact.js';
 import { generateRequestId } from './request-id.js';
+import { serializeError } from './serialize-error.js';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { generateRequestId } from './request-id.js';
           redact: { paths: REDACT_PATHS, censor: REDACT_CENSOR },
           // Log method and path only: query strings can carry tokens.
           serializers: {
+            err: serializeError,
             req: (req: { id: string; method: string; url?: string }) => ({
               id: req.id,
               method: req.method,

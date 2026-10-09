@@ -24,6 +24,8 @@ module.exports = {
   ],
   options: {
     doNotFollow: { path: 'node_modules' },
+    // Resolves the web app's "@/" alias; without it those imports are invisible to every rule.
+    webpackConfig: { fileName: 'config/depcruise-resolve.cjs' },
     tsPreCompilationDeps: true,
     exclude: { path: '(^|/)(dist|coverage|generated)/' },
   },

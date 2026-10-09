@@ -1,5 +1,6 @@
 import { type ArgumentsHost, Catch, type ExceptionFilter, HttpException } from '@nestjs/common';
 import type { Request, Response } from 'express';
+// eslint-disable-next-line no-restricted-imports -- STATUS_CODES is a lookup table, no connection is opened
 import { STATUS_CODES } from 'node:http';
 import { PinoLogger } from 'nestjs-pino';
 
