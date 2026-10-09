@@ -74,6 +74,7 @@ Session; `GET /auth/me` ist die einzige Route außer Logout, die `pending` errei
 | `POST /auth/login`          | `@Public()`, Rate Limit  | Rotiert die Session. Einheitliche Antwort und Dauer bei unbekannter E-Mail (Dummy-Hash).                                   |
 | `POST /auth/logout`         | Session                  | Löscht die Session-Zeile, löscht das Cookie.                                                                               |
 | `GET /auth/me`              | Session (auch `pending`) | Nutzer, Rolle und `csrfToken`.                                                                                             |
+| `GET /auth/config`          | `@Public()`              | `signupEnabled`, `onboarding` (noch kein Konto), `apiKeysEnabled`; die Anmeldeseite braucht sie vor der Anmeldung.         |
 | `POST /auth/password`       | Session                  | Altes Passwort prüfen; löscht alle anderen Sessions des Nutzers.                                                           |
 | `GET/POST/DELETE /auth/api-keys` | Session, `ENABLE_API_KEYS` | Eigene Keys listen, anlegen (Klartext einmalig in der Antwort), widerrufen. Nie per API-Key erreichbar.               |
 

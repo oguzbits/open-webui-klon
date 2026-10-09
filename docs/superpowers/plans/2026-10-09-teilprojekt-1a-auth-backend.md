@@ -3488,6 +3488,150 @@ git commit -m "feat(api): add signup, login, logout, password change and session
 
 ---
 
+### Task 7b: Öffentliche Konfiguration (`GET /auth/config`)
+
+Die Anmeldeseite muss vor der Anmeldung wissen, ob sie „Registrieren“ zeigen darf und ob das erste Konto noch fehlt (Open WebUI liefert dafür `/api/config`). Ohne diese Route könnte das Web (Plan 1b) nur raten.
+
+**Files:**
+- Modify: `apps/api/src/users/users.service.ts`, `apps/api/src/auth/auth.dto.ts`, `apps/api/src/auth/auth.service.ts`, `apps/api/src/auth/auth.controller.ts`
+- Create: `apps/api/src/auth/auth-config.db.spec.ts`
+
+**Interfaces:**
+- Consumes: `AuthService`, `UsersService`, `Env.ENABLE_SIGNUP`, `Env.ENABLE_API_KEYS`.
+- Produces:
+  - `UsersService.hasAnyUser(): Promise<boolean>`
+  - `AuthConfigDto { signupEnabled: boolean; onboarding: boolean; apiKeysEnabled: boolean }`
+  - `AuthService.publicConfig(): Promise<AuthConfigDto>`: `onboarding` ist wahr, solange kein Konto existiert; `signupEnabled` ist `onboarding || ENABLE_SIGNUP` (das erste Konto geht immer, siehe `registerSelf`)
+  - Route `GET /api/auth/config` (`@Public()`, 200, Operation-ID `authConfig`)
+
+- [ ] **Step 1: Fehlschlagenden Test schreiben**
+
+`apps/api/src/auth/auth-config.db.spec.ts`:
+
+```ts
+import type { NestExpressApplication } from '@nestjs/platform-express';
+import request from 'supertest';
+import { afterEach, describe, expect, it } from 'vitest';
+
+import { testDatabaseUrl } from '../../test/db-global-setup.js';
+import { createDbTestApp } from '../testing/create-db-test-app.js';
+import { type Http, signupUser } from '../testing/http-session.js';
+
+describe('public auth config (database)', () => {
+  let app: NestExpressApplication;
+
+  afterEach(async () => {
+    await app.close();
+  });
+
+  async function start(env: Record<string, string> = {}): Promise<Http> {
+    app = await createDbTestApp(testDatabaseUrl(), env);
+    return request(app.getHttpServer());
+  }
+
+  it('answers without a login, sets no cookie and exposes exactly three flags', async () => {
+    const http = await start();
+
+    const response = await http.get('/api/auth/config').expect(200);
+
+    expect(Object.keys(response.body).sort()).toEqual(['apiKeysEnabled', 'onboarding', 'signupEnabled']);
+    expect(response.headers['set-cookie']).toBeUndefined();
+  });
+
+  it('asks for the first account while none exists, even with sign-up switched off', async () => {
+    const http = await start({ ENABLE_SIGNUP: 'false' });
+
+    const response = await http.get('/api/auth/config').expect(200);
+
+    expect(response.body).toEqual({ onboarding: true, signupEnabled: true, apiKeysEnabled: false });
+  });
+
+  it('follows ENABLE_SIGNUP once an account exists', async () => {
+    const closed = await start({ ENABLE_SIGNUP: 'false' });
+    await signupUser(closed, { email: 'ada@example.com' });
+    const afterClosed = await closed.get('/api/auth/config').expect(200);
+    expect(afterClosed.body).toMatchObject({ onboarding: false, signupEnabled: false });
+    await app.close();
+
+    const open = await start();
+    await signupUser(open, { email: 'ada@example.com' });
+    const afterOpen = await open.get('/api/auth/config').expect(200);
+    expect(afterOpen.body).toMatchObject({ onboarding: false, signupEnabled: true });
+  });
+
+  it('reports whether API keys are switched on', async () => {
+    const http = await start({ ENABLE_API_KEYS: 'true' });
+
+    const response = await http.get('/api/auth/config').expect(200);
+
+    expect(response.body.apiKeysEnabled).toBe(true);
+  });
+});
+```
+
+Run: `pnpm --filter @owui/api exec vitest run --config vitest.db.config.ts src/auth/auth-config.db.spec.ts`
+Expected: FAIL (404).
+
+- [ ] **Step 2: Implementieren**
+
+In `apps/api/src/users/users.service.ts` neben `list()` ergänzen:
+
+```ts
+  async hasAnyUser(): Promise<boolean> {
+    return this.dataSource.getRepository(User).exists();
+  }
+```
+
+(`Repository.exists()` ist in TypeORM 1.x vorhanden; fehlt es, `(await repository.count()) > 0` verwenden.)
+
+In `apps/api/src/auth/auth.dto.ts` ergänzen:
+
+```ts
+export class AuthConfigDto {
+  /** The sign-up form may be shown. Always true while no account exists. */
+  signupEnabled!: boolean;
+  /** No account exists yet: the next sign-up becomes the admin. */
+  onboarding!: boolean;
+  apiKeysEnabled!: boolean;
+}
+```
+
+In `apps/api/src/auth/auth.service.ts` ergänzen (Import `AuthConfigDto` aus `./auth.dto.js`):
+
+```ts
+  async publicConfig(): Promise<AuthConfigDto> {
+    const onboarding = !(await this.users.hasAnyUser());
+    return {
+      onboarding,
+      signupEnabled: onboarding || this.config.get('ENABLE_SIGNUP', { infer: true }),
+      apiKeysEnabled: this.config.get('ENABLE_API_KEYS', { infer: true }),
+    };
+  }
+```
+
+In `apps/api/src/auth/auth.controller.ts` ergänzen (Import `AuthConfigDto`):
+
+```ts
+  @Public()
+  @Get('config')
+  @ApiOkResponse({ type: AuthConfigDto })
+  config(): Promise<AuthConfigDto> {
+    return this.auth.publicConfig();
+  }
+```
+
+- [ ] **Step 3: Test grün sehen, `pnpm check`, Commit**
+
+Run: `pnpm --filter @owui/api exec vitest run --config vitest.db.config.ts src/auth/auth-config.db.spec.ts && pnpm check`
+Expected: PASS und grün.
+
+```bash
+git add apps/api/src
+git commit -m "feat(api): expose public auth config for the sign-in page" -m "Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>"
+```
+
+---
+
 ### Task 8: Nutzerverwaltung (`/users`, nur Admin, nur Session)
 
 **Files:**
@@ -4656,7 +4800,7 @@ git commit -m "feat(api): create the first admin from ADMIN_* on an empty databa
 
 **Interfaces:**
 - Consumes: `UsersModule`, `AuthModule` (Task 7), `Public` (Task 5).
-- Produces: `AppModule` importiert beide Module; `GET /api/health/live` und `/ready` bleiben ohne Anmeldung erreichbar (`@Public()`); der OpenAPI-Vertrag enthält alle neuen Routen mit stabilen Operation-IDs (`authSignup`, `authLogin`, `authLogout`, `authMe`, `authChangePassword`, `apiKeysList`, `apiKeysCreate`, `apiKeysRevoke`, `usersList`, `usersCreate`, `usersUpdate`, `usersSetPassword`, `usersRemove`).
+- Produces: `AppModule` importiert beide Module; `GET /api/health/live` und `/ready` bleiben ohne Anmeldung erreichbar (`@Public()`); der OpenAPI-Vertrag enthält alle neuen Routen mit stabilen Operation-IDs (`authSignup`, `authLogin`, `authLogout`, `authMe`, `authConfig`, `authChangePassword`, `apiKeysList`, `apiKeysCreate`, `apiKeysRevoke`, `usersList`, `usersCreate`, `usersUpdate`, `usersSetPassword`, `usersRemove`).
 
 - [ ] **Step 1: Fehlschlagende Tests schreiben**
 
@@ -4716,6 +4860,7 @@ In `apps/api/src/openapi/build-document.spec.ts` einen zweiten Test ergänzen (I
         'post /api/auth/login authLogin',
         'post /api/auth/logout authLogout',
         'get /api/auth/me authMe',
+        'get /api/auth/config authConfig',
         'post /api/auth/password authChangePassword',
         'get /api/auth/api-keys apiKeysList',
         'post /api/auth/api-keys apiKeysCreate',
@@ -4792,6 +4937,12 @@ check(
 
 const anonymousUsers = await fetch(`${BASE_URL}/api/users`);
 check('anonymous /users answers 401', anonymousUsers.status === 401);
+
+const authConfig = await fetch(`${BASE_URL}/api/auth/config`);
+check(
+  'public auth config answers 200 without a login',
+  authConfig.status === 200 && 'signupEnabled' in (await authConfig.json())
+);
 
 const badSignup = await fetch(`${BASE_URL}/api/auth/signup`, {
   method: 'POST',
