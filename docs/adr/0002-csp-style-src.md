@@ -20,6 +20,11 @@ sind blockiert; erlaubt ist genau das eine Element mit diesem Hash. `style`-Attr
 
 - Ein Angreifer mit HTML-Injection kann Aussehen verändern (zum Beispiel Inhalte überdecken), aber keine
   Skripte ausführen.
+- Der Text des Elements enthält die Breite der Dokument-Scrollleiste (`margin-right: 15px`), der Hash gilt also
+  nur ohne Scrollleiste am Dokument. Deshalb scrollt in `AppLayout` nur der Inhaltsbereich (`h-svh`,
+  `overflow-y-auto` am `main`), nie das Dokument; ein Test sichert das. Eine neue Seite außerhalb von
+  `AppLayout`, die Dialoge öffnet und das Dokument scrollen lässt, hätte den Fehler wieder (Fund der
+  Browser-Prüfung in Teilprojekt 1b).
 - Ändert ein Update von `react-remove-scroll-bar` den Inhalt des Elements, ändert sich der Hash: die Konsole
   meldet dieselbe Verletzung, das mobile Menü funktioniert dann ohne Scroll-Sperre. Den neuen Hash nennt die
   Konsolenmeldung; er wird im `Caddyfile` ersetzt.

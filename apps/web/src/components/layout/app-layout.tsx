@@ -66,7 +66,9 @@ export function AppLayout() {
   const { t } = useTranslation();
   const user = useCurrentUser();
   return (
-    <SidebarProvider>
+    // Only the content area scrolls, never the document: the CSP hash for the dialog scroll lock
+    // only matches without a document scrollbar (docs/adr/0002-csp-style-src.md).
+    <SidebarProvider className="h-svh min-h-0 overflow-hidden">
       <a
         href="#content"
         className="bg-background sr-only focus:not-sr-only focus:absolute focus:z-50 focus:p-2"
@@ -107,7 +109,7 @@ export function AppLayout() {
         <UserFooter />
       </Sidebar>
       {/* SidebarInset renders the main landmark. */}
-      <SidebarInset>
+      <SidebarInset className="min-h-0 overflow-y-auto">
         <header className="flex h-14 items-center gap-2 border-b px-4">
           <SidebarToggle />
           <div className="ml-auto">

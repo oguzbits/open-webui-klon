@@ -36,6 +36,18 @@ describe('app routing and layout', () => {
     );
   });
 
+  it('scrolls inside the content area and never the document, so dialogs add no scrollbar gap', async () => {
+    // The CSP allows exactly one scroll-lock <style> (docs/adr/0002-csp-style-src.md). Its text contains the
+    // width of the document scrollbar, so the hash only matches while the document itself does not scroll.
+    stubSignedIn();
+    const { container } = renderApp('/');
+    await screen.findByRole('heading', { name: 'Willkommen' });
+
+    const wrapper = container.querySelector('[data-slot="sidebar-wrapper"]');
+    expect(wrapper).toHaveClass('h-svh', 'min-h-0', 'overflow-hidden');
+    expect(screen.getByRole('main')).toHaveClass('min-h-0', 'overflow-y-auto');
+  });
+
   it('answers an unknown address with a friendly page and a way back', async () => {
     stubSignedIn();
 
