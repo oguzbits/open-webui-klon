@@ -1,6 +1,24 @@
 import 'reflect-metadata';
 import { plainToInstance, Transform, Type } from 'class-transformer';
-import { IsArray, IsIn, IsInt, IsOptional, Matches, Max, Min, validateSync } from 'class-validator';
+import {
+  IsArray,
+  IsBoolean,
+  IsEmail,
+  IsIn,
+  IsInt,
+  IsOptional,
+  IsString,
+  Matches,
+  Max,
+  MaxLength,
+  Min,
+  MinLength,
+  validateSync,
+  ValidateIf,
+} from 'class-validator';
+
+import { PASSWORD_MAX_LENGTH, PASSWORD_MIN_LENGTH } from '../users/password-policy.js';
+import { USER_ROLE } from '../users/user-role.js';
 
 export const NODE_ENV = {
   DEVELOPMENT: 'development',
@@ -27,6 +45,16 @@ const HTTP_URL_PATTERN = /^https?:\/\/\S+$/;
 
 function emptyToUndefined({ value }: { value: unknown }): unknown {
   return value === '' ? undefined : value;
+}
+
+function toBoolean({ value }: { value: unknown }): unknown {
+  if (value === 'true') return true;
+  if (value === 'false') return false;
+  return value;
+}
+
+function adminIsConfigured(env: Env): boolean {
+  return env.ADMIN_EMAIL !== undefined || env.ADMIN_PASSWORD !== undefined;
 }
 
 function splitList({ value }: { value: unknown }): unknown {
@@ -89,6 +117,52 @@ export class Env {
   @Min(0)
   @Max(60000)
   SHUTDOWN_DRAIN_MS = 5000;
+
+  @Transform(toBoolean)
+  @IsBoolean()
+  ENABLE_SIGNUP = true;
+
+  // "admin" is deliberately not allowed: the first account becomes admin on its own.
+  @IsIn([USER_ROLE.PENDING, USER_ROLE.USER])
+  DEFAULT_USER_ROLE: typeof USER_ROLE.PENDING | typeof USER_ROLE.USER = USER_ROLE.PENDING;
+
+  @Transform(toBoolean)
+  @IsBoolean()
+  ENABLE_API_KEYS = false;
+
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  @Max(8760)
+  SESSION_LIFETIME_HOURS = 168;
+
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  LOGIN_MAX_ATTEMPTS = 10;
+
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  LOGIN_WINDOW_SECONDS = 300;
+
+  @Transform(emptyToUndefined)
+  @ValidateIf(adminIsConfigured)
+  @IsEmail()
+  ADMIN_EMAIL?: string;
+
+  @Transform(emptyToUndefined)
+  @ValidateIf(adminIsConfigured)
+  @IsString()
+  @MinLength(PASSWORD_MIN_LENGTH)
+  @MaxLength(PASSWORD_MAX_LENGTH)
+  ADMIN_PASSWORD?: string;
+
+  @Transform(emptyToUndefined)
+  @IsOptional()
+  @IsString()
+  @MaxLength(100)
+  ADMIN_NAME?: string;
 
   @Transform(emptyToUndefined)
   @IsOptional()
