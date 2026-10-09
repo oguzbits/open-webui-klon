@@ -2,11 +2,13 @@ import { PanelLeft } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { NavLink, Outlet } from 'react-router';
 
+import { errorMessageKey } from '@/api/error-message';
 import { ThemeToggle } from '@/components/theme/theme-toggle';
 import { Button } from '@/components/ui/button';
 import {
   Sidebar,
   SidebarContent,
+  SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
   SidebarHeader,
@@ -17,6 +19,8 @@ import {
   SidebarProvider,
   useSidebar,
 } from '@/components/ui/sidebar';
+import { useCurrentUser } from '@/features/auth/session';
+import { useSignOut } from '@/features/auth/use-sign-out';
 
 // The generated SidebarTrigger has an English hidden label; this one is translated.
 function SidebarToggle() {
@@ -26,6 +30,34 @@ function SidebarToggle() {
     <Button variant="ghost" size="icon" onClick={toggleSidebar} aria-label={t('nav.toggle')}>
       <PanelLeft aria-hidden />
     </Button>
+  );
+}
+
+function UserFooter() {
+  const { t } = useTranslation();
+  const user = useCurrentUser();
+  const signOut = useSignOut();
+  return (
+    <SidebarFooter className="gap-2">
+      <p className="truncate px-2 text-sm" title={user.email}>
+        {user.name}
+      </p>
+      {signOut.isError && (
+        <p role="alert" className="text-destructive px-2 text-xs">
+          {t(errorMessageKey(signOut.error))}
+        </p>
+      )}
+      <Button
+        variant="outline"
+        size="sm"
+        disabled={signOut.isPending}
+        onClick={() => {
+          signOut.mutate();
+        }}
+      >
+        {signOut.isPending ? t('userMenu.signingOut') : t('userMenu.signOut')}
+      </Button>
+    </SidebarFooter>
   );
 }
 
@@ -58,6 +90,7 @@ export function AppLayout() {
             </SidebarGroupContent>
           </SidebarGroup>
         </SidebarContent>
+        <UserFooter />
       </Sidebar>
       {/* SidebarInset renders the main landmark. */}
       <SidebarInset>

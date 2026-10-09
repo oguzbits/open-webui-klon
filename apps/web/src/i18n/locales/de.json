@@ -68,6 +68,16 @@
       "invalid": "Bitte prüfe deine Eingaben."
     }
   },
+  "pending": {
+    "title": "Dein Konto wartet auf Freischaltung",
+    "body": "Hallo {{name}}, ein Administrator muss dein Konto noch freigeben. Danach kannst du loslegen.",
+    "check": "Status prüfen",
+    "checking": "Wird geprüft …"
+  },
+  "userMenu": {
+    "signOut": "Abmelden",
+    "signingOut": "Abmeldung läuft …"
+  },
   "home": {
     "title": "Willkommen",
     "intro": "Hier entsteht dein persönlicher Chat-Assistent."

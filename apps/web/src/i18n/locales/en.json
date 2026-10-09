@@ -68,6 +68,16 @@
       "invalid": "Please check your input."
     }
   },
+  "pending": {
+    "title": "Your account is waiting for approval",
+    "body": "Hello {{name}}, an administrator still has to approve your account. After that you can get started.",
+    "check": "Check status",
+    "checking": "Checking …"
+  },
+  "userMenu": {
+    "signOut": "Sign out",
+    "signingOut": "Signing out …"
+  },
   "home": {
     "title": "Welcome",
     "intro": "Your personal chat assistant will live here."
