@@ -15,6 +15,8 @@ export const BASE_TEST_ENV: Record<string, string> = {
   PUBLIC_ORIGIN: 'http://app.test',
   CORS_ORIGINS: 'http://dev.test',
   SHUTDOWN_DRAIN_MS: '0',
+  // 32 zero bytes: valid for tests, worthless as a secret.
+  PROVIDER_KEY_ENCRYPTION_KEYS: `test:${Buffer.alloc(32).toString('base64')}`,
 };
 
 export interface TestAppOptions {

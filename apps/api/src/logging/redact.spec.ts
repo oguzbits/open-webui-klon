@@ -27,12 +27,27 @@ describe('REDACT_PATHS', () => {
         },
         res: { headers: { 'set-cookie': 'sid=cookie-2' } },
         user: { password: 'pw-secret' },
+        connection: { apiKey: 'sk-provider-1', apiKeyCiphertext: 'v1.dev.iv.cipher-1' },
+        outgoing: {
+          authorization: 'Bearer sk-provider-2',
+          headers: { authorization: 'Bearer sk-provider-3' },
+        },
       },
       'request'
     );
 
     const output = lines.join('');
-    for (const secret of ['token-abc', 'cookie-1', 'cookie-2', 'key-123', 'pw-secret']) {
+    for (const secret of [
+      'token-abc',
+      'cookie-1',
+      'cookie-2',
+      'key-123',
+      'pw-secret',
+      'sk-provider-1',
+      'cipher-1',
+      'sk-provider-2',
+      'sk-provider-3',
+    ]) {
       expect(output).not.toContain(secret);
     }
     expect(output).toContain('text/plain');

@@ -17,7 +17,7 @@
     "migration:run": "node dist/database/migrate-cli.js",
     "migration:create": "typeorm migration:create",
     "migration:generate": "pnpm build && typeorm migration:generate -d dist/database/data-source.js",
-    "openapi": "DATABASE_URL=postgresql://openapi:openapi@localhost:5432/openapi node dist/openapi/generate.js"
+    "openapi": "DATABASE_URL=postgresql://openapi:openapi@localhost:5432/openapi PROVIDER_KEY_ENCRYPTION_KEYS=openapi:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= node dist/openapi/generate.js"
   },
   "dependencies": {
     "@ai-sdk/openai-compatible": "^3.0.62",

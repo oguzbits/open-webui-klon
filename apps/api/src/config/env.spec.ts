@@ -3,9 +3,13 @@ import { describe, expect, it } from 'vitest';
 import { USER_ROLE } from '../users/user-role.js';
 import { validateEnv } from './env.js';
 
+/** 32 zero bytes: a syntactically valid key for tests only. */
+const KEY_ENTRY = `test:${Buffer.alloc(32).toString('base64')}`;
+
 const VALID = {
   NODE_ENV: 'test',
   DATABASE_URL: 'postgresql://owui:secret@localhost:5432/owui',
+  PROVIDER_KEY_ENCRYPTION_KEYS: KEY_ENTRY,
 };
 
 describe('validateEnv', () => {
@@ -125,5 +129,85 @@ describe('validateEnv: auth settings', () => {
 
     expect(attempt).toThrow(/ADMIN_PASSWORD/);
     expect(attempt).not.toThrow(/tiny-s3cret/);
+  });
+});
+
+describe('validateEnv: provider settings', () => {
+  it('has safe defaults', () => {
+    const env = validateEnv(VALID);
+
+    expect(env.PROVIDER_KEY_ENCRYPTION_KEYS).toEqual([KEY_ENTRY]);
+    expect(env.PROVIDER_ALLOWED_HOSTS).toEqual([]);
+    expect(env.MODEL_LIST_CACHE_TTL_MS).toBe(30000);
+    expect(env.PROVIDER_REQUEST_TIMEOUT_MS).toBe(10000);
+  });
+
+  it('requires an encryption key', () => {
+    const without = Object.fromEntries(
+      Object.entries(VALID).filter(([name]) => name !== 'PROVIDER_KEY_ENCRYPTION_KEYS')
+    );
+
+    expect(() => validateEnv(without)).toThrow(/PROVIDER_KEY_ENCRYPTION_KEYS/);
+    expect(() => validateEnv({ ...VALID, PROVIDER_KEY_ENCRYPTION_KEYS: '' })).toThrow(
+      /PROVIDER_KEY_ENCRYPTION_KEYS/
+    );
+  });
+
+  it('accepts several keys, the first one encrypts', () => {
+    const second = `old:${Buffer.alloc(32, 1).toString('base64')}`;
+
+    const env = validateEnv({ ...VALID, PROVIDER_KEY_ENCRYPTION_KEYS: `${KEY_ENTRY}, ${second}` });
+
+    expect(env.PROVIDER_KEY_ENCRYPTION_KEYS).toEqual([KEY_ENTRY, second]);
+  });
+
+  it.each([
+    ['no key id', Buffer.alloc(32).toString('base64')],
+    ['a key of 31 bytes', `k:${Buffer.alloc(31).toString('base64')}`],
+    ['a key of 33 bytes', `k:${Buffer.alloc(33).toString('base64')}`],
+    ['a key id with a dot', `a.b:${Buffer.alloc(32).toString('base64')}`],
+    ['text instead of base64', 'k:not base64 at all, really not base64 at all!!'],
+  ])('rejects %s without echoing it', (_name, entry) => {
+    const attempt = () => validateEnv({ ...VALID, PROVIDER_KEY_ENCRYPTION_KEYS: entry });
+
+    expect(attempt).toThrow(/PROVIDER_KEY_ENCRYPTION_KEYS/);
+    expect(attempt).not.toThrow(new RegExp(entry.slice(0, 20).replace(/[+/]/g, '.')));
+  });
+
+  it('parses the allowed hosts as a list', () => {
+    const env = validateEnv({
+      ...VALID,
+      PROVIDER_ALLOWED_HOSTS: 'host.docker.internal, ollama ,localhost:11434,[::1]:11434',
+    });
+
+    expect(env.PROVIDER_ALLOWED_HOSTS).toEqual([
+      'host.docker.internal',
+      'ollama',
+      'localhost:11434',
+      '[::1]:11434',
+    ]);
+  });
+
+  it.each(['http://ollama', 'ollama/path', '*.example.com', 'ollama:99999x', 'a b'])(
+    'rejects %s as an allowed host',
+    (entry) => {
+      expect(() => validateEnv({ ...VALID, PROVIDER_ALLOWED_HOSTS: entry })).toThrow(
+        /PROVIDER_ALLOWED_HOSTS/
+      );
+    }
+  );
+
+  it('reads the cache time-to-live and the request timeout', () => {
+    const env = validateEnv({
+      ...VALID,
+      MODEL_LIST_CACHE_TTL_MS: '0',
+      PROVIDER_REQUEST_TIMEOUT_MS: '2500',
+    });
+
+    expect(env.MODEL_LIST_CACHE_TTL_MS).toBe(0);
+    expect(env.PROVIDER_REQUEST_TIMEOUT_MS).toBe(2500);
+    expect(() => validateEnv({ ...VALID, PROVIDER_REQUEST_TIMEOUT_MS: '0' })).toThrow(
+      /PROVIDER_REQUEST_TIMEOUT_MS/
+    );
   });
 });

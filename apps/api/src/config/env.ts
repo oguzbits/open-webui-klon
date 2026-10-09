@@ -1,6 +1,7 @@
 import 'reflect-metadata';
 import { plainToInstance, Transform, Type } from 'class-transformer';
 import {
+  ArrayMinSize,
   IsArray,
   IsBoolean,
   IsEmail,
@@ -17,6 +18,7 @@ import {
   ValidateIf,
 } from 'class-validator';
 
+import { ALLOWED_HOST_PATTERN } from '../http/safe-fetch/address-policy.js';
 import { PASSWORD_MAX_LENGTH, PASSWORD_MIN_LENGTH } from '../users/password-policy.js';
 import { USER_ROLE } from '../users/user-role.js';
 
@@ -42,6 +44,8 @@ type ValueOf<T> = T[keyof T];
 const ORIGIN_PATTERN = /^https?:\/\/[^\s/*?#]+$/;
 const POSTGRES_URL_PATTERN = /^postgres(ql)?:\/\/\S+$/;
 const HTTP_URL_PATTERN = /^https?:\/\/\S+$/;
+// keyId:base64(32 bytes). The id has no dot (it sits between dots in the stored format).
+const KEYRING_ENTRY_PATTERN = /^[A-Za-z0-9_-]{1,32}:[A-Za-z0-9+/]{43}=$/;
 
 function emptyToUndefined({ value }: { value: unknown }): unknown {
   return value === '' ? undefined : value;
@@ -163,6 +167,35 @@ export class Env {
   @IsString()
   @MaxLength(100)
   ADMIN_NAME?: string;
+
+  // Newest key first: it encrypts, all of them decrypt (rotation = put a new key in front).
+  @Transform(splitList)
+  @IsArray({ message: 'PROVIDER_KEY_ENCRYPTION_KEYS is required (keyId:base64 of 32 bytes)' })
+  @ArrayMinSize(1, { message: 'PROVIDER_KEY_ENCRYPTION_KEYS needs at least one key' })
+  @Matches(KEYRING_ENTRY_PATTERN, {
+    each: true,
+    message: 'PROVIDER_KEY_ENCRYPTION_KEYS entries must look like keyId:base64 (32 bytes)',
+  })
+  PROVIDER_KEY_ENCRYPTION_KEYS!: string[];
+
+  @Transform(splitList)
+  @IsArray()
+  @Matches(ALLOWED_HOST_PATTERN, {
+    each: true,
+    message: 'PROVIDER_ALLOWED_HOSTS must be a comma-separated list of host or host:port',
+  })
+  PROVIDER_ALLOWED_HOSTS: string[] = [];
+
+  @Type(() => Number)
+  @IsInt()
+  @Min(0)
+  MODEL_LIST_CACHE_TTL_MS = 30000;
+
+  @Type(() => Number)
+  @IsInt()
+  @Min(100)
+  @Max(120000)
+  PROVIDER_REQUEST_TIMEOUT_MS = 10000;
 
   @Transform(emptyToUndefined)
   @IsOptional()

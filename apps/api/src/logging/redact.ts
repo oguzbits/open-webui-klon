@@ -6,6 +6,9 @@ export const REDACT_PATHS = [
   '*.password',
   '*.apiKey',
   '*.token',
+  '*.apiKeyCiphertext',
+  '*.authorization',
+  '*.headers.authorization',
 ];
 
 export const REDACT_CENSOR = '[redacted]';

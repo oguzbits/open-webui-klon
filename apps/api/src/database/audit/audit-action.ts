@@ -13,6 +13,9 @@ export const AUDIT_ACTION = {
   USER_DELETED: 'user.deleted',
   API_KEY_CREATED: 'api_key.created',
   API_KEY_REVOKED: 'api_key.revoked',
+  PROVIDER_CONNECTION_CREATED: 'provider_connection.created',
+  PROVIDER_CONNECTION_UPDATED: 'provider_connection.updated',
+  PROVIDER_CONNECTION_DELETED: 'provider_connection.deleted',
 } as const;
 
 export type AuditAction = (typeof AUDIT_ACTION)[keyof typeof AUDIT_ACTION];
