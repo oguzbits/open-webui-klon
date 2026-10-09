@@ -1,0 +1,35 @@
+{
+  "permissions": {
+    "deny": [
+      "Read(.env)",
+      "Read(.env.*)",
+      "Read(!.env.example)",
+      "Edit(.env)",
+      "Edit(.env.*)",
+      "Edit(!.env.example)",
+      "Edit(pnpm-lock.yaml)"
+    ],
+    "allow": [
+      "Bash(pnpm add *)",
+      "Bash(pnpm remove *)",
+      "Bash(pnpm check)",
+      "Bash(pnpm typecheck)",
+      "Bash(pnpm lint)",
+      "Bash(pnpm test)",
+      "Bash(pnpm test:db)",
+      "Bash(pnpm format*)",
+      "Bash(pnpm openapi)",
+      "Bash(pnpm db:*)",
+      "Bash(pnpm exec vitest *)",
+      "Bash(git status*)",
+      "Bash(git diff*)",
+      "Bash(git log*)",
+      "Bash(git show*)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(git push*)",
+      "Bash(gh run *)"
+    ],
+    "ask": ["Edit(AGENTS.md)", "Edit(.claude/**)", "Bash(pnpm dlx *)"]
+  }
+}
