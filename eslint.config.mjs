@@ -82,6 +82,15 @@ export default defineConfig(
     },
   },
   {
+    // supertest responses are untyped (`any`) and its handle is conventionally named `http`.
+    files: ['apps/api/src/**/*.spec.ts', 'apps/api/src/testing/**/*.ts'],
+    rules: {
+      'no-restricted-properties': 'off',
+      '@typescript-eslint/no-unsafe-member-access': 'off',
+      '@typescript-eslint/no-unsafe-assignment': 'off',
+    },
+  },
+  {
     // The one place that is allowed to open outgoing connections.
     files: ['apps/api/src/http/safe-fetch/**/*.ts'],
     rules: {
