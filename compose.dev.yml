@@ -1,0 +1,5 @@
+# Local development: publish the database on the loopback interface only.
+services:
+  db:
+    ports:
+      - '127.0.0.1:5433:5432'

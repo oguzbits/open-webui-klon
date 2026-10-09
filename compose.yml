@@ -1,0 +1,22 @@
+name: open-webui-klon
+
+services:
+  db:
+    image: pgvector/pgvector:0.8.7-pg18
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: owui
+      # Development default; production must set POSTGRES_PASSWORD (the database is not published).
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-owui-dev-password}
+      POSTGRES_DB: owui
+    volumes:
+      # Postgres 18 images keep the data below /var/lib/postgresql.
+      - pgdata:/var/lib/postgresql
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U owui -d owui']
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+volumes:
+  pgdata:
