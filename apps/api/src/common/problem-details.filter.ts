@@ -4,6 +4,8 @@ import type { Request, Response } from 'express';
 import { STATUS_CODES } from 'node:http';
 import { PinoLogger } from 'nestjs-pino';
 
+import { ProviderError, type ProviderErrorReason } from '../http/safe-fetch/provider-error.js';
+
 export interface ProblemDetails {
   type: 'about:blank';
   title: string;
@@ -12,12 +14,15 @@ export interface ProblemDetails {
   instance: string;
   requestId: string;
   errors?: string[];
+  /** Set for 502 when a model provider could not be used. */
+  reason?: ProviderErrorReason;
 }
 
 interface Description {
   status: number;
   detail: string;
   errors?: string[];
+  reason?: ProviderErrorReason;
 }
 
 const GENERIC_SERVER_ERROR = 'Internal server error';
@@ -40,9 +45,11 @@ export class ProblemDetailsFilter implements ExceptionFilter {
     const context = host.switchToHttp();
     const response = context.getResponse<Response>();
     const request = context.getRequest<Request>();
-    const { status, detail, errors } = this.describe(exception);
+    const { status, detail, errors, reason } = this.describe(exception);
 
-    if (status >= 500) {
+    if (reason !== undefined) {
+      this.logger.warn({ reason }, 'Model provider call failed');
+    } else if (status >= 500) {
       this.logger.error({ err: exception }, 'Unhandled exception');
     }
 
@@ -55,11 +62,20 @@ export class ProblemDetailsFilter implements ExceptionFilter {
       instance: request.originalUrl.split('?')[0] ?? request.path,
       requestId: typeof request.id === 'string' ? request.id : '',
       ...(errors ? { errors } : {}),
+      ...(reason ? { reason } : {}),
     };
     response.status(status).type('application/problem+json').send(JSON.stringify(problem));
   }
 
   private describe(exception: unknown): Description {
+    if (exception instanceof ProviderError) {
+      // Fixed text: the message of the error may name hosts or echo parts of the provider answer.
+      return {
+        status: 502,
+        detail: 'The model provider could not be used',
+        reason: exception.reason,
+      };
+    }
     if (exception instanceof HttpException) {
       const status = exception.getStatus();
       const body = exception.getResponse();

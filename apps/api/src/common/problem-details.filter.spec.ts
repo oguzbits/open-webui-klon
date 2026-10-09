@@ -4,6 +4,7 @@ import { IsString, MaxLength } from 'class-validator';
 import request from 'supertest';
 import { afterEach, describe, expect, it } from 'vitest';
 
+import { PROVIDER_ERROR, ProviderError } from '../http/safe-fetch/provider-error.js';
 import { createTestApp } from '../testing/create-test-app.js';
 
 class EchoDto {
@@ -28,6 +29,14 @@ class ProbeController {
   teapot(): never {
     throw new HttpException('short and stout', 418);
   }
+
+  @Get('provider')
+  provider(): never {
+    throw new ProviderError(
+      PROVIDER_ERROR.UNREACHABLE,
+      'connect ECONNREFUSED 10.0.0.5:11434 with key sk-abc'
+    );
+  }
 }
 
 describe('HTTP error handling', () => {
@@ -41,6 +50,28 @@ describe('HTTP error handling', () => {
     app = await createTestApp({ controllers: [ProbeController] });
     return request(app.getHttpServer());
   }
+
+  it('answers a failed provider call with 502 and the reason, never with its message', async () => {
+    const http = await start();
+
+    const response = await http.get('/api/provider').expect(502);
+
+    expect(response.headers['content-type']).toMatch(/application\/problem\+json/);
+    expect(response.body).toMatchObject({
+      status: 502,
+      title: 'Bad Gateway',
+      reason: PROVIDER_ERROR.UNREACHABLE,
+    });
+    expect(JSON.stringify(response.body)).not.toMatch(/10\.0\.0\.5|sk-abc|ECONNREFUSED/);
+  });
+
+  it('adds no reason to other errors', async () => {
+    const http = await start();
+
+    const response = await http.get('/api/boom').expect(500);
+
+    expect(response.body).not.toHaveProperty('reason');
+  });
 
   it('answers an unknown route with problem details and echoes the request id', async () => {
     const http = await start();
