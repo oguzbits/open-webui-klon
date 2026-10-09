@@ -6,6 +6,7 @@ import { AppModule } from './app.module.js';
 import { AuthGuard } from './auth/auth.guard.js';
 import { AuthModule } from './auth/auth.module.js';
 import { UsersModule } from './users/users.module.js';
+import { ModelsModule } from './models/models.module.js';
 
 describe('AppModule wiring', () => {
   it('imports the auth and user modules', () => {
@@ -18,5 +19,11 @@ describe('AppModule wiring', () => {
     const providers: unknown[] = Reflect.getMetadata(MODULE_METADATA.PROVIDERS, AuthModule);
 
     expect(providers).toContainEqual({ provide: APP_GUARD, useClass: AuthGuard });
+  });
+
+  it('imports the model module', () => {
+    const imports: unknown[] = Reflect.getMetadata(MODULE_METADATA.IMPORTS, AppModule);
+
+    expect(imports).toContain(ModelsModule);
   });
 });

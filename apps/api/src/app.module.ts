@@ -9,6 +9,7 @@ import { HealthModule } from './health/health.module.js';
 import { AppLoggerModule } from './logging/logger.module.js';
 import { SecurityModule } from './security/security.module.js';
 import { UsersModule } from './users/users.module.js';
+import { ModelsModule } from './models/models.module.js';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { UsersModule } from './users/users.module.js';
     AuditModule,
     UsersModule,
     AuthModule,
+    ModelsModule,
     HealthModule,
   ],
 })
