@@ -19,7 +19,7 @@ import type { ProviderType } from './provider-type.js';
 import { SecretBox } from './secret-box.js';
 
 /** One advisory lock serializes writes that depend on the names of the other connections. */
-const CONNECTIONS_LOCK_KEY = 7102;
+export const CONNECTIONS_LOCK_KEY = 7102;
 
 export interface NewConnection {
   name: string;

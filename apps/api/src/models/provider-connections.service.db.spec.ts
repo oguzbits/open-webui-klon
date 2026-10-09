@@ -17,7 +17,10 @@ import { resetProviderTables } from '../testing/db-fixtures.js';
 import { configOf, TEST_KEY_RING } from '../testing/provider-fixtures.js';
 import { ModelListCache } from './model-list-cache.js';
 import { ProviderConnection } from './provider-connection.entity.js';
-import { ProviderConnectionsService } from './provider-connections.service.js';
+import {
+  CONNECTIONS_LOCK_KEY,
+  ProviderConnectionsService,
+} from './provider-connections.service.js';
 import { PROVIDER_TYPE } from './provider-type.js';
 import { SECRET_BOX_ERROR, SecretBox, SecretBoxError } from './secret-box.js';
 
@@ -164,15 +167,37 @@ describe('ProviderConnectionsService (database)', () => {
       );
     });
 
-    it('lets exactly one of five parallel creations with the same name win', async () => {
+    it('lets exactly one of twenty parallel creations with the same name win', async () => {
       const results = await Promise.allSettled(
-        Array.from({ length: 5 }, () => service.create(ACTOR, input()))
+        Array.from({ length: 20 }, () => service.create(ACTOR, input()))
       );
 
       expect(results.filter((result) => result.status === 'fulfilled')).toHaveLength(1);
       const rejected = results.filter((result) => result.status === 'rejected');
-      expect(rejected).toHaveLength(4);
+      expect(rejected).toHaveLength(19);
       for (const result of rejected) expect(result.reason).toBeInstanceOf(ConflictException);
+      expect(await dataSource.getRepository(ProviderConnection).count()).toBe(1);
+    });
+
+    it('waits for the connections lock before it creates anything', async () => {
+      const holder = dataSource.createQueryRunner();
+      await holder.connect();
+      await holder.startTransaction();
+      await holder.query('SELECT pg_advisory_xact_lock($1)', [CONNECTIONS_LOCK_KEY]);
+      let settled = false;
+      const creation = service.create(ACTOR, input()).finally(() => {
+        settled = true;
+      });
+
+      try {
+        await new Promise((resolve) => setTimeout(resolve, 300));
+        expect(settled).toBe(false);
+      } finally {
+        await holder.commitTransaction();
+        await holder.release();
+      }
+
+      await creation;
       expect(await dataSource.getRepository(ProviderConnection).count()).toBe(1);
     });
   });
