@@ -31,6 +31,20 @@ export function AppProviders({
     };
   }, [queryClient]);
 
+  // A page restored from the back/forward cache shows the old screen without running any code:
+  // check the session again, the gates send a signed-out visitor to the sign-in page.
+  useEffect(() => {
+    const onPageShow = (event: PageTransitionEvent) => {
+      if (event.persisted) {
+        void queryClient.invalidateQueries({ queryKey: getAuthMeQueryKey() });
+      }
+    };
+    window.addEventListener('pageshow', onPageShow);
+    return () => {
+      window.removeEventListener('pageshow', onPageShow);
+    };
+  }, [queryClient]);
+
   return (
     <ThemeProvider>
       <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>

@@ -1,4 +1,4 @@
-import { screen } from '@testing-library/react';
+import { act, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
@@ -138,6 +138,25 @@ describe('app routing and layout', () => {
     );
     const logoutCalls = fetchMock.mock.calls.filter(([input]) => input === '/api/auth/logout');
     expect(logoutCalls).toHaveLength(1);
+  });
+
+  it('checks the session again when the browser restores the page from its back/forward cache', async () => {
+    let signedIn = true;
+    stubApi({
+      'GET /api/auth/me': () =>
+        signedIn ? json(200, sessionInfo(userDto())) : problem(401, 'Unauthorized'),
+      'GET /api/auth/config': () => json(200, authConfig()),
+      'GET /api/health/ready': () => json(200, { status: 'ok' }),
+    });
+    renderApp('/');
+    await screen.findByRole('heading', { name: 'Willkommen' });
+
+    signedIn = false;
+    act(() => {
+      window.dispatchEvent(new PageTransitionEvent('pageshow', { persisted: true }));
+    });
+
+    expect(await screen.findByRole('heading', { name: 'Anmelden' })).toBeInTheDocument();
   });
 
   it('keeps the user in place and says so when signing out fails', async () => {
