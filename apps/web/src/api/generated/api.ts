@@ -5,22 +5,38 @@
  * OpenAPI spec version: 0.0.0
  */
 import {
+  useMutation,
   useQuery
 } from '@tanstack/react-query';
 import type {
   DataTag,
   DefinedInitialDataOptions,
   DefinedUseQueryResult,
+  MutationFunction,
   QueryClient,
   QueryFunction,
   QueryKey,
   UndefinedInitialDataOptions,
+  UseMutationOptions,
+  UseMutationResult,
   UseQueryOptions,
   UseQueryResult
 } from '@tanstack/react-query';
 
 import type {
-  HealthStatusDto
+  ApiKeyDto,
+  AuthConfigDto,
+  ChangePasswordDto,
+  CreateApiKeyDto,
+  CreateUserDto,
+  CreatedApiKeyDto,
+  HealthStatusDto,
+  LoginDto,
+  SessionInfoDto,
+  SetUserPasswordDto,
+  SignupDto,
+  UpdateUserDto,
+  UserDto
 } from './model';
 
 import { apiFetch } from '../fetcher.ts';
@@ -42,6 +58,1383 @@ const withQueryKey = <T extends object, K>(query: T, queryKey: K): T & { queryKe
   }
   return result;
 };
+
+export type usersListResponse200 = {
+  data: UserDto[]
+  status: 200
+}
+
+export type usersListResponseSuccess = (usersListResponse200) & {
+  headers: Headers;
+};
+;
+
+export type usersListResponse = (usersListResponseSuccess)
+
+export const getUsersListUrl = () => {
+
+
+
+
+  return `/api/users`
+}
+
+export const usersList = async ( options?: Parameters<typeof apiFetch>[1]): Promise<usersListResponse> => {
+
+  return apiFetch<usersListResponse>(getUsersListUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getUsersListQueryKey = () => {
+    return [
+    `/api/users`
+    ] as const;
+    }
+
+
+export const getUsersListQueryOptions = <TData = Awaited<ReturnType<typeof usersList>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof usersList>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getUsersListQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof usersList>>> = ({ signal }) => usersList({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof usersList>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type UsersListQueryResult = NonNullable<Awaited<ReturnType<typeof usersList>>>
+export type UsersListQueryError = unknown
+
+
+export function useUsersList<TData = Awaited<ReturnType<typeof usersList>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof usersList>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof usersList>>,
+          TError,
+          Awaited<ReturnType<typeof usersList>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useUsersList<TData = Awaited<ReturnType<typeof usersList>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof usersList>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof usersList>>,
+          TError,
+          Awaited<ReturnType<typeof usersList>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useUsersList<TData = Awaited<ReturnType<typeof usersList>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof usersList>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useUsersList<TData = Awaited<ReturnType<typeof usersList>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof usersList>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getUsersListQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export type usersCreateResponse201 = {
+  data: UserDto
+  status: 201
+}
+
+export type usersCreateResponseSuccess = (usersCreateResponse201) & {
+  headers: Headers;
+};
+;
+
+export type usersCreateResponse = (usersCreateResponseSuccess)
+
+export const getUsersCreateUrl = () => {
+
+
+
+
+  return `/api/users`
+}
+
+export const usersCreate = async (createUserDto: CreateUserDto, options?: Parameters<typeof apiFetch>[1]): Promise<usersCreateResponse> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<usersCreateResponse>(getUsersCreateUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(createUserDto)
+  }
+);}
+
+
+
+
+
+export const getUsersCreateMutationKey = () => ['usersCreate'] as const;
+
+export const getUsersCreateMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof usersCreate>>, TError,UsersCreateMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof usersCreate>>, TError,UsersCreateMutationVariables, TContext> => {
+
+const mutationKey = getUsersCreateMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof usersCreate>>, UsersCreateMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  usersCreate(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UsersCreateMutationResult = NonNullable<Awaited<ReturnType<typeof usersCreate>>>
+    export type UsersCreateMutationBody = CreateUserDto
+    export type UsersCreateMutationError = unknown
+    export type UsersCreateMutationVariables = {data: CreateUserDto}
+
+    export const useUsersCreate = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof usersCreate>>, TError,UsersCreateMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof usersCreate>>,
+        TError,
+        UsersCreateMutationVariables,
+        TContext
+      > => {
+      return useMutation(getUsersCreateMutationOptions(options), queryClient);
+    }
+
+export type usersUpdateResponse200 = {
+  data: UserDto
+  status: 200
+}
+
+export type usersUpdateResponse404 = {
+  data: void
+  status: 404
+}
+
+export type usersUpdateResponseSuccess = (usersUpdateResponse200) & {
+  headers: Headers;
+};
+export type usersUpdateResponseError = (usersUpdateResponse404) & {
+  headers: Headers;
+};
+
+export type usersUpdateResponse = (usersUpdateResponseSuccess | usersUpdateResponseError)
+
+export const getUsersUpdateUrl = (id: string,) => {
+
+
+
+
+  return `/api/users/${id}`
+}
+
+export const usersUpdate = async (id: string,
+    updateUserDto: UpdateUserDto, options?: Parameters<typeof apiFetch>[1]): Promise<usersUpdateResponse> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<usersUpdateResponse>(getUsersUpdateUrl(id),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(updateUserDto)
+  }
+);}
+
+
+
+
+
+export const getUsersUpdateMutationKey = () => ['usersUpdate'] as const;
+
+export const getUsersUpdateMutationOptions = <TError = void,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof usersUpdate>>, TError,UsersUpdateMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof usersUpdate>>, TError,UsersUpdateMutationVariables, TContext> => {
+
+const mutationKey = getUsersUpdateMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof usersUpdate>>, UsersUpdateMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  usersUpdate(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UsersUpdateMutationResult = NonNullable<Awaited<ReturnType<typeof usersUpdate>>>
+    export type UsersUpdateMutationBody = UpdateUserDto
+    export type UsersUpdateMutationError = void
+    export type UsersUpdateMutationVariables = {id: string;data: UpdateUserDto}
+
+    export const useUsersUpdate = <TError = void,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof usersUpdate>>, TError,UsersUpdateMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof usersUpdate>>,
+        TError,
+        UsersUpdateMutationVariables,
+        TContext
+      > => {
+      return useMutation(getUsersUpdateMutationOptions(options), queryClient);
+    }
+
+export type usersRemoveResponse204 = {
+  data: void
+  status: 204
+}
+
+export type usersRemoveResponse404 = {
+  data: void
+  status: 404
+}
+
+export type usersRemoveResponseSuccess = (usersRemoveResponse204) & {
+  headers: Headers;
+};
+export type usersRemoveResponseError = (usersRemoveResponse404) & {
+  headers: Headers;
+};
+
+export type usersRemoveResponse = (usersRemoveResponseSuccess | usersRemoveResponseError)
+
+export const getUsersRemoveUrl = (id: string,) => {
+
+
+
+
+  return `/api/users/${id}`
+}
+
+export const usersRemove = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<usersRemoveResponse> => {
+
+  return apiFetch<usersRemoveResponse>(getUsersRemoveUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+
+export const getUsersRemoveMutationKey = () => ['usersRemove'] as const;
+
+export const getUsersRemoveMutationOptions = <TError = void,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof usersRemove>>, TError,UsersRemoveMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof usersRemove>>, TError,UsersRemoveMutationVariables, TContext> => {
+
+const mutationKey = getUsersRemoveMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof usersRemove>>, UsersRemoveMutationVariables> = (props) => {
+          const {id} = props ?? {};
+
+          return  usersRemove(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UsersRemoveMutationResult = NonNullable<Awaited<ReturnType<typeof usersRemove>>>
+
+    export type UsersRemoveMutationError = void
+    export type UsersRemoveMutationVariables = {id: string}
+
+    export const useUsersRemove = <TError = void,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof usersRemove>>, TError,UsersRemoveMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof usersRemove>>,
+        TError,
+        UsersRemoveMutationVariables,
+        TContext
+      > => {
+      return useMutation(getUsersRemoveMutationOptions(options), queryClient);
+    }
+
+export type usersSetPasswordResponse204 = {
+  data: void
+  status: 204
+}
+
+export type usersSetPasswordResponse404 = {
+  data: void
+  status: 404
+}
+
+export type usersSetPasswordResponseSuccess = (usersSetPasswordResponse204) & {
+  headers: Headers;
+};
+export type usersSetPasswordResponseError = (usersSetPasswordResponse404) & {
+  headers: Headers;
+};
+
+export type usersSetPasswordResponse = (usersSetPasswordResponseSuccess | usersSetPasswordResponseError)
+
+export const getUsersSetPasswordUrl = (id: string,) => {
+
+
+
+
+  return `/api/users/${id}/password`
+}
+
+export const usersSetPassword = async (id: string,
+    setUserPasswordDto: SetUserPasswordDto, options?: Parameters<typeof apiFetch>[1]): Promise<usersSetPasswordResponse> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<usersSetPasswordResponse>(getUsersSetPasswordUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(setUserPasswordDto)
+  }
+);}
+
+
+
+
+
+export const getUsersSetPasswordMutationKey = () => ['usersSetPassword'] as const;
+
+export const getUsersSetPasswordMutationOptions = <TError = void,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof usersSetPassword>>, TError,UsersSetPasswordMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof usersSetPassword>>, TError,UsersSetPasswordMutationVariables, TContext> => {
+
+const mutationKey = getUsersSetPasswordMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof usersSetPassword>>, UsersSetPasswordMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  usersSetPassword(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UsersSetPasswordMutationResult = NonNullable<Awaited<ReturnType<typeof usersSetPassword>>>
+    export type UsersSetPasswordMutationBody = SetUserPasswordDto
+    export type UsersSetPasswordMutationError = void
+    export type UsersSetPasswordMutationVariables = {id: string;data: SetUserPasswordDto}
+
+    export const useUsersSetPassword = <TError = void,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof usersSetPassword>>, TError,UsersSetPasswordMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof usersSetPassword>>,
+        TError,
+        UsersSetPasswordMutationVariables,
+        TContext
+      > => {
+      return useMutation(getUsersSetPasswordMutationOptions(options), queryClient);
+    }
+
+export type authConfigResponse200 = {
+  data: AuthConfigDto
+  status: 200
+}
+
+export type authConfigResponseSuccess = (authConfigResponse200) & {
+  headers: Headers;
+};
+;
+
+export type authConfigResponse = (authConfigResponseSuccess)
+
+export const getAuthConfigUrl = () => {
+
+
+
+
+  return `/api/auth/config`
+}
+
+export const authConfig = async ( options?: Parameters<typeof apiFetch>[1]): Promise<authConfigResponse> => {
+
+  return apiFetch<authConfigResponse>(getAuthConfigUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getAuthConfigQueryKey = () => {
+    return [
+    `/api/auth/config`
+    ] as const;
+    }
+
+
+export const getAuthConfigQueryOptions = <TData = Awaited<ReturnType<typeof authConfig>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof authConfig>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getAuthConfigQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof authConfig>>> = ({ signal }) => authConfig({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof authConfig>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type AuthConfigQueryResult = NonNullable<Awaited<ReturnType<typeof authConfig>>>
+export type AuthConfigQueryError = unknown
+
+
+export function useAuthConfig<TData = Awaited<ReturnType<typeof authConfig>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof authConfig>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof authConfig>>,
+          TError,
+          Awaited<ReturnType<typeof authConfig>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useAuthConfig<TData = Awaited<ReturnType<typeof authConfig>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof authConfig>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof authConfig>>,
+          TError,
+          Awaited<ReturnType<typeof authConfig>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useAuthConfig<TData = Awaited<ReturnType<typeof authConfig>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof authConfig>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useAuthConfig<TData = Awaited<ReturnType<typeof authConfig>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof authConfig>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getAuthConfigQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export type authSignupResponse201 = {
+  data: SessionInfoDto
+  status: 201
+}
+
+export type authSignupResponseSuccess = (authSignupResponse201) & {
+  headers: Headers;
+};
+;
+
+export type authSignupResponse = (authSignupResponseSuccess)
+
+export const getAuthSignupUrl = () => {
+
+
+
+
+  return `/api/auth/signup`
+}
+
+export const authSignup = async (signupDto: SignupDto, options?: Parameters<typeof apiFetch>[1]): Promise<authSignupResponse> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<authSignupResponse>(getAuthSignupUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(signupDto)
+  }
+);}
+
+
+
+
+
+export const getAuthSignupMutationKey = () => ['authSignup'] as const;
+
+export const getAuthSignupMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof authSignup>>, TError,AuthSignupMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof authSignup>>, TError,AuthSignupMutationVariables, TContext> => {
+
+const mutationKey = getAuthSignupMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof authSignup>>, AuthSignupMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  authSignup(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AuthSignupMutationResult = NonNullable<Awaited<ReturnType<typeof authSignup>>>
+    export type AuthSignupMutationBody = SignupDto
+    export type AuthSignupMutationError = unknown
+    export type AuthSignupMutationVariables = {data: SignupDto}
+
+    export const useAuthSignup = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof authSignup>>, TError,AuthSignupMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof authSignup>>,
+        TError,
+        AuthSignupMutationVariables,
+        TContext
+      > => {
+      return useMutation(getAuthSignupMutationOptions(options), queryClient);
+    }
+
+export type authLoginResponse200 = {
+  data: SessionInfoDto
+  status: 200
+}
+
+export type authLoginResponse401 = {
+  data: void
+  status: 401
+}
+
+export type authLoginResponseSuccess = (authLoginResponse200) & {
+  headers: Headers;
+};
+export type authLoginResponseError = (authLoginResponse401) & {
+  headers: Headers;
+};
+
+export type authLoginResponse = (authLoginResponseSuccess | authLoginResponseError)
+
+export const getAuthLoginUrl = () => {
+
+
+
+
+  return `/api/auth/login`
+}
+
+export const authLogin = async (loginDto: LoginDto, options?: Parameters<typeof apiFetch>[1]): Promise<authLoginResponse> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<authLoginResponse>(getAuthLoginUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(loginDto)
+  }
+);}
+
+
+
+
+
+export const getAuthLoginMutationKey = () => ['authLogin'] as const;
+
+export const getAuthLoginMutationOptions = <TError = void,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof authLogin>>, TError,AuthLoginMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof authLogin>>, TError,AuthLoginMutationVariables, TContext> => {
+
+const mutationKey = getAuthLoginMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof authLogin>>, AuthLoginMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  authLogin(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AuthLoginMutationResult = NonNullable<Awaited<ReturnType<typeof authLogin>>>
+    export type AuthLoginMutationBody = LoginDto
+    export type AuthLoginMutationError = void
+    export type AuthLoginMutationVariables = {data: LoginDto}
+
+    export const useAuthLogin = <TError = void,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof authLogin>>, TError,AuthLoginMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof authLogin>>,
+        TError,
+        AuthLoginMutationVariables,
+        TContext
+      > => {
+      return useMutation(getAuthLoginMutationOptions(options), queryClient);
+    }
+
+export type authLogoutResponse204 = {
+  data: void
+  status: 204
+}
+
+export type authLogoutResponseSuccess = (authLogoutResponse204) & {
+  headers: Headers;
+};
+;
+
+export type authLogoutResponse = (authLogoutResponseSuccess)
+
+export const getAuthLogoutUrl = () => {
+
+
+
+
+  return `/api/auth/logout`
+}
+
+export const authLogout = async ( options?: Parameters<typeof apiFetch>[1]): Promise<authLogoutResponse> => {
+
+  return apiFetch<authLogoutResponse>(getAuthLogoutUrl(),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getAuthLogoutMutationKey = () => ['authLogout'] as const;
+
+export const getAuthLogoutMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof authLogout>>, TError,void, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof authLogout>>, TError,void, TContext> => {
+
+const mutationKey = getAuthLogoutMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof authLogout>>, void> = () => {
+
+
+          return  authLogout(requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AuthLogoutMutationResult = NonNullable<Awaited<ReturnType<typeof authLogout>>>
+
+    export type AuthLogoutMutationError = unknown
+
+
+    export const useAuthLogout = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof authLogout>>, TError,void, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof authLogout>>,
+        TError,
+        void,
+        TContext
+      > => {
+      return useMutation(getAuthLogoutMutationOptions(options), queryClient);
+    }
+
+export type authMeResponse200 = {
+  data: SessionInfoDto
+  status: 200
+}
+
+export type authMeResponseSuccess = (authMeResponse200) & {
+  headers: Headers;
+};
+;
+
+export type authMeResponse = (authMeResponseSuccess)
+
+export const getAuthMeUrl = () => {
+
+
+
+
+  return `/api/auth/me`
+}
+
+export const authMe = async ( options?: Parameters<typeof apiFetch>[1]): Promise<authMeResponse> => {
+
+  return apiFetch<authMeResponse>(getAuthMeUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getAuthMeQueryKey = () => {
+    return [
+    `/api/auth/me`
+    ] as const;
+    }
+
+
+export const getAuthMeQueryOptions = <TData = Awaited<ReturnType<typeof authMe>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof authMe>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getAuthMeQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof authMe>>> = ({ signal }) => authMe({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof authMe>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type AuthMeQueryResult = NonNullable<Awaited<ReturnType<typeof authMe>>>
+export type AuthMeQueryError = unknown
+
+
+export function useAuthMe<TData = Awaited<ReturnType<typeof authMe>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof authMe>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof authMe>>,
+          TError,
+          Awaited<ReturnType<typeof authMe>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useAuthMe<TData = Awaited<ReturnType<typeof authMe>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof authMe>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof authMe>>,
+          TError,
+          Awaited<ReturnType<typeof authMe>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useAuthMe<TData = Awaited<ReturnType<typeof authMe>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof authMe>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useAuthMe<TData = Awaited<ReturnType<typeof authMe>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof authMe>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getAuthMeQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export type authChangePasswordResponse204 = {
+  data: void
+  status: 204
+}
+
+export type authChangePasswordResponseSuccess = (authChangePasswordResponse204) & {
+  headers: Headers;
+};
+;
+
+export type authChangePasswordResponse = (authChangePasswordResponseSuccess)
+
+export const getAuthChangePasswordUrl = () => {
+
+
+
+
+  return `/api/auth/password`
+}
+
+export const authChangePassword = async (changePasswordDto: ChangePasswordDto, options?: Parameters<typeof apiFetch>[1]): Promise<authChangePasswordResponse> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<authChangePasswordResponse>(getAuthChangePasswordUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(changePasswordDto)
+  }
+);}
+
+
+
+
+
+export const getAuthChangePasswordMutationKey = () => ['authChangePassword'] as const;
+
+export const getAuthChangePasswordMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof authChangePassword>>, TError,AuthChangePasswordMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof authChangePassword>>, TError,AuthChangePasswordMutationVariables, TContext> => {
+
+const mutationKey = getAuthChangePasswordMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof authChangePassword>>, AuthChangePasswordMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  authChangePassword(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AuthChangePasswordMutationResult = NonNullable<Awaited<ReturnType<typeof authChangePassword>>>
+    export type AuthChangePasswordMutationBody = ChangePasswordDto
+    export type AuthChangePasswordMutationError = unknown
+    export type AuthChangePasswordMutationVariables = {data: ChangePasswordDto}
+
+    export const useAuthChangePassword = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof authChangePassword>>, TError,AuthChangePasswordMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof authChangePassword>>,
+        TError,
+        AuthChangePasswordMutationVariables,
+        TContext
+      > => {
+      return useMutation(getAuthChangePasswordMutationOptions(options), queryClient);
+    }
+
+export type apiKeysListResponse200 = {
+  data: ApiKeyDto[]
+  status: 200
+}
+
+export type apiKeysListResponse404 = {
+  data: void
+  status: 404
+}
+
+export type apiKeysListResponseSuccess = (apiKeysListResponse200) & {
+  headers: Headers;
+};
+export type apiKeysListResponseError = (apiKeysListResponse404) & {
+  headers: Headers;
+};
+
+export type apiKeysListResponse = (apiKeysListResponseSuccess | apiKeysListResponseError)
+
+export const getApiKeysListUrl = () => {
+
+
+
+
+  return `/api/auth/api-keys`
+}
+
+export const apiKeysList = async ( options?: Parameters<typeof apiFetch>[1]): Promise<apiKeysListResponse> => {
+
+  return apiFetch<apiKeysListResponse>(getApiKeysListUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getApiKeysListQueryKey = () => {
+    return [
+    `/api/auth/api-keys`
+    ] as const;
+    }
+
+
+export const getApiKeysListQueryOptions = <TData = Awaited<ReturnType<typeof apiKeysList>>, TError = void>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof apiKeysList>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getApiKeysListQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof apiKeysList>>> = ({ signal }) => apiKeysList({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof apiKeysList>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ApiKeysListQueryResult = NonNullable<Awaited<ReturnType<typeof apiKeysList>>>
+export type ApiKeysListQueryError = void
+
+
+export function useApiKeysList<TData = Awaited<ReturnType<typeof apiKeysList>>, TError = void>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof apiKeysList>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof apiKeysList>>,
+          TError,
+          Awaited<ReturnType<typeof apiKeysList>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useApiKeysList<TData = Awaited<ReturnType<typeof apiKeysList>>, TError = void>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof apiKeysList>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof apiKeysList>>,
+          TError,
+          Awaited<ReturnType<typeof apiKeysList>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useApiKeysList<TData = Awaited<ReturnType<typeof apiKeysList>>, TError = void>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof apiKeysList>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useApiKeysList<TData = Awaited<ReturnType<typeof apiKeysList>>, TError = void>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof apiKeysList>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getApiKeysListQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export type apiKeysCreateResponse201 = {
+  data: CreatedApiKeyDto
+  status: 201
+}
+
+export type apiKeysCreateResponse404 = {
+  data: void
+  status: 404
+}
+
+export type apiKeysCreateResponseSuccess = (apiKeysCreateResponse201) & {
+  headers: Headers;
+};
+export type apiKeysCreateResponseError = (apiKeysCreateResponse404) & {
+  headers: Headers;
+};
+
+export type apiKeysCreateResponse = (apiKeysCreateResponseSuccess | apiKeysCreateResponseError)
+
+export const getApiKeysCreateUrl = () => {
+
+
+
+
+  return `/api/auth/api-keys`
+}
+
+export const apiKeysCreate = async (createApiKeyDto: CreateApiKeyDto, options?: Parameters<typeof apiFetch>[1]): Promise<apiKeysCreateResponse> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<apiKeysCreateResponse>(getApiKeysCreateUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(createApiKeyDto)
+  }
+);}
+
+
+
+
+
+export const getApiKeysCreateMutationKey = () => ['apiKeysCreate'] as const;
+
+export const getApiKeysCreateMutationOptions = <TError = void,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof apiKeysCreate>>, TError,ApiKeysCreateMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof apiKeysCreate>>, TError,ApiKeysCreateMutationVariables, TContext> => {
+
+const mutationKey = getApiKeysCreateMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof apiKeysCreate>>, ApiKeysCreateMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  apiKeysCreate(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ApiKeysCreateMutationResult = NonNullable<Awaited<ReturnType<typeof apiKeysCreate>>>
+    export type ApiKeysCreateMutationBody = CreateApiKeyDto
+    export type ApiKeysCreateMutationError = void
+    export type ApiKeysCreateMutationVariables = {data: CreateApiKeyDto}
+
+    export const useApiKeysCreate = <TError = void,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof apiKeysCreate>>, TError,ApiKeysCreateMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof apiKeysCreate>>,
+        TError,
+        ApiKeysCreateMutationVariables,
+        TContext
+      > => {
+      return useMutation(getApiKeysCreateMutationOptions(options), queryClient);
+    }
+
+export type apiKeysRevokeResponse204 = {
+  data: void
+  status: 204
+}
+
+export type apiKeysRevokeResponse404 = {
+  data: void
+  status: 404
+}
+
+export type apiKeysRevokeResponseSuccess = (apiKeysRevokeResponse204) & {
+  headers: Headers;
+};
+export type apiKeysRevokeResponseError = (apiKeysRevokeResponse404) & {
+  headers: Headers;
+};
+
+export type apiKeysRevokeResponse = (apiKeysRevokeResponseSuccess | apiKeysRevokeResponseError)
+
+export const getApiKeysRevokeUrl = (id: string,) => {
+
+
+
+
+  return `/api/auth/api-keys/${id}`
+}
+
+export const apiKeysRevoke = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<apiKeysRevokeResponse> => {
+
+  return apiFetch<apiKeysRevokeResponse>(getApiKeysRevokeUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+
+export const getApiKeysRevokeMutationKey = () => ['apiKeysRevoke'] as const;
+
+export const getApiKeysRevokeMutationOptions = <TError = void,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof apiKeysRevoke>>, TError,ApiKeysRevokeMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof apiKeysRevoke>>, TError,ApiKeysRevokeMutationVariables, TContext> => {
+
+const mutationKey = getApiKeysRevokeMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof apiKeysRevoke>>, ApiKeysRevokeMutationVariables> = (props) => {
+          const {id} = props ?? {};
+
+          return  apiKeysRevoke(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ApiKeysRevokeMutationResult = NonNullable<Awaited<ReturnType<typeof apiKeysRevoke>>>
+
+    export type ApiKeysRevokeMutationError = void
+    export type ApiKeysRevokeMutationVariables = {id: string}
+
+    export const useApiKeysRevoke = <TError = void,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof apiKeysRevoke>>, TError,ApiKeysRevokeMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof apiKeysRevoke>>,
+        TError,
+        ApiKeysRevokeMutationVariables,
+        TContext
+      > => {
+      return useMutation(getApiKeysRevokeMutationOptions(options), queryClient);
+    }
 
 export type healthLiveResponse200 = {
   data: HealthStatusDto

@@ -3,10 +3,12 @@ import { ApiOkResponse, ApiServiceUnavailableResponse, ApiTags } from '@nestjs/s
 import { HealthCheckService, TypeOrmHealthIndicator } from '@nestjs/terminus';
 import { SkipThrottle } from '@nestjs/throttler';
 
+import { Public } from '../auth/decorators.js';
 import { HealthStatusDto } from './health.dto.js';
 import { LifecycleService } from './lifecycle.service.js';
 
 @ApiTags('health')
+@Public()
 @SkipThrottle()
 @Controller('health')
 export class HealthController {
