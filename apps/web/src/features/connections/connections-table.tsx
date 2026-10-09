@@ -27,6 +27,7 @@ import {
 import { useModels } from '@/features/models/use-models';
 
 import { ConnectionDialog } from './connection-dialog';
+import { ConnectionModelsDialog } from './connection-models-dialog';
 import {
   CONNECTION_STATUS,
   type ConnectionStatus,
@@ -49,6 +50,7 @@ function ConnectionRow({
   health,
   busy,
   onEdit,
+  onManageModels,
   onToggle,
   onRemove,
 }: {
@@ -56,6 +58,7 @@ function ConnectionRow({
   health: ModelListDto | undefined;
   busy: boolean;
   onEdit: (id: string) => void;
+  onManageModels: (id: string) => void;
   onToggle: (connection: ProviderConnectionDto) => void;
   onRemove: (id: string) => void;
 }) {
@@ -96,6 +99,17 @@ function ConnectionRow({
             variant="outline"
             size="sm"
             disabled={busy}
+            aria-label={t('connections.modelsNamed', { name: connection.name })}
+            onClick={() => {
+              onManageModels(connection.id);
+            }}
+          >
+            {t('connections.models')}
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={busy}
             aria-label={t(
               connection.enabled ? 'connections.disableNamed' : 'connections.enableNamed',
               { name: connection.name }
@@ -126,11 +140,12 @@ export function ConnectionsTable() {
   const models = useModels();
   const [creating, setCreating] = useState(false);
   const [editingId, setEditingId] = useState<string>();
+  const [modelsForId, setModelsForId] = useState<string>();
   // Looked up in the current list: an edit of a provider that was deleted meanwhile simply closes.
-  const editing =
-    connections.data?.status === 200
-      ? connections.data.data.find((connection) => connection.id === editingId)
-      : undefined;
+  const loaded = connections.data?.status === 200 ? connections.data.data : [];
+  const editing = loaded.find((connection) => connection.id === editingId);
+  // Always the current record: the hidden list sent by the dialog must be the stored one.
+  const managingModels = loaded.find((connection) => connection.id === modelsForId);
   // A change to a connection changes what users see, so the model list is fetched again as well.
   const refresh = () =>
     Promise.all([
@@ -194,6 +209,7 @@ export function ConnectionsTable() {
               health={health}
               busy={busy}
               onEdit={setEditingId}
+              onManageModels={setModelsForId}
               onToggle={toggle}
               onRemove={removeConnection}
             />
@@ -249,6 +265,14 @@ export function ConnectionsTable() {
           connection={editing}
           onClose={() => {
             setEditingId(undefined);
+          }}
+        />
+      )}
+      {managingModels !== undefined && (
+        <ConnectionModelsDialog
+          connection={managingModels}
+          onClose={() => {
+            setModelsForId(undefined);
           }}
         />
       )}

@@ -7,7 +7,14 @@ import {
   UnavailableConnectionDtoReason,
   UserDtoRole,
 } from '@/api/generated/model';
-import { modelDto, modelList, providerConnectionDto, sessionInfo, userDto } from '@/test/fixtures';
+import {
+  adminModel,
+  modelDto,
+  modelList,
+  providerConnectionDto,
+  sessionInfo,
+  userDto,
+} from '@/test/fixtures';
 import { renderApp } from '@/test/render-app';
 import { callsTo, type Handler, json, noContent, problem, stubApi } from '@/test/stub-api';
 
@@ -740,5 +747,169 @@ describe('AdminConnectionsPage: test the connection', () => {
     expect(dialog.queryByRole('status')).not.toBeInTheDocument();
     await user.type(dialog.getByLabelText('Name'), '{Backspace}');
     expect(dialog.getByRole('button', { name: 'Verbindung testen' })).toBeEnabled();
+  });
+});
+
+describe('AdminConnectionsPage: show and hide models', () => {
+  const MODELS = `${LIST}/c-local/models`;
+  const ALL = {
+    models: [
+      adminModel({ rawModelId: 'llama3:8b', name: 'llama3:8b' }),
+      adminModel({ rawModelId: 'qwen2', name: 'Qwen 2' }),
+      adminModel({ rawModelId: 'secret', name: 'Intern', hidden: true }),
+    ],
+  };
+
+  async function openModels(user: User) {
+    await user.click(await screen.findByRole('button', { name: 'Modelle von Lokal verwalten' }));
+    return within(await screen.findByRole('dialog', { name: 'Modelle von Lokal' }));
+  }
+
+  it('lists every model of the provider, hidden ones marked', async () => {
+    stubAdmin({
+      [`GET ${LIST}`]: () => json(200, [{ ...LOCAL, hiddenModelIds: ['secret'] }, CLOUD]),
+      [`GET ${MODELS}`]: () => json(200, ALL),
+    });
+    const user = userEvent.setup();
+    await openConnections();
+
+    const dialog = await openModels(user);
+
+    expect(await dialog.findByText('llama3:8b')).toBeInTheDocument();
+    expect(dialog.getByText('Qwen 2')).toBeInTheDocument();
+    expect(dialog.getByText('Ausgeblendet')).toBeInTheDocument();
+    expect(dialog.getByRole('button', { name: 'Intern einblenden' })).toBeInTheDocument();
+    expect(dialog.getByRole('button', { name: 'llama3:8b ausblenden' })).toBeInTheDocument();
+  });
+
+  it('renders model names that look like HTML as plain text', async () => {
+    stubAdmin({
+      [`GET ${MODELS}`]: () =>
+        json(200, {
+          models: [adminModel({ rawModelId: 'evil', name: '<img src=x onerror=alert(1)>' })],
+        }),
+    });
+    const user = userEvent.setup();
+    await openConnections();
+
+    const dialog = await openModels(user);
+
+    expect(await dialog.findByText('<img src=x onerror=alert(1)>')).toBeInTheDocument();
+    expect(document.querySelector('img')).toBeNull();
+  });
+
+  it('sends the complete list, keeps entries the provider no longer reports, and refreshes', async () => {
+    let local = { ...LOCAL, hiddenModelIds: ['secret', 'gone-model'] };
+    let models = ALL.models;
+    const bodies: unknown[] = [];
+    stubAdmin({
+      [`GET ${LIST}`]: () => json(200, [local, CLOUD]),
+      [`GET ${MODELS}`]: () => json(200, { models }),
+      [`PATCH ${LIST}/c-local`]: ({ body }) => {
+        bodies.push(body);
+        local = { ...local, hiddenModelIds: ['secret', 'gone-model', 'llama3:8b'] };
+        models = models.map((model) =>
+          model.rawModelId === 'llama3:8b' ? { ...model, hidden: true } : model
+        );
+        return json(200, local);
+      },
+    });
+    const user = userEvent.setup();
+    await openConnections();
+    const dialog = await openModels(user);
+
+    await user.click(await dialog.findByRole('button', { name: 'llama3:8b ausblenden' }));
+
+    expect(await dialog.findByRole('button', { name: 'llama3:8b einblenden' })).toBeInTheDocument();
+    expect(bodies).toEqual([{ hiddenModelIds: ['secret', 'gone-model', 'llama3:8b'] }]);
+  });
+
+  it('shows a hidden model again by removing only its id', async () => {
+    const bodies: unknown[] = [];
+    stubAdmin({
+      [`GET ${LIST}`]: () =>
+        json(200, [{ ...LOCAL, hiddenModelIds: ['secret', 'gone-model'] }, CLOUD]),
+      [`GET ${MODELS}`]: () => json(200, ALL),
+      [`PATCH ${LIST}/c-local`]: ({ body }) => {
+        bodies.push(body);
+        return json(200, LOCAL);
+      },
+    });
+    const user = userEvent.setup();
+    await openConnections();
+    const dialog = await openModels(user);
+
+    await user.click(await dialog.findByRole('button', { name: 'Intern einblenden' }));
+
+    await waitFor(() => {
+      expect(bodies).toEqual([{ hiddenModelIds: ['gone-model'] }]);
+    });
+  });
+
+  it('sends one request on a double click and locks every model button meanwhile', async () => {
+    const fetchMock = stubAdmin({
+      [`GET ${MODELS}`]: () => json(200, ALL),
+      [`PATCH ${LIST}/c-local`]: () => new Promise<Response>(() => undefined),
+    });
+    const user = userEvent.setup();
+    await openConnections();
+    const dialog = await openModels(user);
+
+    await user.dblClick(await dialog.findByRole('button', { name: 'llama3:8b ausblenden' }));
+
+    expect(callsTo(fetchMock, 'PATCH', `${LIST}/c-local`)).toHaveLength(1);
+    expect(dialog.getByRole('button', { name: 'Qwen 2 ausblenden' })).toBeDisabled();
+  });
+
+  it('shows a failed change as a sentence and keeps the list', async () => {
+    stubAdmin({
+      [`GET ${MODELS}`]: () => json(200, ALL),
+      [`PATCH ${LIST}/c-local`]: () => problem(404, 'Not Found'),
+    });
+    const user = userEvent.setup();
+    await openConnections();
+    const dialog = await openModels(user);
+
+    await user.click(await dialog.findByRole('button', { name: 'Qwen 2 ausblenden' }));
+
+    expect(await dialog.findByRole('alert')).toHaveTextContent('Das gibt es nicht (mehr).');
+    expect(dialog.getByRole('button', { name: 'Qwen 2 ausblenden' })).toBeEnabled();
+  });
+
+  it('tells that a provider reports no models', async () => {
+    stubAdmin({ [`GET ${MODELS}`]: () => json(200, { models: [] }) });
+    const user = userEvent.setup();
+    await openConnections();
+
+    const dialog = await openModels(user);
+
+    expect(await dialog.findByText('Dieser Anbieter meldet keine Modelle.')).toBeInTheDocument();
+  });
+
+  it('shows a loading state, then an error with a retry button that recovers', async () => {
+    let healthy = false;
+    stubAdmin({
+      [`GET ${MODELS}`]: () => (healthy ? json(200, ALL) : problem(502, 'Bad Gateway')),
+    });
+    const user = userEvent.setup();
+    await openConnections();
+    const dialog = await openModels(user);
+
+    const alert = await dialog.findByRole('alert');
+    expect(alert).toHaveTextContent('Das Laden hat nicht geklappt.');
+    healthy = true;
+    await user.click(within(alert).getByRole('button', { name: 'Erneut versuchen' }));
+
+    expect(await dialog.findByText('Qwen 2')).toBeInTheDocument();
+  });
+
+  it('shows a loading state while the models are fetched', async () => {
+    stubAdmin({ [`GET ${MODELS}`]: () => new Promise<Response>(() => undefined) });
+    const user = userEvent.setup();
+    await openConnections();
+
+    const dialog = await openModels(user);
+
+    expect(await dialog.findByRole('status')).toBeInTheDocument();
   });
 });
