@@ -3,6 +3,7 @@ import { createBrowserRouter, type RouteObject } from 'react-router';
 import { AppLayout } from '@/components/layout/app-layout';
 import { GATE, SessionGate } from '@/features/auth/session-gate';
 import { AccountPage } from '@/pages/account-page';
+import { AdminConnectionsPage } from '@/pages/admin-connections-page';
 import { AdminUsersPage } from '@/pages/admin-users-page';
 import { HomePage } from '@/pages/home-page';
 import { LoginPage } from '@/pages/login-page';
@@ -31,7 +32,10 @@ export const routes: RouteObject[] = [
           { path: 'models', element: <ModelsPage /> },
           {
             element: <SessionGate allow={GATE.ADMIN} />,
-            children: [{ path: 'admin/users', element: <AdminUsersPage /> }],
+            children: [
+              { path: 'admin/users', element: <AdminUsersPage /> },
+              { path: 'admin/connections', element: <AdminConnectionsPage /> },
+            ],
           },
           { path: '*', element: <NotFoundPage /> },
         ],

@@ -101,11 +101,18 @@ export function AppLayout() {
                   </SidebarMenuButton>
                 </SidebarMenuItem>
                 {user.role === UserDtoRole.admin && (
-                  <SidebarMenuItem>
-                    <SidebarMenuButton asChild>
-                      <NavLink to="/admin/users">{t('nav.users')}</NavLink>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
+                  <>
+                    <SidebarMenuItem>
+                      <SidebarMenuButton asChild>
+                        <NavLink to="/admin/users">{t('nav.users')}</NavLink>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                    <SidebarMenuItem>
+                      <SidebarMenuButton asChild>
+                        <NavLink to="/admin/connections">{t('nav.connections')}</NavLink>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  </>
                 )}
               </SidebarMenu>
             </SidebarGroupContent>
