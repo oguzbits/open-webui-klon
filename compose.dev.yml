@@ -1,5 +1,8 @@
 # Local development: publish the database on the loopback interface only.
+# The test database "owui_test" is created by apps/api/test/db-global-setup.ts.
 services:
   db:
     ports:
       - '127.0.0.1:5433:5432'
+    # Docker does not publish ports of containers that sit only in an internal network.
+    networks: [backend, frontend]

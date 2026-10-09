@@ -1,0 +1,11 @@
+.git
+.github
+.claude
+.superpowers
+**/node_modules
+**/dist
+**/coverage
+.env
+.env.*
+!.env.example
+docs

@@ -1,9 +1,19 @@
 name: open-webui-klon
 
+x-hardening: &hardening
+  security_opt:
+    - no-new-privileges:true
+  cap_drop:
+    - ALL
+  pids_limit: 256
+
 services:
   db:
-    image: pgvector/pgvector:0.8.7-pg18
+    image: pgvector/pgvector:0.8.7-pg18@sha256:2358fcba361ed2233a5ed81b5fe4ca779ccb304120ce531a3bf51c0ed7e2bc11
     restart: unless-stopped
+    <<: *hardening
+    # The entrypoint starts as root, fixes ownership and then drops to the postgres user.
+    cap_add: [CHOWN, DAC_OVERRIDE, FOWNER, SETGID, SETUID]
     environment:
       POSTGRES_USER: owui
       # Development default; production must set POSTGRES_PASSWORD (the database is not published).
@@ -17,6 +27,86 @@ services:
       interval: 5s
       timeout: 3s
       retries: 20
+    networks: [backend]
+
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    image: open-webui-klon-api
+    restart: unless-stopped
+    <<: *hardening
+    read_only: true
+    tmpfs: [/tmp]
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://owui:${POSTGRES_PASSWORD:-owui-dev-password}@db:5432/owui
+      PUBLIC_ORIGIN: ${PUBLIC_ORIGIN:-http://localhost:8080}
+      # One proxy (Caddy) in front: trust exactly one X-Forwarded-For hop.
+      TRUST_PROXY_HOPS: '1'
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-}
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://127.0.0.1:3000/api/health/ready').then((r) => process.exit(r.ok ? 0 : 1), () => process.exit(1))"
+      interval: 10s
+      timeout: 4s
+      retries: 12
+      start_period: 15s
+    networks: [backend, frontend]
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    image: open-webui-klon-web
+    restart: unless-stopped
+    <<: *hardening
+    # The caddy binary carries the file capability cap_net_bind_service; with cap_drop ALL the kernel
+    # refuses to exec it ("operation not permitted"), although port 8080 needs no privilege.
+    cap_add: [NET_BIND_SERVICE]
+    read_only: true
+    tmpfs: [/data, /config, /tmp]
+    depends_on:
+      api:
+        condition: service_healthy
+    ports:
+      - '127.0.0.1:8080:8080'
+    healthcheck:
+      test: ['CMD', 'wget', '-qO-', 'http://127.0.0.1:8080/']
+      interval: 10s
+      timeout: 3s
+      retries: 6
+    networks: [frontend]
+
+  ollama:
+    profiles: [ollama]
+    image: ollama/ollama:0.40.2@sha256:b86366bb528bbf7f1424435d165028497a5b69bf6ddb4fa5a87102e2b79f44fb
+    restart: unless-stopped
+    volumes:
+      - ollama:/root/.ollama
+    networks: [frontend]
+
+  lgtm:
+    profiles: [observability]
+    image: grafana/otel-lgtm:0.36.0@sha256:57c04cbd8e7022f32bb84c4ac005d79baf8b08e2c5be44facf11f5f1f9944ba2
+    restart: unless-stopped
+    ports:
+      - '127.0.0.1:3001:3000'
+    networks: [frontend]
+
+networks:
+  # The database cannot reach the internet and is not reachable from the web container.
+  backend:
+    internal: true
+  frontend:
 
 volumes:
   pgdata:
+  ollama:
