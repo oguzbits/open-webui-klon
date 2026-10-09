@@ -6,6 +6,8 @@ import { MIGRATIONS } from './migrations/index.js';
 export function buildDataSourceOptions(url: string): DataSourceOptions {
   return {
     type: 'postgres',
+    // gen_random_uuid() is built into Postgres; uuid-ossp would vanish with the test schema reset.
+    uuidExtension: 'pgcrypto',
     url,
     entities: ENTITIES,
     migrations: MIGRATIONS,
