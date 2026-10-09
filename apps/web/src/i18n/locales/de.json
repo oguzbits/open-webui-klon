@@ -19,6 +19,14 @@
     "error": "Der Server antwortet gerade nicht.",
     "retry": "Erneut versuchen"
   },
+  "error": {
+    "network": "Der Server ist gerade nicht erreichbar.",
+    "generic": "Das hat nicht geklappt. Bitte versuche es erneut.",
+    "forbidden": "Dafür fehlt dir die Berechtigung.",
+    "notFound": "Das gibt es nicht (mehr).",
+    "tooLarge": "Die Eingabe ist zu groß.",
+    "tooMany": "Zu viele Versuche. Bitte warte einen Moment."
+  },
   "home": {
     "title": "Willkommen",
     "intro": "Hier entsteht dein persönlicher Chat-Assistent."

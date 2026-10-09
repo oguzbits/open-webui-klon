@@ -1,3 +1,4 @@
+import { csrfHeaderFor, notifyUnauthorized, rememberCsrfToken } from './session-state';
 import { createTraceparent } from './trace';
 
 export class ApiError extends Error {
@@ -26,19 +27,33 @@ function stringField(body: unknown, key: string): string | undefined {
   return typeof value === 'string' ? value : undefined;
 }
 
+/** Answers that carry the session's token. */
+const TOKEN_SOURCES = new Set(['/api/auth/me', '/api/auth/login', '/api/auth/signup']);
+const LOGOUT = '/api/auth/logout';
+/** A 401 here means "wrong credentials" or "not signed in yet", not "the session ended". */
+const EXPECTED_401 = new Set([...TOKEN_SOURCES, '/api/auth/config']);
+
 /**
  * Orval mutator. The server answers errors as RFC 9457 problem details; anything else
- * (a proxy's HTML page) still becomes an ApiError with the status code.
+ * (a proxy's HTML page) still becomes an ApiError with the status code. Writing requests carry the CSRF token
+ * of the session; a 401 on an ordinary request tells the app that the session is over.
  */
 export async function apiFetch<T>(url: string, options: RequestInit = {}): Promise<T> {
+  const path = url.split('?')[0] ?? url;
   const headers = new Headers(options.headers);
   headers.set('traceparent', createTraceparent());
+  const token = csrfHeaderFor(options.method ?? 'GET');
+  if (token !== undefined) headers.set('X-CSRF-Token', token);
 
   const response = await fetch(url, { ...options, headers, credentials: 'include' });
   const text = await response.text();
   const body: unknown = text === '' ? undefined : parseJson(text);
 
   if (!response.ok) {
+    if (response.status === 401) {
+      if (TOKEN_SOURCES.has(path)) rememberCsrfToken(undefined);
+      if (!EXPECTED_401.has(path)) notifyUnauthorized();
+    }
     throw new ApiError(
       response.status,
       stringField(body, 'title') ?? `Request failed (${response.status})`,
@@ -46,5 +61,7 @@ export async function apiFetch<T>(url: string, options: RequestInit = {}): Promi
       stringField(body, 'requestId')
     );
   }
+  if (TOKEN_SOURCES.has(path)) rememberCsrfToken(stringField(body, 'csrfToken'));
+  if (path === LOGOUT) rememberCsrfToken(undefined);
   return { data: body, status: response.status, headers: response.headers } as T;
 }
