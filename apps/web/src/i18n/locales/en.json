@@ -6,6 +6,8 @@
     "home": "Home",
     "account": "Account",
     "users": "Users",
+    "models": "Models",
+    "connections": "Model connections",
     "toggle": "Show or hide the sidebar"
   },
   "theme": {
@@ -177,6 +179,119 @@
         "body": "The account and all its data are deleted. This cannot be undone."
       },
       "error": { "lastAdmin": "At least one active administrator has to remain." }
+    }
+  },
+  "models": {
+    "title": "Available models",
+    "description": "You can use these models.",
+    "columns": {
+      "name": "Model",
+      "provider": "Provider"
+    },
+    "empty": "No models are available yet. An administrator has to connect a provider first.",
+    "refresh": "Refresh",
+    "refreshing": "Refreshing …",
+    "unavailable": {
+      "title": "Not every provider is answering",
+      "item": "{{name}}: {{reason}}"
+    }
+  },
+  "connections": {
+    "title": "Model connections",
+    "description": "Connect the providers whose models every user can use.",
+    "create": "Connect a provider",
+    "empty": "No provider is connected yet.",
+    "healthUnknown": "Whether the providers are answering could not be checked.",
+    "columns": {
+      "name": "Name",
+      "type": "Kind",
+      "address": "Address",
+      "status": "State",
+      "models": "Visible models",
+      "actions": "Actions"
+    },
+    "type": {
+      "ollama": "Ollama",
+      "openai_compatible": "OpenAI-compatible"
+    },
+    "status": {
+      "active": "Active",
+      "disabled": "Disabled",
+      "unreachable": "Unreachable",
+      "unknown": "Unknown"
+    },
+    "noModels": "–",
+    "edit": "Edit",
+    "editNamed": "Edit {{name}}",
+    "models": "Models",
+    "modelsNamed": "Manage the models of {{name}}",
+    "enable": "Enable",
+    "enableNamed": "Enable {{name}}",
+    "disable": "Disable",
+    "disableNamed": "Disable {{name}}",
+    "delete": {
+      "action": "Delete",
+      "named": "Delete {{name}}",
+      "title": "Delete the provider “{{name}}”?",
+      "body": "The connection and its stored key are deleted. The models of this provider are then unavailable to everyone."
+    },
+    "form": {
+      "createTitle": "Connect a provider",
+      "createHint": "You can test the connection once it is saved.",
+      "createSubmit": "Connect",
+      "creating": "Connecting …",
+      "editTitle": "Edit provider",
+      "editHint": "The kind cannot be changed. Create a new provider for that.",
+      "save": "Save",
+      "saving": "Saving …",
+      "name": "Name",
+      "type": "Kind",
+      "address": "Address",
+      "addressHint": {
+        "ollama": "For example http://localhost:11434",
+        "openai_compatible": "For example https://api.example.com/v1"
+      },
+      "key": "Key (optional)",
+      "newKey": "New key",
+      "keyStored": "A key is stored. For security it is not shown.",
+      "keyReplace": "Replace",
+      "keyReplaceCancel": "Cancel replacing",
+      "keyRemove": "Remove",
+      "keyWillRemove": "The key will be removed when you save.",
+      "keyUndo": "Undo"
+    },
+    "test": {
+      "action": "Test connection",
+      "running": "Testing …",
+      "dirty": "Save your changes first to test the new details.",
+      "ok_one": "The connection works. One model was found.",
+      "ok_other": "The connection works. {{count}} models were found."
+    },
+    "modelsDialog": {
+      "title": "Models of {{name}}",
+      "description": "Users do not see hidden models.",
+      "empty": "This provider reports no models.",
+      "hidden": "Hidden",
+      "hide": "Hide",
+      "hideNamed": "Hide {{model}}",
+      "show": "Show",
+      "showNamed": "Show {{model}}"
+    },
+    "error": {
+      "nameRequired": "Please enter a name.",
+      "addressRequired": "Please enter the address.",
+      "keyRequired": "Enter the new key or cancel replacing it.",
+      "nameTaken": "This name is already taken.",
+      "addressRejected": "This address is not accepted. It must start with http:// or https:// and must not contain credentials or parameters. A server administrator has to allow private addresses.",
+      "invalid": "Please check your details. The key must not contain spaces."
+    },
+    "reason": {
+      "timeout": "The provider does not answer in time.",
+      "unreachable": "The provider cannot be reached. Check the address and whether it is running.",
+      "unauthorized": "The provider rejects the key or requires one.",
+      "bad_response": "The provider's answer is unusable. Check the address and kind.",
+      "blocked_host": "This address is not allowed. A server administrator has to allow it.",
+      "unknown": "The provider does not answer as expected."
     }
   },
   "home": {

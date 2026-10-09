@@ -6,6 +6,8 @@
     "home": "Start",
     "account": "Konto",
     "users": "Nutzer",
+    "models": "Modelle",
+    "connections": "Modell-Anbindungen",
     "toggle": "Seitenleiste ein- oder ausblenden"
   },
   "theme": {
@@ -181,6 +183,119 @@
         "body": "Das Konto und alle zugehörigen Daten werden gelöscht. Das lässt sich nicht rückgängig machen."
       },
       "error": { "lastAdmin": "Es muss mindestens ein aktiver Administrator bleiben." }
+    }
+  },
+  "models": {
+    "title": "Verfügbare Modelle",
+    "description": "Diese Modelle kannst du verwenden.",
+    "columns": {
+      "name": "Modell",
+      "provider": "Anbieter"
+    },
+    "empty": "Noch sind keine Modelle verfügbar. Ein Administrator muss zuerst einen Anbieter verbinden.",
+    "refresh": "Aktualisieren",
+    "refreshing": "Wird aktualisiert …",
+    "unavailable": {
+      "title": "Nicht alle Anbieter antworten",
+      "item": "{{name}}: {{reason}}"
+    }
+  },
+  "connections": {
+    "title": "Modell-Anbindungen",
+    "description": "Hier verbindest du Anbieter, deren Modelle alle Nutzer verwenden können.",
+    "create": "Anbieter verbinden",
+    "empty": "Es ist noch kein Anbieter verbunden.",
+    "healthUnknown": "Ob die Anbieter antworten, konnte nicht geprüft werden.",
+    "columns": {
+      "name": "Name",
+      "type": "Art",
+      "address": "Adresse",
+      "status": "Zustand",
+      "models": "Sichtbare Modelle",
+      "actions": "Aktionen"
+    },
+    "type": {
+      "ollama": "Ollama",
+      "openai_compatible": "OpenAI-kompatibel"
+    },
+    "status": {
+      "active": "Aktiv",
+      "disabled": "Deaktiviert",
+      "unreachable": "Nicht erreichbar",
+      "unknown": "Unbekannt"
+    },
+    "noModels": "–",
+    "edit": "Bearbeiten",
+    "editNamed": "{{name}} bearbeiten",
+    "models": "Modelle",
+    "modelsNamed": "Modelle von {{name}} verwalten",
+    "enable": "Aktivieren",
+    "enableNamed": "{{name}} aktivieren",
+    "disable": "Deaktivieren",
+    "disableNamed": "{{name}} deaktivieren",
+    "delete": {
+      "action": "Löschen",
+      "named": "{{name}} löschen",
+      "title": "Anbieter „{{name}}“ löschen?",
+      "body": "Die Anbindung und der gespeicherte Schlüssel werden gelöscht. Die Modelle dieses Anbieters stehen danach niemandem mehr zur Verfügung."
+    },
+    "form": {
+      "createTitle": "Anbieter verbinden",
+      "createHint": "Du kannst die Verbindung testen, sobald sie gespeichert ist.",
+      "createSubmit": "Verbinden",
+      "creating": "Wird verbunden …",
+      "editTitle": "Anbieter bearbeiten",
+      "editHint": "Die Art lässt sich nicht ändern. Lege dafür einen neuen Anbieter an.",
+      "save": "Speichern",
+      "saving": "Wird gespeichert …",
+      "name": "Name",
+      "type": "Art",
+      "address": "Adresse",
+      "addressHint": {
+        "ollama": "Zum Beispiel http://localhost:11434",
+        "openai_compatible": "Zum Beispiel https://api.example.com/v1"
+      },
+      "key": "Schlüssel (optional)",
+      "newKey": "Neuer Schlüssel",
+      "keyStored": "Ein Schlüssel ist hinterlegt. Er wird aus Sicherheitsgründen nicht angezeigt.",
+      "keyReplace": "Ersetzen",
+      "keyReplaceCancel": "Ersetzen abbrechen",
+      "keyRemove": "Entfernen",
+      "keyWillRemove": "Der Schlüssel wird beim Speichern entfernt.",
+      "keyUndo": "Rückgängig"
+    },
+    "test": {
+      "action": "Verbindung testen",
+      "running": "Wird getestet …",
+      "dirty": "Speichere zuerst deine Änderungen, um die neuen Angaben zu testen.",
+      "ok_one": "Die Verbindung funktioniert. Es wurde ein Modell gefunden.",
+      "ok_other": "Die Verbindung funktioniert. Es wurden {{count}} Modelle gefunden."
+    },
+    "modelsDialog": {
+      "title": "Modelle von {{name}}",
+      "description": "Ausgeblendete Modelle sehen Nutzer nicht.",
+      "empty": "Dieser Anbieter meldet keine Modelle.",
+      "hidden": "Ausgeblendet",
+      "hide": "Ausblenden",
+      "hideNamed": "{{model}} ausblenden",
+      "show": "Einblenden",
+      "showNamed": "{{model}} einblenden"
+    },
+    "error": {
+      "nameRequired": "Bitte gib einen Namen ein.",
+      "addressRequired": "Bitte gib die Adresse ein.",
+      "keyRequired": "Gib den neuen Schlüssel ein oder brich das Ersetzen ab.",
+      "nameTaken": "Dieser Name ist schon vergeben.",
+      "addressRejected": "Diese Adresse wird nicht akzeptiert. Sie muss mit http:// oder https:// beginnen und darf weder Zugangsdaten noch Parameter enthalten. Private Adressen muss ein Administrator des Servers freigeben.",
+      "invalid": "Bitte prüfe deine Angaben. Der Schlüssel darf keine Leerzeichen enthalten."
+    },
+    "reason": {
+      "timeout": "Der Anbieter antwortet nicht rechtzeitig.",
+      "unreachable": "Der Anbieter ist nicht erreichbar. Prüfe die Adresse und ob er läuft.",
+      "unauthorized": "Der Anbieter lehnt den Schlüssel ab oder verlangt einen.",
+      "bad_response": "Die Antwort des Anbieters ist unbrauchbar. Prüfe Adresse und Art.",
+      "blocked_host": "Diese Adresse ist nicht erlaubt. Ein Administrator des Servers muss sie freigeben.",
+      "unknown": "Der Anbieter antwortet nicht wie erwartet."
     }
   },
   "home": {
