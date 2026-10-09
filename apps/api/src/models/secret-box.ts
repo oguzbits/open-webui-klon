@@ -67,7 +67,7 @@ function additionalData(keyId: string, connectionId: string): Buffer {
 export function encryptSecret(plaintext: string, keyring: Keyring, connectionId: string): string {
   const { keyId, key } = keyring.current;
   const iv = randomBytes(IV_BYTES);
-  const cipher = createCipheriv('aes-256-gcm', key, iv);
+  const cipher = createCipheriv('aes-256-gcm', key, iv, { authTagLength: TAG_BYTES });
   cipher.setAAD(additionalData(keyId, connectionId));
   const sealed = Buffer.concat([
     cipher.update(plaintext, 'utf8'),
@@ -101,7 +101,7 @@ export function decryptSecret(stored: string, keyring: Keyring, connectionId: st
     throw new SecretBoxError(SECRET_BOX_ERROR.MALFORMED, 'Stored secret has an unknown format');
   }
   try {
-    const decipher = createDecipheriv('aes-256-gcm', key, iv);
+    const decipher = createDecipheriv('aes-256-gcm', key, iv, { authTagLength: TAG_BYTES });
     decipher.setAAD(additionalData(keyId, connectionId));
     decipher.setAuthTag(sealed.subarray(sealed.length - TAG_BYTES));
     return Buffer.concat([
