@@ -1,5 +1,18 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { Transform } from 'class-transformer';
+import {
+  IsBoolean,
+  IsEmail,
+  IsIn,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  MaxLength,
+  MinLength,
+} from 'class-validator';
 
+import { emailTransform } from './email.js';
+import { PASSWORD_MAX_LENGTH, PASSWORD_MIN_LENGTH } from './password-policy.js';
 import type { User } from './user.entity.js';
 import { USER_ROLE, type UserRole } from './user-role.js';
 
@@ -26,4 +39,55 @@ export function toUserDto(user: User): UserDto {
     disabled: user.disabledAt !== null,
     createdAt: user.createdAt.toISOString(),
   };
+}
+
+const ROLES = Object.values(USER_ROLE);
+
+export class CreateUserDto {
+  @Transform(emailTransform)
+  @IsEmail()
+  @MaxLength(254)
+  email!: string;
+
+  @Transform(trimTransform)
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(100)
+  name!: string;
+
+  @IsString()
+  @MinLength(PASSWORD_MIN_LENGTH)
+  @MaxLength(PASSWORD_MAX_LENGTH)
+  password!: string;
+
+  @ApiProperty({ enum: ROLES })
+  @IsIn(ROLES)
+  role!: UserRole;
+}
+
+export class UpdateUserDto {
+  @ApiPropertyOptional()
+  @IsOptional()
+  @Transform(trimTransform)
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(100)
+  name?: string;
+
+  @ApiPropertyOptional({ enum: ROLES })
+  @IsOptional()
+  @IsIn(ROLES)
+  role?: UserRole;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsBoolean()
+  disabled?: boolean;
+}
+
+export class SetUserPasswordDto {
+  @IsString()
+  @MinLength(PASSWORD_MIN_LENGTH)
+  @MaxLength(PASSWORD_MAX_LENGTH)
+  password!: string;
 }
