@@ -170,6 +170,9 @@ describe('AuthGuard', () => {
       'session',
       ';',
       'other=1',
+      'session="tok-user"',
+      'session=; session=tok-user',
+      'session=%ZZ',
       'session=unknown',
       `session=${'x'.repeat(5000)}`,
     ])('answers 401, never 500, for the cookie header %j', async (cookie) => {
