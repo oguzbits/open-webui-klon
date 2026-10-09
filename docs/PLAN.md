@@ -8,7 +8,7 @@ Pläne je Teilprojekt liegen unter [docs/superpowers/plans/](superpowers/plans/)
 | --- | ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | 0   | Fundament                                       | erledigt, Plan: [Teilprojekt 0](superpowers/plans/2026-10-09-teilprojekt-0-fundament.md), Beleg: [DoD](dod/00-fundament.md)                                                                                                                                                                |
 | 1   | Auth + Nutzer/Rollen                            | erledigt: [Spec](superpowers/specs/2026-10-09-teilprojekt-1-auth-design.md), Plan [1a](superpowers/plans/2026-10-09-teilprojekt-1a-auth-backend.md), [1b](superpowers/plans/2026-10-09-teilprojekt-1b-auth-web.md), Belege: [DoD 1a](dod/01-auth-backend.md), [DoD 1b](dod/01-auth-web.md) |
-| 2   | Modell-Anbindung                                | offen                                                                                                                                                                                                                                                                                      |
+| 2   | Modell-Anbindung                                | Spec geschrieben: [Spec](superpowers/specs/2026-10-09-teilprojekt-2-modell-anbindung-design.md), Plan folgt                                                                                                                                                                                |
 | 3   | Chat + Streaming                                | offen                                                                                                                                                                                                                                                                                      |
 | 4   | RAG mit Hybrid-Suche                            | offen                                                                                                                                                                                                                                                                                      |
 | 5   | Tools                                           | offen                                                                                                                                                                                                                                                                                      |
@@ -27,5 +27,5 @@ Offenes und bewusst Verworfenes: [docs/BACKLOG.md](BACKLOG.md).
 
 ## Als Nächstes
 
-1. Spec für Teilprojekt 2 (Modell-Anbindung) schreiben.
+1. Spec für Teilprojekt 2 prüfen lassen, danach Pläne 2a (Backend) und 2b (Web) schreiben.
 2. Plan für Stufe 2 des Agentic-Setups (Stop-Hook, Bash-Guard mit Tests, DoD-Vorlage, Testregeln).
