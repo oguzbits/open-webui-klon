@@ -6,6 +6,7 @@ import { configureApp } from '../app.factory.js';
 import { CommonModule } from '../common/common.module.js';
 import { AppConfigModule } from '../config/app-config.module.js';
 import { AppLoggerModule } from '../logging/logger.module.js';
+import { SecurityModule } from '../security/security.module.js';
 
 export const BASE_TEST_ENV: Record<string, string> = {
   NODE_ENV: 'test',
@@ -31,6 +32,7 @@ export async function createTestApp(options: TestAppOptions = {}): Promise<NestE
       AppConfigModule.forRoot({ raw: { ...BASE_TEST_ENV, ...options.env }, ignoreEnvFile: true }),
       AppLoggerModule,
       CommonModule,
+      SecurityModule,
       ...(options.imports ?? []),
     ],
     controllers: options.controllers ?? [],
