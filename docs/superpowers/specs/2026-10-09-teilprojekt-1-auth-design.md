@@ -51,7 +51,7 @@ widersprechen sich), Speicherort im Frontend, Klartextspeicherung der Keys (Verm
 
 Migrationen werden generiert (Invariante 9); Entities in `database/entities.ts` eintragen.
 
-- **`User`:** `id` (uuid), `email` (eindeutiger Index auf `lower(email)`), `name`, `passwordHash`, `role`
+- **`User`:** `id` (uuid), `email` (klein geschrieben und ohne Leerzeichen gespeichert, eindeutiger Index auf `email`), `name`, `passwordHash`, `role`
   (`pending` | `user` | `admin`), `disabledAt` (nullable), `createdAt`, `updatedAt`.
 - **`Session`:** `id`, `userId` (FK, `ON DELETE CASCADE`), `tokenHash` (SHA-256, eindeutig), `csrfToken`,
   `expiresAt`, `lastUsedAt`, `createdAt`. Der Klartext-Token existiert nur im Cookie.
@@ -83,12 +83,13 @@ Session; `GET /auth/me` ist die einzige Route außer Logout, die `pending` errei
 
 ## 6. Regeln
 
-- **Erster Admin:** `signup` zählt nach dem Insert in einer Transaktion unter Advisory-Lock; ist der neue Nutzer
-  der einzige, wird er `admin`. Zwei gleichzeitige Aufrufe ergeben genau einen Admin. Alternativ legt die API
+- **Erster Admin:** `signup` zählt die Nutzer in einer Transaktion unter Advisory-Lock, bevor es einfügt; der
+  erste Nutzer überhaupt wird `admin`, auch bei `ENABLE_SIGNUP=false`. Zwei gleichzeitige Aufrufe ergeben genau einen Admin. Alternativ legt die API
   beim Start den Admin aus `ADMIN_EMAIL`, `ADMIN_PASSWORD`, `ADMIN_NAME` an, **nur wenn noch kein Nutzer
   existiert**; das Passwort wird nie geloggt, nach dem ersten Start ist die Variable zu entfernen (Hinweis im
   `.env.example`).
-- **Guard:** global, geschlossen per Standard. Löst Cookie oder `Authorization: Bearer sk-…` auf, nie
+- **Guard:** global, geschlossen per Standard. Löst Cookie oder `Authorization: Bearer sk-…` (Schema ohne Beachtung der Groß-/Kleinschreibung) auf; ist ein
+  `Authorization`-Header da, entscheidet er allein, es gibt dann keinen Rückfall auf das Cookie, nie
   `x-api-key` oder Query-Parameter. Ein Key handelt mit der Rolle seines Nutzers; er scheitert an `@Roles(admin)`
   und an der Key-Verwaltung. Gesperrte (`disabledAt`) und wartende Nutzer werden bei jeder Anfrage abgewiesen,
   die Rolle wird nie aus dem Cookie, sondern aus der DB gelesen.
@@ -101,7 +102,9 @@ Session; `GET /auth/me` ist die einzige Route außer Logout, die `pending` errei
   zeitkonstant) zusätzlich zum vorhandenen Origin-Check. Bearer-Anfragen sind ausgenommen.
 - **Passwort:** mindestens 12 Zeichen, höchstens 128; nie leer. Argon2id mit den Parametern der
   OWASP-Empfehlung, vor dem Einsatz gegen die aktuelle Doku der Bibliothek zu prüfen (Invariante 10).
-- **Rate Limit:** `login` und `signup` begrenzt pro IP und pro E-Mail, getrennt von der globalen Grenze.
+- **Rate Limit:** `login` und `signup` begrenzt pro IP und pro E-Mail, getrennt von der globalen Grenze, im
+  Speicher (eine API-Instanz). Env: `LOGIN_MAX_ATTEMPTS` (pro E-Mail) und `LOGIN_WINDOW_SECONDS`; pro IP gilt das
+  Fünffache, weil hinter einer Adresse viele Menschen sitzen können.
 - **Logs:** nie Passwörter, Tokens oder Keys; nur IDs. Audit-Einträge für die Aktionen aus Abschnitt 4.
 - **Env** nur über `config/env.ts`: `ENABLE_SIGNUP` (Standard `true`), `DEFAULT_USER_ROLE` (`pending` oder
   `user`, Standard `pending`), `ENABLE_API_KEYS` (Standard `false`), `SESSION_LIFETIME_HOURS`, `ADMIN_*`.
