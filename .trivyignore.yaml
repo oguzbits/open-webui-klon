@@ -1,0 +1,16 @@
+# Time-boxed risk acceptances for the image scan (ci.yml, job compose-smoke).
+# Each entry expires, so a forgotten ignore turns the scan red again.
+vulnerabilities:
+  # Go 1.26.9 / 1.27.2 shipped on 2026-10-08; the official caddy:2-alpine image (2026-10-06) is still built with 1.26.8
+  # and there is no newer tag. Exposure: DoS only, and only in the static front proxy (no TLS terminated here).
+  # Remove once Renovate bumps the caddy digest to a build with Go >= 1.26.9.
+  - id: CVE-2026-78667
+    paths:
+      - usr/bin/caddy
+    statement: net/http DoS in the Go stdlib linked into caddy; no fixed caddy image published yet
+    expired_at: 2026-10-23
+  - id: CVE-2026-97031
+    paths:
+      - usr/bin/caddy
+    statement: crypto/tls DoS in the Go stdlib linked into caddy; no TLS is terminated by this container
+    expired_at: 2026-10-23

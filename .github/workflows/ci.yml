@@ -107,8 +107,9 @@ jobs:
             docker image inspect "$image" > /dev/null
             echo "::group::trivy $image"
             docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
+              -v "$PWD/.trivyignore.yaml:/.trivyignore.yaml:ro" \
               aquasec/trivy:0.75.0@sha256:af6acf9a6b85dfe389a1941505c0ce9efef52a4719635e1a962f022a3d855daa \
-              image --severity HIGH,CRITICAL --ignore-unfixed --exit-code 1 "$image"
+              image --severity HIGH,CRITICAL --ignore-unfixed --ignorefile /.trivyignore.yaml --exit-code 1 "$image"
             echo "::endgroup::"
           done
       - if: failure()

@@ -11,13 +11,10 @@
   },
   "packageRules": [
     {
-      "matchPackageNames": ["*"],
-      "minimumReleaseAge": "7 days"
-    },
-    {
       "matchDepTypes": ["devDependencies"],
       "matchUpdateTypes": ["minor", "patch"],
-      "groupName": "dev dependencies"
+      "groupName": "dev dependencies",
+      "minimumReleaseAge": "7 days"
     }
   ]
 }
