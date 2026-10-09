@@ -25,3 +25,7 @@ export async function insertUser(
     })
   );
 }
+
+export async function resetProviderTables(dataSource: DataSource): Promise<void> {
+  await dataSource.query('TRUNCATE provider_connection');
+}
