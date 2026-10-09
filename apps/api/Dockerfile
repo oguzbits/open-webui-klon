@@ -15,6 +15,13 @@ RUN pnpm --filter @owui/api deploy --prod --legacy /out
 
 FROM node:24-bookworm-slim@sha256:d6aa754f16b3197301076f047b5def2f02ea1dbbc2ca920407d46d7ec7f87b20 AS runtime
 ENV NODE_ENV=production
+# The server needs neither npm nor corepack; removing them drops their bundled dependencies (and their CVEs)
+# and the package managers an attacker could use. Upgrade the Debian packages the scan flags as fixed.
+RUN rm -rf /usr/local/lib/node_modules/npm /usr/local/lib/node_modules/corepack \
+      /usr/local/bin/npm /usr/local/bin/npx /usr/local/bin/corepack \
+    && apt-get update \
+    && apt-get upgrade -y --no-install-recommends \
+    && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 COPY --from=build --chown=node:node /out/ ./
 USER node
