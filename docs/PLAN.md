@@ -7,7 +7,7 @@ Pläne je Teilprojekt liegen unter [docs/superpowers/plans/](superpowers/plans/)
 | #   | Teilprojekt                                   | Stand                                                                                                                       |
 | --- | --------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
 | 0   | Fundament                                     | erledigt, Plan: [Teilprojekt 0](superpowers/plans/2026-10-09-teilprojekt-0-fundament.md), Beleg: [DoD](dod/00-fundament.md) |
-| 1   | Auth + Nutzer/Rollen                          | offen                                                                                                                       |
+| 1   | Auth + Nutzer/Rollen                          | Spec in Prüfung, [Spec](superpowers/specs/2026-10-09-teilprojekt-1-auth-design.md)                                          |
 | 2   | Modell-Anbindung                              | offen                                                                                                                       |
 | 3   | Chat + Streaming                              | offen                                                                                                                       |
 | 4   | RAG                                           | offen                                                                                                                       |

@@ -193,7 +193,7 @@ nativ liest oder die Erweiterung `xk6-sse` nötig ist, ist vor Teilprojekt 6 geg
 - **Ein Befehl:** `docker compose up` startet Postgres+pgvector, führt Migrationen aus, startet `api` und `web`
   und legt beim ersten Start einen Admin an. Healthchecks mit `depends_on: condition: service_healthy`.
 - **Defaults:** `.env.example` mit funktionierenden Entwicklungswerten; Compose nutzt sie, wenn keine `.env`
-  existiert. Das Session-Secret erzeugt die API beim ersten Start selbst, falls keines gesetzt ist.
+  existiert. Ein Session-Secret ist nicht nötig: Session-Tokens sind zufällig und liegen nur als Hash in der DB ([Teilprojekt 1](2026-10-09-teilprojekt-1-auth-design.md)).
 - **LLM-Zugang:** Optionales Compose-Profil `ollama`. Alternativ ein vorhandenes Ollama auf dem Host
   (`host.docker.internal`) oder ein OpenAI-kompatibler Endpoint, der in der UI eingetragen wird.
 - **Entwicklung:** `compose.dev.yml` mit Hot Reload für API und Vite; alternativ nur Postgres per Compose und
