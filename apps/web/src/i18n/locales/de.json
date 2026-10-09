@@ -27,6 +27,47 @@
     "tooLarge": "Die Eingabe ist zu groß.",
     "tooMany": "Zu viele Versuche. Bitte warte einen Moment."
   },
+  "common": {
+    "loading": "Wird geladen …",
+    "loadFailed": "Das Laden hat nicht geklappt.",
+    "retry": "Erneut versuchen",
+    "cancel": "Abbrechen",
+    "close": "Schließen",
+    "save": "Speichern",
+    "delete": "Löschen"
+  },
+  "auth": {
+    "login": {
+      "title": "Anmelden",
+      "description": "Melde dich mit deinem Konto an.",
+      "email": "E-Mail-Adresse",
+      "password": "Passwort",
+      "submit": "Anmelden",
+      "submitting": "Anmeldung läuft …"
+    },
+    "signup": {
+      "title": "Konto erstellen",
+      "description": "Lege ein Konto an, um loszulegen.",
+      "onboarding": "Es gibt noch kein Konto. Das erste Konto wird Administrator.",
+      "name": "Name",
+      "passwordHint": "Mindestens 12 Zeichen.",
+      "submit": "Konto erstellen",
+      "submitting": "Konto wird erstellt …"
+    },
+    "switch": {
+      "toSignup": "Noch kein Konto? Registrieren",
+      "toLogin": "Schon ein Konto? Anmelden"
+    },
+    "error": {
+      "required": "Bitte fülle alle Felder aus.",
+      "passwordShort": "Das Passwort braucht mindestens 12 Zeichen.",
+      "passwordLong": "Das Passwort darf höchstens 128 Zeichen haben.",
+      "credentials": "E-Mail-Adresse oder Passwort stimmt nicht.",
+      "taken": "Diese E-Mail-Adresse ist schon registriert.",
+      "closed": "Die Registrierung ist ausgeschaltet.",
+      "invalid": "Bitte prüfe deine Eingaben."
+    }
+  },
   "home": {
     "title": "Willkommen",
     "intro": "Hier entsteht dein persönlicher Chat-Assistent."

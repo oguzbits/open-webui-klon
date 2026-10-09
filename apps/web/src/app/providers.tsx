@@ -4,7 +4,10 @@ import type { ReactNode } from 'react';
 import { ThemeProvider } from '@/components/theme/theme-provider';
 
 export function createQueryClient(): QueryClient {
-  return new QueryClient({ defaultOptions: { queries: { refetchOnWindowFocus: false } } });
+  // No automatic retries: every failed view shows its own "Erneut versuchen" button.
+  return new QueryClient({
+    defaultOptions: { queries: { refetchOnWindowFocus: false, retry: false } },
+  });
 }
 
 const appQueryClient = createQueryClient();

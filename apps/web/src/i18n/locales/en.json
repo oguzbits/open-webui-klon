@@ -27,6 +27,47 @@
     "tooLarge": "The input is too large.",
     "tooMany": "Too many attempts. Please wait a moment."
   },
+  "common": {
+    "loading": "Loading …",
+    "loadFailed": "Loading failed.",
+    "retry": "Try again",
+    "cancel": "Cancel",
+    "close": "Close",
+    "save": "Save",
+    "delete": "Delete"
+  },
+  "auth": {
+    "login": {
+      "title": "Sign in",
+      "description": "Sign in with your account.",
+      "email": "Email address",
+      "password": "Password",
+      "submit": "Sign in",
+      "submitting": "Signing in …"
+    },
+    "signup": {
+      "title": "Create account",
+      "description": "Create an account to get started.",
+      "onboarding": "There is no account yet. The first account becomes the administrator.",
+      "name": "Name",
+      "passwordHint": "At least 12 characters.",
+      "submit": "Create account",
+      "submitting": "Creating account …"
+    },
+    "switch": {
+      "toSignup": "No account yet? Sign up",
+      "toLogin": "Already have an account? Sign in"
+    },
+    "error": {
+      "required": "Please fill in all fields.",
+      "passwordShort": "The password needs at least 12 characters.",
+      "passwordLong": "The password may have at most 128 characters.",
+      "credentials": "The email address or password is wrong.",
+      "taken": "This email address is already registered.",
+      "closed": "Sign-up is switched off.",
+      "invalid": "Please check your input."
+    }
+  },
   "home": {
     "title": "Welcome",
     "intro": "Your personal chat assistant will live here."
