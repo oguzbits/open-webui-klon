@@ -167,14 +167,14 @@ Architekturentscheidungen stehen als ADRs unter `docs/adr/`.
 | **Konto-Übernahme** | Argon2id, Rate Limit pro Konto und IP, einheitliche Antworten und Zeiten gegen Nutzer-Enumeration, Session-Rotation beim Login, Reset-Tokens gehasht und kurzlebig, API-Keys nur gehasht gespeichert und einmal angezeigt, Vergleich in konstanter Zeit, Open-Redirect-Prüfung beim `next`-Parameter, Leak-Prüfung neuer Passwörter. | 1 |
 | **XSS/CSRF/Clickjacking** | Strenge CSP ohne `unsafe-inline` für Skripte, Trusted Types, `SameSite`, Origin-Prüfung plus CSRF-Token bei schreibenden Requests, `frame-ancestors 'none'`, CORS ohne Origin-Spiegelung. | 0, 1 |
 | **Geheimnisse und Fehlerausgaben** | Provider-Keys verschlüsselt (AES-GCM, Schlüsselrotation vorgesehen), keine Stacktraces in Produktionsantworten, `pino redact`, Secret-Scanning (gitleaks) in Hook und CI. | 0 |
-| **Lieferkette** | Gesperrte Lockfile, Renovate, Karenzzeit für frische Paketversionen, Install-Skripte nur für freigegebene Pakete, Actions per SHA festgenagelt, `pnpm audit`/OSV, Lizenzprüfung, SBOM (CycloneDX), signierte Images (cosign). | 0, 6 |
+| **Lieferkette** | Gesperrte Lockfile, Karenzzeit für frische Paketversionen, Install-Skripte nur für freigegebene Pakete, Actions per SHA festgenagelt, `pnpm audit`/OSV, Lizenzprüfung, SBOM (CycloneDX), signierte Images (cosign). | 0, 6 |
 | **Container** | Nicht-Root, Read-only-Dateisystem, Capabilities entfernt, Trivy-Scan in der CI, Ressourcenlimits. | 0 |
 | **Datenschutz gegenüber Anbietern** | Nutzer sieht, an welchen Anbieter ein Chat geht; Admin kann Anbieter pro Gruppe sperren; Inhalte erscheinen nicht in Logs. | 2 |
 
 ### 6.2 Qualitätsanforderungen nach Stufen
 
 - **Stufe A, von Anfang an (Teilprojekt 0/1):** Sicherheits-Header und CSP, CSRF-Schutz, Validierungs-Whitelist,
-  Rate Limiting, Secret-Scanning, Renovate, Container-Härtung, `SafeFetchService`, OpenTelemetry-Grundgerüst
+  Rate Limiting, Secret-Scanning, Container-Härtung, `SafeFetchService`, OpenTelemetry-Grundgerüst
   (Traces, RED-Metriken, `traceparent` vom Browser), Liveness/Readiness getrennt, Graceful Shutdown (laufende
   SSE-Streams und Jobs sauber beenden), Timeouts für alle ausgehenden Aufrufe, Audit-Log-Tabelle, ADRs, Threat Model.
 - **Stufe B, je Teilprojekt:** IDOR-/Autorisierungstests pro Endpunkt, die zutreffenden Zeilen aus 6.1, Metriken
