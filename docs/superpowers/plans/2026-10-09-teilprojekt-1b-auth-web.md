@@ -91,13 +91,13 @@ apps/web/src/
   - Testhilfen: `stubApi(handlers: Record<string, Handler>): Mock<typeof fetch>` (Schlüssel `"METHOD /pfad"`; unbekannte Anfragen liefern 404 mit Titel `Unexpected request: METHOD /pfad`), `json(status, body)`, `noContent()`, `problem(status, title, detail?)`; `Handler = (request: { method: string; url: URL; body: unknown; headers: Headers }) => Response | Promise<Response>`
   - Fixtures: `userDto(overrides?: Partial<UserDto>): UserDto` (Rolle `user`), `sessionInfo(user?: UserDto, csrfToken?: string): SessionInfoDto`, `authConfig(overrides?: Partial<AuthConfigDto>): AuthConfigDto` (`signupEnabled: true, onboarding: false, apiKeysEnabled: true`)
 
-- [ ] **Step 1: Namen im erzeugten Client prüfen**
+- [x] **Step 1: Namen im erzeugten Client prüfen**
 
 Run: `grep -E "^export (const|function) use(Auth|ApiKeys|Users)" apps/web/src/api/generated/api.ts | sed -E 's/\(.*//' | sort -u && ls apps/web/src/api/generated/model | grep -iE "role|dto" | sort`
 
 Expected: Hooks `useAuthSignup`, `useAuthLogin`, `useAuthLogout`, `useAuthMe`, `useAuthConfig`, `useAuthChangePassword`, `useApiKeysList`, `useApiKeysCreate`, `useApiKeysRevoke`, `useUsersList`, `useUsersCreate`, `useUsersUpdate`, `useUsersSetPassword`, `useUsersRemove`; Modelle `userDto.ts`, `userDtoRole.ts`, `sessionInfoDto.ts`, `authConfigDto.ts`, `apiKeyDto.ts`, `createdApiKeyDto.ts`, `createUserDtoRole.ts`, `updateUserDtoRole.ts` und die Anfrage-DTOs. Weicht ein Name ab (zum Beispiel `useUsersDelete`), diesen Plan an allen Stellen mit dem tatsächlichen Namen lesen; die Form (`mutate({ data })`, `mutate({ id })`, `mutate({ id, data })`) bleibt gleich. Die Abfrageschlüssel kommen als `getAuthMeQueryKey()`, `getAuthConfigQueryKey()`, `getUsersListQueryKey()`, `getApiKeysListQueryKey()` aus derselben Datei.
 
-- [ ] **Step 2: Fehlschlagende Tests schreiben**
+- [x] **Step 2: Fehlschlagende Tests schreiben**
 
 `apps/web/src/api/session-state.spec.ts`:
 
@@ -287,7 +287,7 @@ describe('apiFetch: session handling', () => {
 Run: `pnpm --filter @owui/web exec vitest run src/api`
 Expected: FAIL (Module `session-state`, `error-message`, `test/stub-api` fehlen).
 
-- [ ] **Step 3: Testhilfen und Module schreiben**
+- [x] **Step 3: Testhilfen und Module schreiben**
 
 `apps/web/src/test/stub-api.ts`:
 
@@ -512,12 +512,12 @@ In `de.json` und `en.json` den Block `error` ergänzen (nach `status`):
   },
 ```
 
-- [ ] **Step 4: Tests laufen lassen, grün sehen**
+- [x] **Step 4: Tests laufen lassen, grün sehen**
 
 Run: `pnpm --filter @owui/web exec vitest run src/api src/i18n`
 Expected: PASS.
 
-- [ ] **Step 5: `pnpm check` und Commit**
+- [x] **Step 5: `pnpm check` und Commit**
 
 Run: `pnpm check`
 Expected: grün.
@@ -546,7 +546,7 @@ git commit -m "feat(web): send the session token on writes and report an ended s
   - Testhilfe `renderPage(ui: ReactElement, path?: string): { queryClient: QueryClient }` und `renderApp(path)` gibt jetzt `{ ...view, queryClient }` zurück
   - Der Standard des `QueryClient` für Abfragen ist `retry: false` (die Schaltfläche „Erneut versuchen“ ist der Wiederholungsweg)
 
-- [ ] **Step 1: shadcn-Bausteine holen**
+- [x] **Step 1: shadcn-Bausteine holen**
 
 Die Registry ist erreichbar und kennt alle Bausteine (am 2026-10-09 mit `pnpm exec shadcn view` geprüft).
 
@@ -556,7 +556,7 @@ Expected: acht neue Dateien unter `apps/web/src/components/ui/`. Danach `git sta
 Run: `pnpm check`
 Expected: grün (`components/ui/**` ist von ESLint und Prettier ausgenommen).
 
-- [ ] **Step 2: Fehlschlagende Tests schreiben**
+- [x] **Step 2: Fehlschlagende Tests schreiben**
 
 `apps/web/src/features/auth/store-session.spec.ts`:
 
@@ -848,7 +848,7 @@ describe('LoginPage: sign up', () => {
 Run: `pnpm --filter @owui/web exec vitest run src/features/auth src/pages`
 Expected: FAIL (Module fehlen).
 
-- [ ] **Step 3: Gemeinsame Bausteine, Testhilfe und Texte**
+- [x] **Step 3: Gemeinsame Bausteine, Testhilfe und Texte**
 
 `apps/web/src/components/common/page-loading.tsx`:
 
@@ -1065,7 +1065,7 @@ in `en.json`:
   },
 ```
 
-- [ ] **Step 4: Formulare und Seite schreiben**
+- [x] **Step 4: Formulare und Seite schreiben**
 
 `apps/web/src/features/auth/login-form.tsx`:
 
@@ -1349,12 +1349,12 @@ export function LoginPage() {
 }
 ```
 
-- [ ] **Step 5: Tests laufen lassen, grün sehen**
+- [x] **Step 5: Tests laufen lassen, grün sehen**
 
 Run: `pnpm --filter @owui/web exec vitest run`
 Expected: PASS (auch die bestehenden Web-Tests; `renderApp` liefert jetzt ein Objekt, die Aufrufer ignorieren den Rückgabewert). Stolpersteine: (a) heißt die Anmeldeschaltfläche und der Umschalter beide „Anmelden“, trennt `getByRole('button', { name: /Anmelden/ })` nur im Modus „Registrieren“ eindeutig, dort gibt es keine Anmeldeschaltfläche; (b) `userEvent.paste` braucht vorher einen Klick ins Feld, der Test macht das; (c) die Karten-Bausteine aus `shadcn add` können `CardTitle` als `div` rendern, deshalb steht die Überschrift als eigenes `h1`.
 
-- [ ] **Step 6: `pnpm check` und Commit**
+- [x] **Step 6: `pnpm check` und Commit**
 
 Run: `pnpm check`
 Expected: grün.
@@ -1381,7 +1381,7 @@ git commit -m "feat(web): add sign-in and sign-up pages" -m "Co-Authored-By: Cla
   - Routen: `/login` (nur anonym), `/pending` (nur wartend), `/` mit `AppLayout` (nur Mitglieder)
   - Zuordnung (Zeile = Zustand, Spalte = Wächter): anonym → Ziel | Login | Login | Login; wartend → `/pending` | Ziel | `/pending` | `/pending`; Nutzer → `/` | `/` | Ziel | `/`; Admin → `/` | `/` | Ziel | Ziel (Spalten: ANONYMOUS, PENDING, MEMBER, ADMIN)
 
-- [ ] **Step 1: Fehlschlagende Tests schreiben**
+- [x] **Step 1: Fehlschlagende Tests schreiben**
 
 `apps/web/src/features/auth/session-gate.spec.tsx`:
 
@@ -1689,7 +1689,7 @@ describe('app routing and layout', () => {
 Run: `pnpm --filter @owui/web exec vitest run src/features/auth/session-gate.spec.tsx src/app`
 Expected: FAIL (Module fehlen).
 
-- [ ] **Step 2: Sitzung und Wächter schreiben**
+- [x] **Step 2: Sitzung und Wächter schreiben**
 
 `apps/web/src/features/auth/session.ts`:
 
@@ -2053,12 +2053,12 @@ Texte ergänzen. `de.json`:
   },
 ```
 
-- [ ] **Step 3: Tests laufen lassen, grün sehen**
+- [x] **Step 3: Tests laufen lassen, grün sehen**
 
 Run: `pnpm --filter @owui/web exec vitest run`
 Expected: PASS. Stolpersteine: (a) `let role: 'pending' | 'user' = UserDtoRole.pending;` im Router-Test: TypeScript verengt `role` auf den Literaltyp der Zuweisung; schlägt der Linter bei der späteren Zuweisung an, `let role: string = UserDtoRole.pending;` und `userDto({ role: ... })` mit dem Wörterbuch-Wert füttern, oder zwei Handler tauschen; (b) die Matrix-Tests lassen `findByText('Startseite')` auch bei kurz sichtbarem Ziel durch; das ist gewollt, weil `Navigate` synchron umleitet; (c) `router.state.location.state` ist in React Router 8 öffentlich; fehlt das Feld, `router.state.location` im Debugger ansehen.
 
-- [ ] **Step 4: `pnpm check` und Commit**
+- [x] **Step 4: `pnpm check` und Commit**
 
 Run: `pnpm check`
 Expected: grün.
@@ -2087,7 +2087,7 @@ git commit -m "feat(web): guard routes by session state and add sign-out and wai
 - Passwort: aktuelles, neues und Wiederholung. Leere Felder, zu kurz (< 12), zu lang (> 128) und Wiederholung ungleich werden vor dem Senden gemeldet. Der Server antwortet bei falschem aktuellem Passwort mit **400** (nicht 401, sonst würde der Fetcher die Sitzung für beendet halten); die Meldung nennt beide Möglichkeiten. Bei Erfolg sind die Felder leer und eine Erfolgsmeldung steht da; die anderen Geräte sind abgemeldet (das sagt der Text).
 - API-Schlüssel: Ist `apiKeysEnabled` aus (aus `GET /auth/config`), erscheint ein Hinweis statt der Liste und es gibt keine Anfrage an `/api/auth/api-keys`. Sonst: Laden, Fehler mit „Erneut versuchen“, leer, Liste (Name, Anfang, Erstellt, Zuletzt benutzt, Läuft ab) mit „Widerrufen“ nach Rückfrage. „Neuen Schlüssel erstellen“: Name und Laufzeit (nie, 30, 90, 365 Tage); danach zeigt ein Dialog den Schlüssel **einmal** mit Kopieren-Schaltfläche und Warnung.
 
-- [ ] **Step 1: Fehlschlagende Tests schreiben**
+- [x] **Step 1: Fehlschlagende Tests schreiben**
 
 `apps/web/src/lib/format-date.spec.ts`:
 
@@ -2491,7 +2491,7 @@ describe('AccountPage: api keys', () => {
 Run: `pnpm --filter @owui/web exec vitest run src/lib src/pages/account-page.spec.tsx`
 Expected: FAIL (Module fehlen).
 
-- [ ] **Step 2: Hilfsfunktion, Formular, Abschnitt und Seite schreiben**
+- [x] **Step 2: Hilfsfunktion, Formular, Abschnitt und Seite schreiben**
 
 `apps/web/src/lib/format-date.ts`:
 
@@ -3174,7 +3174,7 @@ Texte. `de.json` (`nav` um `"account": "Konto"` ergänzen) und neuer Block:
   },
 ```
 
-- [ ] **Step 3: Tests laufen lassen, grün sehen**
+- [x] **Step 3: Tests laufen lassen, grün sehen**
 
 Run: `pnpm --filter @owui/web exec vitest run`
 Expected: PASS. Stolpersteine:
@@ -3185,7 +3185,7 @@ Expected: PASS. Stolpersteine:
 (e) Radix setzt beim offenen Dialog `aria-hidden` auf den Rest der Seite; `within(dialog)` ist deshalb Pflicht für Abfragen im Dialog.
 (f) `/api/health/ready` ist in `stubAccount` nicht gestubbt; die Statuskarte der Startseite zeigt dann ihren Fehlerzustand (404), was die Navigationsprüfung nicht stört.
 
-- [ ] **Step 4: `pnpm check` und Commit**
+- [x] **Step 4: `pnpm check` und Commit**
 
 Run: `pnpm check`
 Expected: grün.
@@ -3213,7 +3213,7 @@ git commit -m "feat(web): add account page with password change and api key mana
 - Ansichten: Laden, Fehler mit „Erneut versuchen“, Liste. Eine **leere** Liste kann es nicht geben, weil der angemeldete Admin selbst darin steht; deshalb gibt es keinen Leerzustand und keinen Test dafür.
 - Solange eine Änderung läuft, sind alle Zeilenaktionen gesperrt (kein Doppel-Submit); die Liste wird danach neu geladen. Die Namen kommen aus Nutzereingaben und werden nur als Text gerendert.
 
-- [ ] **Step 1: Fehlschlagende Tests schreiben**
+- [x] **Step 1: Fehlschlagende Tests schreiben**
 
 `apps/web/src/pages/admin-users-page.spec.tsx`:
 
@@ -3655,7 +3655,7 @@ describe('AdminUsersPage: delete an account', () => {
 Run: `pnpm --filter @owui/web exec vitest run src/pages/admin-users-page.spec.tsx`
 Expected: FAIL (Module und Route fehlen).
 
-- [ ] **Step 2: Dialoge, Tabelle und Seite schreiben**
+- [x] **Step 2: Dialoge, Tabelle und Seite schreiben**
 
 `apps/web/src/features/admin/create-user-dialog.tsx`:
 
@@ -4380,7 +4380,7 @@ Texte. `de.json` (`nav` um `"users": "Nutzer"` ergänzen) und neuer Block:
   },
 ```
 
-- [ ] **Step 3: Tests laufen lassen, grün sehen**
+- [x] **Step 3: Tests laufen lassen, grün sehen**
 
 Run: `pnpm --filter @owui/web exec vitest run`
 Expected: PASS. Stolpersteine:
@@ -4388,7 +4388,7 @@ Expected: PASS. Stolpersteine:
 (b) `t(`admin.users.status.${status}`)` ist ein dynamischer Schlüssel: `locales.spec.ts` vergleicht die Dateien miteinander, nicht die Aufrufe; die drei Schlüssel stehen in beiden Dateien.
 (c) Nach `shadcn add` kann `Badge` weitere oder andere Varianten haben; `STATUS_VARIANT` nutzt nur `secondary`, `outline`, `destructive`, die es in allen Ständen gibt.
 
-- [ ] **Step 4: `pnpm check` und Commit**
+- [x] **Step 4: `pnpm check` und Commit**
 
 Run: `pnpm check`
 Expected: grün.
@@ -4410,7 +4410,7 @@ git commit -m "feat(web): add admin user management page" -m "Co-Authored-By: Cl
 - Consumes: alles aus Task 1 bis 5; Plan 1a umgesetzt; laufender Stack (`docker compose up -d --build --wait`).
 - Produces: Beleg `docs/dod/01-auth-web.md`; aktualisierte Docs. Teilprojekt 1 ist damit abgeschlossen.
 
-- [ ] **Step 1: Vollständige Prüfung**
+- [x] **Step 1: Vollständige Prüfung**
 
 Run: `pnpm check && pnpm test && pnpm openapi && git diff --exit-code apps/api/openapi.json apps/web/src/api/generated`
 Expected: alles grün, kein Unterschied im erzeugten Client. Die Anzahl der Web-Tests aus der Vitest-Ausgabe für den Beleg notieren.
@@ -4418,7 +4418,7 @@ Expected: alles grün, kein Unterschied im erzeugten Client. Die Anzahl der Web-
 Run: `pnpm db:up && pnpm test:db`
 Expected: grün (die DB-Tests gehören zu Plan 1a, laufen hier als Gegenprobe, dass nichts am Backend kaputtgegangen ist).
 
-- [ ] **Step 2: Stack starten und im Browser prüfen**
+- [x] **Step 2: Stack starten und im Browser prüfen**
 
 Run: `docker compose up -d --build --wait`
 Expected: alle Dienste `healthy`. Die Prüfung läuft gegen http://localhost:8080 (also hinter Caddy mit der echten CSP), nicht gegen den Vite-Entwicklungsserver. Browser-Werkzeuge laden: `ToolSearch` mit `select:mcp__chrome-devtools__navigate_page,mcp__chrome-devtools__take_snapshot,mcp__chrome-devtools__click,mcp__chrome-devtools__fill,mcp__chrome-devtools__list_console_messages,mcp__chrome-devtools__list_network_requests,mcp__chrome-devtools__get_network_request,mcp__chrome-devtools__resize_page,mcp__chrome-devtools__press_key,mcp__chrome-devtools__take_screenshot`. Die Datenbank ist frisch, das erste Konto wird Administrator, jedes weitere (Standard `DEFAULT_USER_ROLE=pending`) wartet.
@@ -4449,18 +4449,18 @@ Danach: `docker compose down -v`.
 
 Hinweis zum Werkzeug: Gibt es keinen Browser-MCP, die Punkte 1 bis 17 von Hand im Browser durchgehen und das Ergebnis im Beleg als „von Hand“ vermerken; ein Haken ohne Prüfung ist nicht erlaubt.
 
-- [ ] **Step 3: Gefundene Fehler beheben**
+- [x] **Step 3: Gefundene Fehler beheben**
 
 Jede Abweichung aus Step 2 bekommt zuerst einen Test, der sie zeigt (AGENTS.md, Abschnitt 4), dann die Korrektur, dann einen eigenen Commit `fix(web): …`. Danach den betroffenen Punkt in Step 2 erneut prüfen.
 
-- [ ] **Step 4: Docs aktualisieren**
+- [x] **Step 4: Docs aktualisieren**
 
 - `docs/THREAT-MODEL.md`: Zeile ergänzen: Tampering/XSS, „Nutzer- oder Schlüsselname mit HTML in der Verwaltung“, Gegenmaßnahme „React escaped, kein `dangerouslySetInnerHTML`, Test mit `<img onerror>` in Nutzerliste und Schlüsselliste (1b)“. Die Zeile zu „Gestohlener Session-Cookie oder Key“ um „Klartext eines neuen Schlüssels nur im Speicher des Dialogs, nach dem Schließen verworfen (1b)“ ergänzen. „Stand“ auf „Teilprojekt 1“ setzen.
 - `docs/BACKLOG.md`: Neue Zeilen: „Nutzerliste mit Suche und Seiten“ (heute lädt `GET /users` alle Konten; Filtern gehört später in SQL), „Eigenen Namen ändern und Profilbild“ (Open WebUI kann es, die Spec für Teilprojekt 1 nicht), „Sitzungsübersicht in der Oberfläche“ (Backend-Zeile aus 1a deckt die Route, nicht die Ansicht), „Browser-Test für Anmelden und Verwalten“ (Playwright; heute nur Komponententests plus Handprobe, passt zur bestehenden Zeile ‚Browser-Test für CSP‘, beide zusammenlegen).
 - `docs/PLAN.md`: Teilprojekt 1 auf „erledigt, Plan: [1a](superpowers/plans/2026-10-09-teilprojekt-1a-auth-backend.md), [1b](superpowers/plans/2026-10-09-teilprojekt-1b-auth-web.md), Belege: [DoD 1a](dod/01-auth-backend.md), [DoD 1b](dod/01-auth-web.md)“ setzen; „Als Nächstes“: „1. Spec für Teilprojekt 2 (Modell-Anbindung) schreiben. 2. Plan für Stufe 2 des Agentic-Setups …“.
 - `README.md`: Beschreibt der Abschnitt „Schnellstart“ den Aufruf der App, einen Satz ergänzen: „Beim ersten Start legt das erste Konto (Registrierung auf `/login`) den Administrator an; weitere Konten wartet der Administrator unter ‚Nutzer‘ frei (Standard).“ Gibt es dort schon eine Angabe zu `ADMIN_EMAIL`/`ADMIN_PASSWORD` (aus Plan 1a), diese nicht doppeln.
 
-- [ ] **Step 5: Beleg schreiben**
+- [x] **Step 5: Beleg schreiben**
 
 `docs/dod/01-auth-web.md` nach dem Muster von [DoD 00](../../dod/00-fundament.md), mit den echten Zahlen aus Step 1:
 
@@ -4478,7 +4478,7 @@ Jede Abweichung aus Step 2 bekommt zuerst einen Test, der sie zeigt (AGENTS.md, 
 
 Die spitze Klammer durch die gemessene Zahl ersetzen. Ist ein Punkt nicht erfüllt oder nicht geprüft, `- [ ]` lassen und den Grund dahinter schreiben.
 
-- [ ] **Step 6: Plan abhaken, Commit, Push, CI**
+- [x] **Step 6: Plan abhaken, Commit, Push, CI**
 
 In diesem Plan alle erledigten Schritte mit `- [x]` markieren. In Plan 1a bleibt der Stand unverändert.
 
