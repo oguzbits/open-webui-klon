@@ -56,6 +56,10 @@ export class UsersService {
     return this.dataSource.getRepository(User).find({ order: { createdAt: 'ASC' } });
   }
 
+  async hasAnyUser(): Promise<boolean> {
+    return this.dataSource.getRepository(User).exists();
+  }
+
   /** The first account ever becomes admin, whatever the sign-up setting; everybody else gets the default role. */
   async registerSelf(input: NewUser, policy: SignupPolicy): Promise<User> {
     const email = normalizeEmail(input.email);

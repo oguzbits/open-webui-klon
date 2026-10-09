@@ -12,6 +12,7 @@ import type { Request, Response } from 'express';
 import type { Env } from '../config/env.js';
 import type { AuthContext } from './auth-context.js';
 import {
+  AuthConfigDto,
   ChangePasswordDto,
   LoginDto,
   SessionInfoDto,
@@ -39,6 +40,13 @@ export class AuthController {
     config: ConfigService<Env, true>
   ) {
     this.secureCookie = config.get('PUBLIC_ORIGIN', { infer: true }).startsWith('https://');
+  }
+
+  @Public()
+  @Get('config')
+  @ApiOkResponse({ type: AuthConfigDto })
+  config(): Promise<AuthConfigDto> {
+    return this.auth.publicConfig();
   }
 
   @Public()

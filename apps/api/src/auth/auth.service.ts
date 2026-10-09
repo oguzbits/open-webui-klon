@@ -9,6 +9,7 @@ import type { User } from '../users/user.entity.js';
 import { UsersService } from '../users/users.service.js';
 import { AttemptLimiter } from './attempt-limiter.js';
 import type { AuthContext } from './auth-context.js';
+import type { AuthConfigDto } from './auth.dto.js';
 import { type IssuedSession, SessionService } from './session.service.js';
 
 /** A shared address may sign in for many people, so its limit is a multiple of the per-email limit. */
@@ -109,6 +110,15 @@ export class AuthService {
     const passwordHash = await this.hasher.hash(input.newPassword);
     await this.users.setPassword(auth.user.id, passwordHash, auth.session?.id);
     await this.audit.record({ actorId: auth.user.id, action: AUDIT_ACTION.AUTH_PASSWORD_CHANGED });
+  }
+
+  async publicConfig(): Promise<AuthConfigDto> {
+    const onboarding = !(await this.users.hasAnyUser());
+    return {
+      onboarding,
+      signupEnabled: onboarding || this.config.get('ENABLE_SIGNUP', { infer: true }),
+      apiKeysEnabled: this.config.get('ENABLE_API_KEYS', { infer: true }),
+    };
   }
 
   private ipLimit(): number {

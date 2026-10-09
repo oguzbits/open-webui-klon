@@ -61,3 +61,11 @@ export class SessionInfoDto {
 export function toSessionInfo(user: User, csrfToken: string | null): SessionInfoDto {
   return { user: toUserDto(user), csrfToken };
 }
+
+export class AuthConfigDto {
+  /** The sign-up form may be shown. Always true while no account exists. */
+  signupEnabled!: boolean;
+  /** No account exists yet: the next sign-up becomes the admin. */
+  onboarding!: boolean;
+  apiKeysEnabled!: boolean;
+}
