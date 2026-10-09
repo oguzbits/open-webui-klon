@@ -14,3 +14,8 @@ vulnerabilities:
       - usr/bin/caddy
     statement: crypto/tls DoS in the Go stdlib linked into caddy; no TLS is terminated by this container
     expired_at: 2026-10-23
+  - id: CVE-2026-78669
+    paths:
+      - usr/bin/caddy
+    statement: net/http2 SETTINGS DoS in golang.org/x/net and the Go stdlib linked into caddy; no fixed caddy image published yet
+    expired_at: 2026-10-23
