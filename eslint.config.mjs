@@ -116,8 +116,8 @@ export default defineConfig(
     rules: { 'no-restricted-properties': 'off' },
   },
   {
-    // The one place that is allowed to open outgoing connections.
-    files: ['apps/api/src/http/safe-fetch/**/*.ts'],
+    // The one place that is allowed to open outgoing connections, and the fake provider test server.
+    files: ['apps/api/src/http/safe-fetch/**/*.ts', 'apps/api/src/testing/fake-provider.ts'],
     rules: {
       'no-restricted-imports': 'off',
       'no-restricted-globals': 'off',
