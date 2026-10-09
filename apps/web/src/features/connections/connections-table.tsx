@@ -1,5 +1,5 @@
 import { useQueryClient } from '@tanstack/react-query';
-import type { ReactNode } from 'react';
+import { type ReactNode, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { errorMessageKey } from '@/api/error-message';
@@ -26,6 +26,7 @@ import {
 } from '@/components/ui/table';
 import { useModels } from '@/features/models/use-models';
 
+import { ConnectionDialog } from './connection-dialog';
 import {
   CONNECTION_STATUS,
   type ConnectionStatus,
@@ -47,12 +48,14 @@ function ConnectionRow({
   connection,
   health,
   busy,
+  onEdit,
   onToggle,
   onRemove,
 }: {
   connection: ProviderConnectionDto;
   health: ModelListDto | undefined;
   busy: boolean;
+  onEdit: (id: string) => void;
   onToggle: (connection: ProviderConnectionDto) => void;
   onRemove: (id: string) => void;
 }) {
@@ -78,6 +81,17 @@ function ConnectionRow({
       <TableCell>{count ?? t('connections.noModels')}</TableCell>
       <TableCell>
         <div className="flex flex-wrap justify-end gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={busy}
+            aria-label={t('connections.editNamed', { name: connection.name })}
+            onClick={() => {
+              onEdit(connection.id);
+            }}
+          >
+            {t('connections.edit')}
+          </Button>
           <Button
             variant="outline"
             size="sm"
@@ -110,6 +124,13 @@ export function ConnectionsTable() {
   const queryClient = useQueryClient();
   const connections = useProviderConnectionsList();
   const models = useModels();
+  const [creating, setCreating] = useState(false);
+  const [editingId, setEditingId] = useState<string>();
+  // Looked up in the current list: an edit of a provider that was deleted meanwhile simply closes.
+  const editing =
+    connections.data?.status === 200
+      ? connections.data.data.find((connection) => connection.id === editingId)
+      : undefined;
   // A change to a connection changes what users see, so the model list is fetched again as well.
   const refresh = () =>
     Promise.all([
@@ -172,6 +193,7 @@ export function ConnectionsTable() {
               connection={connection}
               health={health}
               busy={busy}
+              onEdit={setEditingId}
               onToggle={toggle}
               onRemove={removeConnection}
             />
@@ -183,6 +205,15 @@ export function ConnectionsTable() {
 
   return (
     <div className="space-y-4">
+      <div>
+        <Button
+          onClick={() => {
+            setCreating(true);
+          }}
+        >
+          {t('connections.create')}
+        </Button>
+      </div>
       {failed && (
         <Alert variant="destructive">
           <AlertDescription>{t(errorMessageKey(failure))}</AlertDescription>
@@ -206,6 +237,21 @@ export function ConnectionsTable() {
         </Alert>
       )}
       {body}
+      {creating && (
+        <ConnectionDialog
+          onClose={() => {
+            setCreating(false);
+          }}
+        />
+      )}
+      {editing !== undefined && (
+        <ConnectionDialog
+          connection={editing}
+          onClose={() => {
+            setEditingId(undefined);
+          }}
+        />
+      )}
     </div>
   );
 }
