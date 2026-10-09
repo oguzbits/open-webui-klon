@@ -53,3 +53,10 @@ export function stubApi(handlers: Record<string, Handler>) {
   vi.stubGlobal('fetch', fetchMock);
   return fetchMock;
 }
+
+/** The requests a test made to one route, to count them (double submit) and to read their bodies. */
+export function callsTo(fetchMock: ReturnType<typeof stubApi>, method: string, path: string) {
+  return fetchMock.mock.calls.filter(
+    ([input, init]) => input === path && (init?.method ?? 'GET') === method
+  );
+}

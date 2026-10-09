@@ -5,7 +5,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { UserDtoRole } from '@/api/generated/model';
 import { sessionInfo, userDto } from '@/test/fixtures';
 import { renderApp } from '@/test/render-app';
-import { type Handler, json, noContent, problem, stubApi } from '@/test/stub-api';
+import { callsTo, type Handler, json, noContent, problem, stubApi } from '@/test/stub-api';
 
 afterEach(() => {
   vi.unstubAllGlobals();
@@ -33,12 +33,6 @@ function stubAdmin(handlers: Record<string, Handler> = {}) {
     'GET /api/users': () => json(200, [ADMIN, BEN, PIA]),
     ...handlers,
   });
-}
-
-function callsTo(fetchMock: ReturnType<typeof stubApi>, method: string, path: string) {
-  return fetchMock.mock.calls.filter(
-    ([input, init]) => input === path && (init?.method ?? 'GET') === method
-  );
 }
 
 async function openUsers() {

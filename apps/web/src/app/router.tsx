@@ -6,6 +6,7 @@ import { AccountPage } from '@/pages/account-page';
 import { AdminUsersPage } from '@/pages/admin-users-page';
 import { HomePage } from '@/pages/home-page';
 import { LoginPage } from '@/pages/login-page';
+import { ModelsPage } from '@/pages/models-page';
 import { NotFoundPage } from '@/pages/not-found-page';
 import { PendingPage } from '@/pages/pending-page';
 
@@ -27,6 +28,7 @@ export const routes: RouteObject[] = [
         children: [
           { index: true, element: <HomePage /> },
           { path: 'settings/account', element: <AccountPage /> },
+          { path: 'models', element: <ModelsPage /> },
           {
             element: <SessionGate allow={GATE.ADMIN} />,
             children: [{ path: 'admin/users', element: <AdminUsersPage /> }],

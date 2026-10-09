@@ -92,6 +92,11 @@ export function AppLayout() {
                 </SidebarMenuItem>
                 <SidebarMenuItem>
                   <SidebarMenuButton asChild>
+                    <NavLink to="/models">{t('nav.models')}</NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild>
                     <NavLink to="/settings/account">{t('nav.account')}</NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
