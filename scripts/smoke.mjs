@@ -1,5 +1,5 @@
-// Checks a running stack from the outside. Usage: node scripts/smoke.mjs  (BASE_URL optional; it must match PUBLIC_ORIGIN, or the origin check refuses the POST checks)
-const BASE_URL = process.env.BASE_URL ?? 'http://localhost:8080';
+// Checks a running stack from the outside. Usage: node scripts/smoke.mjs [BASE_URL]  (or set BASE_URL; it must match PUBLIC_ORIGIN, or the origin check refuses the POST checks)
+const BASE_URL = process.argv[2] ?? process.env.BASE_URL ?? 'http://localhost:8080';
 const TIMEOUT_MS = Number(process.env.SMOKE_TIMEOUT_MS ?? 90_000);
 
 const failures = [];
