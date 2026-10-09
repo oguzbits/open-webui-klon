@@ -4,6 +4,7 @@ import { CommonModule } from './common/common.module.js';
 import { AppConfigModule } from './config/app-config.module.js';
 import { AuditModule } from './database/audit/audit.module.js';
 import { DatabaseModule } from './database/database.module.js';
+import { HealthModule } from './health/health.module.js';
 import { AppLoggerModule } from './logging/logger.module.js';
 import { SecurityModule } from './security/security.module.js';
 
@@ -15,6 +16,7 @@ import { SecurityModule } from './security/security.module.js';
     SecurityModule,
     DatabaseModule,
     AuditModule,
+    HealthModule,
   ],
 })
 export class AppModule {}
