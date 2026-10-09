@@ -199,7 +199,7 @@ Architekturentscheidungen stehen als ADRs unter `docs/adr/`.
 | **Geheimnisse und Fehlerausgaben** | Provider-Keys verschlüsselt (AES-GCM, Schlüsselrotation vorgesehen), keine Stacktraces in Produktionsantworten, `pino redact`, Secret-Scanning (gitleaks) in Hook und CI. | 0 |
 | **Lieferkette** | Gesperrte Lockfile, Karenzzeit für frische Paketversionen, Install-Skripte nur für freigegebene Pakete, Actions per SHA festgenagelt, `pnpm audit`/OSV, Lizenzprüfung, SBOM (CycloneDX), signierte Images (cosign). | 0, 6 |
 | **Container** | Nicht-Root, Read-only-Dateisystem, Capabilities entfernt, Trivy-Scan in der CI, Ressourcenlimits. | 0 |
-| **Datenschutz gegenüber Anbietern** | Nutzer sieht, an welchen Anbieter ein Chat geht; Admin kann Anbieter pro Gruppe sperren (kommt mit den Gruppen in Teilprojekt 9, Stand in Teilprojekt 2: Anbieter pro Modell sichtbar, Verbindung global abschaltbar); Inhalte erscheinen nicht in Logs. | 2 |
+| **Datenschutz gegenüber Anbietern** | Nutzer sieht, an welchen Anbieter ein Chat geht; Admin kann Anbieter pro Gruppe sperren (kommt mit den Gruppen in Teilprojekt 9, Stand in Teilprojekt 2: Anbieter pro Modell sichtbar, Verbindung global abschaltbar, einzelne Modelle ausblendbar; Backend seit 2a gebaut, Oberfläche folgt in 2b); Inhalte erscheinen nicht in Logs. | 2 |
 
 ### 6.2 Qualitätsanforderungen nach Stufen
 

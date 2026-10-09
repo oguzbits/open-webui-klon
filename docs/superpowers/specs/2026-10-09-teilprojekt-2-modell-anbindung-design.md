@@ -41,14 +41,14 @@ Stand 2026-10-09, geprüft über npm-Registry, Paketquellen und Doku.
 
 | Thema                | Befund                                                                                                                                                                  | Sicherheit |
 | -------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- |
-| `ai`                 | 7.0.137, Peer `zod ^3.25.76 \|\| ^4.1.8`. Typ `LanguageModel` enthält `LanguageModelV4`.                                                                                | sicher     |
-| OpenAI-kompatibel    | `@ai-sdk/openai-compatible` 3.0.67. `createOpenAICompatible({ name, baseURL, apiKey?, headers?, fetch? })`; `provider.languageModel(id)` liefert `LanguageModelV4`.      | sicher     |
+| `ai`                 | 7.0.137 (zur Zeit der Spec; der Plan nutzt ^7.0.127, weil 7.0.137 jünger als die sieben Tage Karenzzeit war), Peer `zod ^3.25.76 \|\| ^4.1.8`. Typ `LanguageModel` enthält `LanguageModelV4`.                                                                                | sicher     |
+| OpenAI-kompatibel    | `@ai-sdk/openai-compatible` 3.0.67 (Plan: ^3.0.62, gleicher Grund). `createOpenAICompatible({ name, baseURL, apiKey?, headers?, fetch? })`; `provider.languageModel(id)` liefert `LanguageModelV4`.      | sicher     |
 | Eigener `fetch`      | `createOpenAICompatible` akzeptiert `fetch` (Doku: Middleware oder Test). Damit lässt sich jeder Anbieteraufruf durch unseren Dienst leiten (Regel 7).                    | sicher     |
 | Ollama-Provider      | Es gibt keinen offiziellen. Community: `ollama-ai-provider-v2` 4.0.1 (Peer `ai ^7`), `ai-sdk-ollama` 4.4.0. **Entscheidung:** nicht nutzen, Ollama läuft über `/v1`.     | sicher     |
 | Mocks                | `import { MockLanguageModelV4 } from 'ai/test'`; `simulateReadableStream` kommt aus `'ai'`. Kein `MockLanguageModelV2` in ai 7.                                          | sicher     |
 | Ollama `/api/tags`   | `{ models: [{ name, model, modified_at, size, digest, details: { family, parameter_size, quantization_level, ... } }] }`                                                 | sicher     |
 | OpenAI `/v1/models`  | `{ object: 'list', data: [{ id, object, created, owned_by }] }` (Ollama liefert dasselbe Format unter `/v1/models`)                                                       | sicher     |
-| Node-/ESM-Verträglichkeit von `ai` 7 mit dem API-Build | Nicht geprüft. Der Plan prüft es als ersten Schritt (Installation, Typecheck, ein Import im Test).                                       | **unsicher** |
+| Node-/ESM-Verträglichkeit von `ai` 7 mit dem API-Build | Geprüft in Plan 2a, Task 1 (Vertragstest) und Task 7 (Import aus dem Nest-Build): verträglich. | sicher |
 
 **Folge für Ollama:** Ollama wird für die Generierung über `createOpenAICompatible` mit `baseURL = <url>/v1`
 angesprochen. Das spart ein Community-Paket und hat dieselbe `fetch`-Anbindung. Die Modellliste kommt weiter von

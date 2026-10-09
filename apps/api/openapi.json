@@ -387,6 +387,231 @@
         ]
       }
     },
+    "/api/admin/provider-connections": {
+      "get": {
+        "operationId": "providerConnectionsList",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ProviderConnectionDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "provider-connections"
+        ]
+      },
+      "post": {
+        "operationId": "providerConnectionsCreate",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateProviderConnectionDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProviderConnectionDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The name is taken"
+          },
+          "422": {
+            "description": "The URL is invalid or the host is not allowed"
+          }
+        },
+        "tags": [
+          "provider-connections"
+        ]
+      }
+    },
+    "/api/admin/provider-connections/{id}": {
+      "patch": {
+        "operationId": "providerConnectionsUpdate",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateProviderConnectionDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProviderConnectionDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": ""
+          },
+          "409": {
+            "description": "The name is taken"
+          },
+          "422": {
+            "description": "The URL is invalid or the host is not allowed"
+          }
+        },
+        "tags": [
+          "provider-connections"
+        ]
+      },
+      "delete": {
+        "operationId": "providerConnectionsRemove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          },
+          "404": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "provider-connections"
+        ]
+      }
+    },
+    "/api/admin/provider-connections/{id}/test": {
+      "post": {
+        "operationId": "providerConnectionsTest",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConnectionTestDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": ""
+          },
+          "502": {
+            "description": "The provider did not answer; the body names the reason"
+          }
+        },
+        "tags": [
+          "provider-connections"
+        ]
+      }
+    },
+    "/api/admin/provider-connections/{id}/models": {
+      "get": {
+        "operationId": "providerConnectionsModels",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminModelListDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": ""
+          },
+          "502": {
+            "description": "The provider did not answer; the body names the reason"
+          }
+        },
+        "tags": [
+          "provider-connections"
+        ]
+      }
+    },
+    "/api/models": {
+      "get": {
+        "operationId": "modelsList",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ModelListDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "models"
+        ]
+      }
+    },
     "/api/health/live": {
       "get": {
         "operationId": "healthLive",
@@ -726,6 +951,241 @@
           "prefix",
           "createdAt",
           "key"
+        ]
+      },
+      "ProviderConnectionDto": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "enum": [
+              "ollama",
+              "openai_compatible"
+            ],
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "baseUrl": {
+            "type": "string"
+          },
+          "hasApiKey": {
+            "type": "boolean"
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "hiddenModelIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "updatedAt": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "id",
+          "name",
+          "baseUrl",
+          "hasApiKey",
+          "enabled",
+          "hiddenModelIds",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "CreateProviderConnectionDto": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "enum": [
+              "ollama",
+              "openai_compatible"
+            ],
+            "type": "string"
+          },
+          "apiKey": {
+            "type": "string"
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 80
+          },
+          "baseUrl": {
+            "type": "string",
+            "maxLength": 2048
+          }
+        },
+        "required": [
+          "type",
+          "name",
+          "baseUrl"
+        ]
+      },
+      "UpdateProviderConnectionDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 80
+          },
+          "baseUrl": {
+            "type": "string",
+            "maxLength": 2048
+          },
+          "apiKey": {
+            "type": "string",
+            "nullable": true
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "hiddenModelIds": {
+            "maxItems": 1000,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 512
+            }
+          }
+        }
+      },
+      "ConnectionTestDto": {
+        "type": "object",
+        "properties": {
+          "ok": {
+            "type": "boolean"
+          },
+          "modelCount": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "ok",
+          "modelCount"
+        ]
+      },
+      "AdminModelDto": {
+        "type": "object",
+        "properties": {
+          "rawModelId": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "hidden": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "rawModelId",
+          "name",
+          "hidden"
+        ]
+      },
+      "AdminModelListDto": {
+        "type": "object",
+        "properties": {
+          "models": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AdminModelDto"
+            }
+          }
+        },
+        "required": [
+          "models"
+        ]
+      },
+      "ModelDto": {
+        "type": "object",
+        "properties": {
+          "providerType": {
+            "enum": [
+              "ollama",
+              "openai_compatible"
+            ],
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "connectionId": {
+            "type": "string"
+          },
+          "providerName": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "providerType",
+          "id",
+          "name",
+          "connectionId",
+          "providerName"
+        ]
+      },
+      "UnavailableConnectionDto": {
+        "type": "object",
+        "properties": {
+          "reason": {
+            "enum": [
+              "timeout",
+              "unreachable",
+              "unauthorized",
+              "bad_response",
+              "blocked_host"
+            ],
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "reason",
+          "id",
+          "name"
+        ]
+      },
+      "ModelListDto": {
+        "type": "object",
+        "properties": {
+          "models": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ModelDto"
+            }
+          },
+          "unavailableConnections": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UnavailableConnectionDto"
+            }
+          }
+        },
+        "required": [
+          "models",
+          "unavailableConnections"
         ]
       },
       "HealthStatusDto": {

@@ -99,6 +99,16 @@ check(
   badSignup.status === 400 && !badSignup.headers.has('set-cookie')
 );
 
+const anonymousModels = await fetch(`${BASE_URL}/api/models`);
+check('anonymous /models answers 401', anonymousModels.status === 401);
+
+const anonymousConnections = await fetch(`${BASE_URL}/api/admin/provider-connections`);
+check(
+  'anonymous /admin/provider-connections answers 401 problem details',
+  anonymousConnections.status === 401 &&
+    (anonymousConnections.headers.get('content-type') ?? '').includes('application/problem+json')
+);
+
 if (failures.length > 0) {
   console.error(`\n${failures.length} check(s) failed`);
   process.exit(1);

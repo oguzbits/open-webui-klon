@@ -5,18 +5,31 @@
  * OpenAPI spec version: 0.0.0
  */
 
+export * from './adminModelDto.ts';
+export * from './adminModelListDto.ts';
 export * from './apiKeyDto.ts';
 export * from './authConfigDto.ts';
 export * from './changePasswordDto.ts';
+export * from './connectionTestDto.ts';
 export * from './createApiKeyDto.ts';
 export * from './createdApiKeyDto.ts';
+export * from './createProviderConnectionDto.ts';
+export * from './createProviderConnectionDtoType.ts';
 export * from './createUserDto.ts';
 export * from './createUserDtoRole.ts';
 export * from './healthStatusDto.ts';
 export * from './loginDto.ts';
+export * from './modelDto.ts';
+export * from './modelDtoProviderType.ts';
+export * from './modelListDto.ts';
+export * from './providerConnectionDto.ts';
+export * from './providerConnectionDtoType.ts';
 export * from './sessionInfoDto.ts';
 export * from './setUserPasswordDto.ts';
 export * from './signupDto.ts';
+export * from './unavailableConnectionDto.ts';
+export * from './unavailableConnectionDtoReason.ts';
+export * from './updateProviderConnectionDto.ts';
 export * from './updateUserDto.ts';
 export * from './updateUserDtoRole.ts';
 export * from './userDto.ts';

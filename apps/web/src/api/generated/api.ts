@@ -24,17 +24,23 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  AdminModelListDto,
   ApiKeyDto,
   AuthConfigDto,
   ChangePasswordDto,
+  ConnectionTestDto,
   CreateApiKeyDto,
+  CreateProviderConnectionDto,
   CreateUserDto,
   CreatedApiKeyDto,
   HealthStatusDto,
   LoginDto,
+  ModelListDto,
+  ProviderConnectionDto,
   SessionInfoDto,
   SetUserPasswordDto,
   SignupDto,
+  UpdateProviderConnectionDto,
   UpdateUserDto,
   UserDto
 } from './model';
@@ -1435,6 +1441,736 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       > => {
       return useMutation(getApiKeysRevokeMutationOptions(options), queryClient);
     }
+
+export type providerConnectionsListResponse200 = {
+  data: ProviderConnectionDto[]
+  status: 200
+}
+
+export type providerConnectionsListResponseSuccess = (providerConnectionsListResponse200) & {
+  headers: Headers;
+};
+;
+
+export type providerConnectionsListResponse = (providerConnectionsListResponseSuccess)
+
+export const getProviderConnectionsListUrl = () => {
+
+
+
+
+  return `/api/admin/provider-connections`
+}
+
+export const providerConnectionsList = async ( options?: Parameters<typeof apiFetch>[1]): Promise<providerConnectionsListResponse> => {
+
+  return apiFetch<providerConnectionsListResponse>(getProviderConnectionsListUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getProviderConnectionsListQueryKey = () => {
+    return [
+    `/api/admin/provider-connections`
+    ] as const;
+    }
+
+
+export const getProviderConnectionsListQueryOptions = <TData = Awaited<ReturnType<typeof providerConnectionsList>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof providerConnectionsList>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getProviderConnectionsListQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof providerConnectionsList>>> = ({ signal }) => providerConnectionsList({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof providerConnectionsList>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ProviderConnectionsListQueryResult = NonNullable<Awaited<ReturnType<typeof providerConnectionsList>>>
+export type ProviderConnectionsListQueryError = unknown
+
+
+export function useProviderConnectionsList<TData = Awaited<ReturnType<typeof providerConnectionsList>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof providerConnectionsList>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof providerConnectionsList>>,
+          TError,
+          Awaited<ReturnType<typeof providerConnectionsList>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useProviderConnectionsList<TData = Awaited<ReturnType<typeof providerConnectionsList>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof providerConnectionsList>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof providerConnectionsList>>,
+          TError,
+          Awaited<ReturnType<typeof providerConnectionsList>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useProviderConnectionsList<TData = Awaited<ReturnType<typeof providerConnectionsList>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof providerConnectionsList>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useProviderConnectionsList<TData = Awaited<ReturnType<typeof providerConnectionsList>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof providerConnectionsList>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getProviderConnectionsListQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export type providerConnectionsCreateResponse201 = {
+  data: ProviderConnectionDto
+  status: 201
+}
+
+export type providerConnectionsCreateResponse409 = {
+  data: void
+  status: 409
+}
+
+export type providerConnectionsCreateResponse422 = {
+  data: void
+  status: 422
+}
+
+export type providerConnectionsCreateResponseSuccess = (providerConnectionsCreateResponse201) & {
+  headers: Headers;
+};
+export type providerConnectionsCreateResponseError = (providerConnectionsCreateResponse409 | providerConnectionsCreateResponse422) & {
+  headers: Headers;
+};
+
+export type providerConnectionsCreateResponse = (providerConnectionsCreateResponseSuccess | providerConnectionsCreateResponseError)
+
+export const getProviderConnectionsCreateUrl = () => {
+
+
+
+
+  return `/api/admin/provider-connections`
+}
+
+export const providerConnectionsCreate = async (createProviderConnectionDto: CreateProviderConnectionDto, options?: Parameters<typeof apiFetch>[1]): Promise<providerConnectionsCreateResponse> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<providerConnectionsCreateResponse>(getProviderConnectionsCreateUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(createProviderConnectionDto)
+  }
+);}
+
+
+
+
+
+export const getProviderConnectionsCreateMutationKey = () => ['providerConnectionsCreate'] as const;
+
+export const getProviderConnectionsCreateMutationOptions = <TError = void,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof providerConnectionsCreate>>, TError,ProviderConnectionsCreateMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof providerConnectionsCreate>>, TError,ProviderConnectionsCreateMutationVariables, TContext> => {
+
+const mutationKey = getProviderConnectionsCreateMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof providerConnectionsCreate>>, ProviderConnectionsCreateMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  providerConnectionsCreate(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ProviderConnectionsCreateMutationResult = NonNullable<Awaited<ReturnType<typeof providerConnectionsCreate>>>
+    export type ProviderConnectionsCreateMutationBody = CreateProviderConnectionDto
+    export type ProviderConnectionsCreateMutationError = void
+    export type ProviderConnectionsCreateMutationVariables = {data: CreateProviderConnectionDto}
+
+    export const useProviderConnectionsCreate = <TError = void,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof providerConnectionsCreate>>, TError,ProviderConnectionsCreateMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof providerConnectionsCreate>>,
+        TError,
+        ProviderConnectionsCreateMutationVariables,
+        TContext
+      > => {
+      return useMutation(getProviderConnectionsCreateMutationOptions(options), queryClient);
+    }
+
+export type providerConnectionsUpdateResponse200 = {
+  data: ProviderConnectionDto
+  status: 200
+}
+
+export type providerConnectionsUpdateResponse404 = {
+  data: void
+  status: 404
+}
+
+export type providerConnectionsUpdateResponse409 = {
+  data: void
+  status: 409
+}
+
+export type providerConnectionsUpdateResponse422 = {
+  data: void
+  status: 422
+}
+
+export type providerConnectionsUpdateResponseSuccess = (providerConnectionsUpdateResponse200) & {
+  headers: Headers;
+};
+export type providerConnectionsUpdateResponseError = (providerConnectionsUpdateResponse404 | providerConnectionsUpdateResponse409 | providerConnectionsUpdateResponse422) & {
+  headers: Headers;
+};
+
+export type providerConnectionsUpdateResponse = (providerConnectionsUpdateResponseSuccess | providerConnectionsUpdateResponseError)
+
+export const getProviderConnectionsUpdateUrl = (id: string,) => {
+
+
+
+
+  return `/api/admin/provider-connections/${id}`
+}
+
+export const providerConnectionsUpdate = async (id: string,
+    updateProviderConnectionDto: UpdateProviderConnectionDto, options?: Parameters<typeof apiFetch>[1]): Promise<providerConnectionsUpdateResponse> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<providerConnectionsUpdateResponse>(getProviderConnectionsUpdateUrl(id),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(updateProviderConnectionDto)
+  }
+);}
+
+
+
+
+
+export const getProviderConnectionsUpdateMutationKey = () => ['providerConnectionsUpdate'] as const;
+
+export const getProviderConnectionsUpdateMutationOptions = <TError = void,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof providerConnectionsUpdate>>, TError,ProviderConnectionsUpdateMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof providerConnectionsUpdate>>, TError,ProviderConnectionsUpdateMutationVariables, TContext> => {
+
+const mutationKey = getProviderConnectionsUpdateMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof providerConnectionsUpdate>>, ProviderConnectionsUpdateMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  providerConnectionsUpdate(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ProviderConnectionsUpdateMutationResult = NonNullable<Awaited<ReturnType<typeof providerConnectionsUpdate>>>
+    export type ProviderConnectionsUpdateMutationBody = UpdateProviderConnectionDto
+    export type ProviderConnectionsUpdateMutationError = void
+    export type ProviderConnectionsUpdateMutationVariables = {id: string;data: UpdateProviderConnectionDto}
+
+    export const useProviderConnectionsUpdate = <TError = void,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof providerConnectionsUpdate>>, TError,ProviderConnectionsUpdateMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof providerConnectionsUpdate>>,
+        TError,
+        ProviderConnectionsUpdateMutationVariables,
+        TContext
+      > => {
+      return useMutation(getProviderConnectionsUpdateMutationOptions(options), queryClient);
+    }
+
+export type providerConnectionsRemoveResponse204 = {
+  data: void
+  status: 204
+}
+
+export type providerConnectionsRemoveResponse404 = {
+  data: void
+  status: 404
+}
+
+export type providerConnectionsRemoveResponseSuccess = (providerConnectionsRemoveResponse204) & {
+  headers: Headers;
+};
+export type providerConnectionsRemoveResponseError = (providerConnectionsRemoveResponse404) & {
+  headers: Headers;
+};
+
+export type providerConnectionsRemoveResponse = (providerConnectionsRemoveResponseSuccess | providerConnectionsRemoveResponseError)
+
+export const getProviderConnectionsRemoveUrl = (id: string,) => {
+
+
+
+
+  return `/api/admin/provider-connections/${id}`
+}
+
+export const providerConnectionsRemove = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<providerConnectionsRemoveResponse> => {
+
+  return apiFetch<providerConnectionsRemoveResponse>(getProviderConnectionsRemoveUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+
+export const getProviderConnectionsRemoveMutationKey = () => ['providerConnectionsRemove'] as const;
+
+export const getProviderConnectionsRemoveMutationOptions = <TError = void,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof providerConnectionsRemove>>, TError,ProviderConnectionsRemoveMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof providerConnectionsRemove>>, TError,ProviderConnectionsRemoveMutationVariables, TContext> => {
+
+const mutationKey = getProviderConnectionsRemoveMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof providerConnectionsRemove>>, ProviderConnectionsRemoveMutationVariables> = (props) => {
+          const {id} = props ?? {};
+
+          return  providerConnectionsRemove(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ProviderConnectionsRemoveMutationResult = NonNullable<Awaited<ReturnType<typeof providerConnectionsRemove>>>
+
+    export type ProviderConnectionsRemoveMutationError = void
+    export type ProviderConnectionsRemoveMutationVariables = {id: string}
+
+    export const useProviderConnectionsRemove = <TError = void,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof providerConnectionsRemove>>, TError,ProviderConnectionsRemoveMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof providerConnectionsRemove>>,
+        TError,
+        ProviderConnectionsRemoveMutationVariables,
+        TContext
+      > => {
+      return useMutation(getProviderConnectionsRemoveMutationOptions(options), queryClient);
+    }
+
+export type providerConnectionsTestResponse200 = {
+  data: ConnectionTestDto
+  status: 200
+}
+
+export type providerConnectionsTestResponse404 = {
+  data: void
+  status: 404
+}
+
+export type providerConnectionsTestResponse502 = {
+  data: void
+  status: 502
+}
+
+export type providerConnectionsTestResponseSuccess = (providerConnectionsTestResponse200) & {
+  headers: Headers;
+};
+export type providerConnectionsTestResponseError = (providerConnectionsTestResponse404 | providerConnectionsTestResponse502) & {
+  headers: Headers;
+};
+
+export type providerConnectionsTestResponse = (providerConnectionsTestResponseSuccess | providerConnectionsTestResponseError)
+
+export const getProviderConnectionsTestUrl = (id: string,) => {
+
+
+
+
+  return `/api/admin/provider-connections/${id}/test`
+}
+
+export const providerConnectionsTest = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<providerConnectionsTestResponse> => {
+
+  return apiFetch<providerConnectionsTestResponse>(getProviderConnectionsTestUrl(id),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getProviderConnectionsTestMutationKey = () => ['providerConnectionsTest'] as const;
+
+export const getProviderConnectionsTestMutationOptions = <TError = void,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof providerConnectionsTest>>, TError,ProviderConnectionsTestMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof providerConnectionsTest>>, TError,ProviderConnectionsTestMutationVariables, TContext> => {
+
+const mutationKey = getProviderConnectionsTestMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof providerConnectionsTest>>, ProviderConnectionsTestMutationVariables> = (props) => {
+          const {id} = props ?? {};
+
+          return  providerConnectionsTest(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ProviderConnectionsTestMutationResult = NonNullable<Awaited<ReturnType<typeof providerConnectionsTest>>>
+
+    export type ProviderConnectionsTestMutationError = void
+    export type ProviderConnectionsTestMutationVariables = {id: string}
+
+    export const useProviderConnectionsTest = <TError = void,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof providerConnectionsTest>>, TError,ProviderConnectionsTestMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof providerConnectionsTest>>,
+        TError,
+        ProviderConnectionsTestMutationVariables,
+        TContext
+      > => {
+      return useMutation(getProviderConnectionsTestMutationOptions(options), queryClient);
+    }
+
+export type providerConnectionsModelsResponse200 = {
+  data: AdminModelListDto
+  status: 200
+}
+
+export type providerConnectionsModelsResponse404 = {
+  data: void
+  status: 404
+}
+
+export type providerConnectionsModelsResponse502 = {
+  data: void
+  status: 502
+}
+
+export type providerConnectionsModelsResponseSuccess = (providerConnectionsModelsResponse200) & {
+  headers: Headers;
+};
+export type providerConnectionsModelsResponseError = (providerConnectionsModelsResponse404 | providerConnectionsModelsResponse502) & {
+  headers: Headers;
+};
+
+export type providerConnectionsModelsResponse = (providerConnectionsModelsResponseSuccess | providerConnectionsModelsResponseError)
+
+export const getProviderConnectionsModelsUrl = (id: string,) => {
+
+
+
+
+  return `/api/admin/provider-connections/${id}/models`
+}
+
+export const providerConnectionsModels = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<providerConnectionsModelsResponse> => {
+
+  return apiFetch<providerConnectionsModelsResponse>(getProviderConnectionsModelsUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getProviderConnectionsModelsQueryKey = (id: string,) => {
+    return [
+    `/api/admin/provider-connections/${id}/models`
+    ] as const;
+    }
+
+
+export const getProviderConnectionsModelsQueryOptions = <TData = Awaited<ReturnType<typeof providerConnectionsModels>>, TError = void>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof providerConnectionsModels>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getProviderConnectionsModelsQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof providerConnectionsModels>>> = ({ signal }) => providerConnectionsModels(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof providerConnectionsModels>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ProviderConnectionsModelsQueryResult = NonNullable<Awaited<ReturnType<typeof providerConnectionsModels>>>
+export type ProviderConnectionsModelsQueryError = void
+
+
+export function useProviderConnectionsModels<TData = Awaited<ReturnType<typeof providerConnectionsModels>>, TError = void>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof providerConnectionsModels>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof providerConnectionsModels>>,
+          TError,
+          Awaited<ReturnType<typeof providerConnectionsModels>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useProviderConnectionsModels<TData = Awaited<ReturnType<typeof providerConnectionsModels>>, TError = void>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof providerConnectionsModels>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof providerConnectionsModels>>,
+          TError,
+          Awaited<ReturnType<typeof providerConnectionsModels>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useProviderConnectionsModels<TData = Awaited<ReturnType<typeof providerConnectionsModels>>, TError = void>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof providerConnectionsModels>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useProviderConnectionsModels<TData = Awaited<ReturnType<typeof providerConnectionsModels>>, TError = void>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof providerConnectionsModels>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getProviderConnectionsModelsQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export type modelsListResponse200 = {
+  data: ModelListDto
+  status: 200
+}
+
+export type modelsListResponseSuccess = (modelsListResponse200) & {
+  headers: Headers;
+};
+;
+
+export type modelsListResponse = (modelsListResponseSuccess)
+
+export const getModelsListUrl = () => {
+
+
+
+
+  return `/api/models`
+}
+
+export const modelsList = async ( options?: Parameters<typeof apiFetch>[1]): Promise<modelsListResponse> => {
+
+  return apiFetch<modelsListResponse>(getModelsListUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getModelsListQueryKey = () => {
+    return [
+    `/api/models`
+    ] as const;
+    }
+
+
+export const getModelsListQueryOptions = <TData = Awaited<ReturnType<typeof modelsList>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof modelsList>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getModelsListQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof modelsList>>> = ({ signal }) => modelsList({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof modelsList>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ModelsListQueryResult = NonNullable<Awaited<ReturnType<typeof modelsList>>>
+export type ModelsListQueryError = unknown
+
+
+export function useModelsList<TData = Awaited<ReturnType<typeof modelsList>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof modelsList>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof modelsList>>,
+          TError,
+          Awaited<ReturnType<typeof modelsList>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useModelsList<TData = Awaited<ReturnType<typeof modelsList>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof modelsList>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof modelsList>>,
+          TError,
+          Awaited<ReturnType<typeof modelsList>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useModelsList<TData = Awaited<ReturnType<typeof modelsList>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof modelsList>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useModelsList<TData = Awaited<ReturnType<typeof modelsList>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof modelsList>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getModelsListQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
 
 export type healthLiveResponse200 = {
   data: HealthStatusDto
