@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { noContent, json, problem, stubApi } from '@/test/stub-api';
 
-import { apiFetch } from './fetcher';
+import { ApiError, apiFetch } from './fetcher';
 import { csrfHeaderFor, rememberCsrfToken, setUnauthorizedHandler } from './session-state';
 
 function stubFetch(status: number, body: string, contentType: string) {
@@ -158,5 +158,25 @@ describe('apiFetch: session handling', () => {
     await expect(apiFetch('/api/users')).rejects.toMatchObject({ status: 403 });
 
     expect(handler).not.toHaveBeenCalled();
+  });
+
+  it('keeps the reason a model provider failed with', async () => {
+    stubApi({
+      'POST /api/admin/provider-connections/c1/test': () =>
+        problem(502, 'Bad Gateway', 'The provider did not answer', { reason: 'unauthorized' }),
+    });
+
+    await expect(
+      apiFetch('/api/admin/provider-connections/c1/test', { method: 'POST' })
+    ).rejects.toMatchObject({ name: 'ApiError', status: 502, reason: 'unauthorized' });
+  });
+
+  it('has no reason when the answer carries none', async () => {
+    stubApi({ 'GET /api/health/ready': () => problem(500, 'Internal Server Error') });
+
+    const error = await apiFetch('/api/health/ready').catch((caught: unknown) => caught);
+
+    if (!(error instanceof ApiError)) throw new Error('expected an ApiError');
+    expect(error.reason).toBeUndefined();
   });
 });

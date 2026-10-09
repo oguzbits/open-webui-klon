@@ -6,7 +6,9 @@ export class ApiError extends Error {
     readonly status: number,
     message: string,
     readonly detail?: string,
-    readonly requestId?: string
+    readonly requestId?: string,
+    /** Why a model provider failed (the 502 of the connection test): one value of the server's PROVIDER_ERROR. */
+    readonly reason?: string
   ) {
     super(message);
     this.name = 'ApiError';
@@ -58,7 +60,8 @@ export async function apiFetch<T>(url: string, options: RequestInit = {}): Promi
       response.status,
       stringField(body, 'title') ?? `Request failed (${response.status})`,
       stringField(body, 'detail'),
-      stringField(body, 'requestId')
+      stringField(body, 'requestId'),
+      stringField(body, 'reason')
     );
   }
   if (TOKEN_SOURCES.has(path)) rememberCsrfToken(stringField(body, 'csrfToken'));

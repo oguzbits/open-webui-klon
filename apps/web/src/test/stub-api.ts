@@ -20,8 +20,13 @@ export function noContent(): Response {
   return new Response(null, { status: 204 });
 }
 
-export function problem(status: number, title: string, detail?: string): Response {
-  return new Response(JSON.stringify({ title, detail, status }), {
+export function problem(
+  status: number,
+  title: string,
+  detail?: string,
+  extra: Record<string, string> = {}
+): Response {
+  return new Response(JSON.stringify({ title, detail, status, ...extra }), {
     status,
     headers: { 'content-type': 'application/problem+json' },
   });
