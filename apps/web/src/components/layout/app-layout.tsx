@@ -12,6 +12,7 @@ import {
   SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
+  SidebarGroupLabel,
   SidebarHeader,
   SidebarInset,
   SidebarMenu,
@@ -20,6 +21,7 @@ import {
   SidebarProvider,
   useSidebar,
 } from '@/components/ui/sidebar';
+import { ChatList } from '@/features/chats/chat-list';
 import { useCurrentUser } from '@/features/auth/session';
 import { useSignOut } from '@/features/auth/use-sign-out';
 
@@ -115,6 +117,12 @@ export function AppLayout() {
                   </>
                 )}
               </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+          <SidebarGroup>
+            <SidebarGroupLabel>{t('chats.list.title')}</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <ChatList />
             </SidebarGroupContent>
           </SidebarGroup>
         </SidebarContent>
