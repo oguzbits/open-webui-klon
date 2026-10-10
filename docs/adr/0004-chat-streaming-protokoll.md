@@ -44,4 +44,7 @@ Regel 10) in den installierten Typen von `ai` 7.0.127 und per Vertragstest
   per Komponententest und Browserprobe belegt.
 - Proxys dürfen die Antwort nicht puffern. Belegt für Caddy durch die Handprobe von Plan 3a (Chunks kommen
   zeitlich versetzt an).
+- Die Antwort ist erst gespeichert, wenn der Stream **schließt**: der `finish`-Teil und `[DONE]` gehen an den
+  Client, bevor `onEnd` die Antwort in die Datenbank geschrieben hat. Ein Client darf den Chat also nicht beim
+  `finish`-Teil neu laden, sondern erst, wenn der Stream beendet ist (Hinweis für Plan 3b).
 - Der Stream-Platz pro Nutzer ist ein Zähler im Prozess und gilt für einen Knoten.

@@ -4,6 +4,18 @@ export interface ListCursor {
   id: string;
 }
 
+const TIMESTAMP = /^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3})\d{3}Z$/u;
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/iu;
+
+/** Only what `encodeCursor` produces from Postgres: anything else would fail the SQL cast with a 500. */
+function isValid(cursor: ListCursor): boolean {
+  const millis = TIMESTAMP.exec(cursor.ts)?.[1];
+  if (millis === undefined || !UUID.test(cursor.id)) return false;
+  // A date like February 31st matches the pattern but is not a real date.
+  const date = new Date(`${millis}Z`);
+  return !Number.isNaN(date.getTime()) && date.toISOString() === `${millis}Z`;
+}
+
 export function encodeCursor(cursor: ListCursor): string {
   return Buffer.from(JSON.stringify(cursor)).toString('base64url');
 }
@@ -19,7 +31,8 @@ export function decodeCursor(value: string): ListCursor | undefined {
       typeof parsed.ts === 'string' &&
       typeof parsed.id === 'string'
     ) {
-      return { ts: parsed.ts, id: parsed.id };
+      const cursor = { ts: parsed.ts, id: parsed.id };
+      if (isValid(cursor)) return cursor;
     }
   } catch {
     // not a cursor we issued

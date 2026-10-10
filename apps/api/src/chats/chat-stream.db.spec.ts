@@ -5,7 +5,7 @@ import type { AddressInfo } from 'node:net';
 import type { NestExpressApplication } from '@nestjs/platform-express';
 import request from 'supertest';
 import { DataSource } from 'typeorm';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { testDatabaseUrl } from '../../test/db-global-setup.js';
 import { PROVIDER_ERROR, ProviderError } from '../http/safe-fetch/provider-error.js';
@@ -24,6 +24,7 @@ import {
 import { USER_ROLE } from '../users/user-role.js';
 import { MESSAGE_ROLE, MESSAGE_STATUS, STREAM_ERROR_TEXT } from './chat-dictionaries.js';
 import type { ChatDetailDto } from './chats.dto.js';
+import { MessageTreeService } from './message-tree.service.js';
 
 const MODEL_ID = 'connection-1:fake-model';
 
@@ -438,6 +439,30 @@ describe('chat streaming (database)', () => {
         .post(`/api/chats/${chatId}/stream`)
         .send({ parentId: null, text: 'Danach' })
         .expect(200);
+    });
+
+    it('aborts the model when the client leaves while the history is still loading', async () => {
+      options = { deltas: ['Eins ', 'Zwei ', 'Drei ', 'Vier ', 'Fuenf'], chunkDelayMs: 60 };
+      await start();
+      await app.listen(0);
+      const chatId = await newChat();
+      const tree = app.get(MessageTreeService);
+      const loadPath = tree.loadPath.bind(tree);
+      vi.spyOn(tree, 'loadPath').mockImplementationOnce(async (...args) => {
+        app.getHttpServer().closeAllConnections();
+        await new Promise((resolve) => setTimeout(resolve, 100));
+        return loadPath(...args);
+      });
+
+      openStream(chatId, ann, { parentId: null, text: 'Lange Antwort' }).catch(() => undefined);
+
+      const chat = await until(async () => {
+        // closeAllConnections also closes an idle keep-alive socket of this test client; asking again opens a new one.
+        const read = await detail(ann, chatId).catch(() => undefined);
+        return read !== undefined && read.messages.length === 2 ? read : undefined;
+      });
+      expect(chat.messages[1]?.status).toBe(MESSAGE_STATUS.ABORTED);
+      expect(streamed()[0]?.doStreamCalls[0]?.abortSignal?.aborted).toBe(true);
     });
 
     it('stops a stream that runs longer than the configured maximum', async () => {

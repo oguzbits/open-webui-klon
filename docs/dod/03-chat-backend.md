@@ -1,7 +1,7 @@
 ### DoD: Teilprojekt 3a (Chat und Streaming, Backend)
 
 - [x] Vertrag: DTOs in `chats.dto.ts`; `pnpm openapi` erzeugt `apps/api/openapi.json` und `apps/web/src/api/generated/**` mit den Chat-Routen (`/api/chats`, `/api/chats/{id}`, `/api/chats/{id}/stream`, `/api/chats/{id}/messages/{messageId}/regenerate`) und DTOs (`ChatDetailDto`, `ChatListDto`, `ChatSummaryDto`, `MessageDto`, `CreateChatDto`, `UpdateChatDto`, `StreamChatDto`); `git diff --stat` zeigte nur Zeilen, die dazukamen. Kein `userId` in einer Antwort (Test in `chats.db.spec.ts`).
-- [x] Tests: `pnpm test` grün (36 Dateien, 474 API-Tests und 19 Dateien, 218 Web-Tests, dazu die Hook-Tests), `pnpm test:db` grün (22 Dateien, 267 Tests), `pnpm check` grün (Typen, ESLint, Prettier, dependency-cruiser ohne Verstoß). Auth und Not-Found je Controller (`chats.controller.spec.ts`, `chats.db.spec.ts`). Mutationsproben, jeweils rot gesehen:
+- [x] Tests: `pnpm test` grün (36 Dateien, 478 API-Tests und 19 Dateien, 218 Web-Tests, dazu die Hook-Tests), `pnpm test:db` grün (22 Dateien, 268 Tests), `pnpm check` grün (Typen, ESLint, Prettier, dependency-cruiser ohne Verstoß). Auth und Not-Found je Controller (`chats.controller.spec.ts`, `chats.db.spec.ts`). Mutationsproben, jeweils rot gesehen:
   - Task 4: Kürzung des Verlaufs (`kept.shift`) abgeschaltet; die Probe aus dem Plan blieb grün, darum ein zusätzlicher Test (siehe Ledger-Urteil).
   - Task 5: Nutzerfilter in `getOwned` entfernt, Cursor `<` zu `<=`.
   - Task 6: Nutzerfilter in `loadPath` und `saveAssistant`, Rollenprüfung (je mehrere Tests rot).
@@ -22,6 +22,8 @@
 - [x] Betrieb: `docker compose -p owui-probe up --build -d` mit frischer Datenbank, `node scripts/smoke.mjs http://localhost:8080` grün (inklusive der neuen Prüfungen „chat list needs a session" und „chat stream needs a session").
 - [x] Docs: PLAN, BACKLOG, THREAT-MODEL, Spec 3 (Abschnitte 2, 6, 7, Status), Gesamt-Spec (offene Frage zum Streaming-Protokoll), README, [ADR 0004](../adr/0004-chat-streaming-protokoll.md) aktualisiert.
 - [ ] Offen: Web (Plan 3b), siehe [BACKLOG](../BACKLOG.md).
+
+Abschlussprüfung des ganzen Zweigs durch einen unabhängigen Prüfer: keine kritischen Funde; behoben (Test zuerst rot): der Abbruch-Handler wurde erst nach dem Laden des Verlaufs registriert (trennt der Client dort, lief die Modellanfrage weiter), und ein Cursor mit gültigem JSON, aber unbrauchbaren Werten ergab `500` statt `422`. Zurückgestellte kleine Funde stehen im [Backlog](../BACKLOG.md).
 
 Handprobe über Caddy (`http://localhost:8080`, Fake-Anbieter `scripts/fake-provider.mjs` auf dem Host, Anmeldung als Admin, Verbindung angelegt `201`):
 

@@ -157,6 +157,13 @@ export class ChatStreamService {
     const startedAt = Date.now();
     const assistantMessageId = randomUUID();
 
+    // Before the first await: a client that leaves while the history loads must still abort the model call.
+    const abort = new AbortController();
+    response.on('close', () => {
+      if (!response.writableFinished) abort.abort();
+    });
+    if (response.destroyed && !response.writableFinished) abort.abort();
+
     const path = await this.tree.loadPath(userId, chat.id, userMessageId);
     const history = buildHistory(path, this.contextMax);
     const messages = await convertToModelMessages(
@@ -166,10 +173,6 @@ export class ChatStreamService {
       }))
     );
 
-    const abort = new AbortController();
-    response.on('close', () => {
-      if (!response.writableFinished) abort.abort();
-    });
     const abortSignal = AbortSignal.any([abort.signal, AbortSignal.timeout(this.durationMs)]);
 
     const result = streamText({

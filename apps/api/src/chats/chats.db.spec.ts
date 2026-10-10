@@ -208,6 +208,8 @@ describe('chats (database)', () => {
       await start();
 
       await authed(http, ann).get('/api/chats?cursor=garbage').expect(422);
+      const unusable = Buffer.from('{"ts":"x","id":"y"}').toString('base64url');
+      await authed(http, ann).get(`/api/chats?cursor=${unusable}`).expect(422);
     });
   });
 
