@@ -128,3 +128,31 @@
     @apply font-sans;
   }
 }
+
+/* Syntax highlighting of code blocks: the class names come from rehype-highlight. */
+.hljs-comment,
+.hljs-quote {
+  color: var(--muted-foreground);
+  font-style: italic;
+}
+.hljs-keyword,
+.hljs-selector-tag,
+.hljs-literal,
+.hljs-built_in,
+.hljs-type,
+.hljs-section,
+.hljs-strong {
+  font-weight: 600;
+}
+.hljs-string,
+.hljs-number,
+.hljs-attr,
+.hljs-attribute,
+.hljs-symbol,
+.hljs-regexp,
+.hljs-meta {
+  color: var(--chart-2);
+}
+.hljs-emphasis {
+  font-style: italic;
+}
