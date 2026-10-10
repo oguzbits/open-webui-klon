@@ -1,6 +1,6 @@
 # Teilprojekt 4: Wissenssammlungen und Hybrid-Suche (RAG)
 
-Stand: 2026-10-10. Status: Entwurf zur Prüfung. Übergeordnet: [Gesamt-Spec](2026-10-09-open-webui-nestjs-design.md),
+Stand: 2026-10-10. Status: Plan 4a (Backend) umgesetzt, Plan 4b (Web) offen. Übergeordnet: [Gesamt-Spec](2026-10-09-open-webui-nestjs-design.md),
 Abschnitt 4, Zeile 4. Aufbauend auf [Teilprojekt 2](2026-10-09-teilprojekt-2-modell-anbindung-design.md) (Verbindungen)
 und [Teilprojekt 3](2026-10-10-teilprojekt-3-chat-streaming-design.md) (Chat, Job-Queue).
 
@@ -143,7 +143,9 @@ Alle hinter der Session; Nutzerbegrenzung in SQL; Fremdzugriff ist 404. DTOs mit
 `EMBEDDING_MODEL_ID` (optional; ohne sie sind Upload, Sammlungen und Suche mit klarer Meldung nicht nutzbar),
 `RAG_UPLOAD_MAX_BYTES` (20 MB), `RAG_MAX_DOCUMENTS_PER_USER` (200), `RAG_MAX_PAGES` (300),
 `RAG_PARSE_TIMEOUT_MS` (60000), `RAG_PARSE_MEMORY_MB` (512), `RAG_CHUNK_CHARS` (1000),
-`RAG_CHUNK_OVERLAP_CHARS` (150), `RAG_CANDIDATES` (30), `RAG_TOP_K` (6), `RAG_CONTEXT_MAX_CHARS` (12000).
+`RAG_CHUNK_OVERLAP_CHARS` (150), `RAG_CANDIDATES` (30), `RAG_TOP_K` (6), `RAG_CONTEXT_MAX_CHARS` (12000),
+`RAG_MAX_CHUNKS` (5000; mehr Chunks ergeben `too_large`, vor dem Einbetten geprüft), `RAG_STALE_AFTER_MINUTES` (30;
+ein Dokument, das so lange `pending` oder `processing` ist, wird `failed` mit Grund `timeout`).
 Das Volume für Dateien (`FILE_STORAGE_PATH`) ist in `compose.yml` ein benanntes Volume.
 
 ## 9. Web (Plan 4b)
