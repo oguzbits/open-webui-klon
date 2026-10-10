@@ -60,6 +60,7 @@ Nutze `pnpm`, nie `npm` oder `yarn`.
 | -------------------------------------------------------- | ---------------------------------------------------------- |
 | `pnpm check`                                             | Typecheck, ESLint, Prettier-Check, dependency-cruiser      |
 | `pnpm test`                                              | Vitest ohne Datenbank (inklusive HTTP-Tests mit Supertest) |
+| `pnpm test:hooks`                                        | Tests der Hooks in `.claude/hooks` (Teil von `pnpm test`)  |
 | `pnpm db:up` / `pnpm test:db`                            | Postgres für lokale DB-Tests starten / DB-Tests ausführen  |
 | `pnpm openapi`                                           | OpenAPI erzeugen und Web-Client neu generieren             |
 | `pnpm --filter @owui/api migration:generate <Pfad/Name>` | Migration aus Entity-Änderungen erzeugen                   |
@@ -75,6 +76,17 @@ Nutze `pnpm`, nie `npm` oder `yarn`.
 - **Git:** direkt auf `main`, kleine Commits (ein Thema), Conventional Commits, Imperativ.
   Husky-Hooks (`pnpm check`, Tests) nie mit `--no-verify` umgehen. `.env*` nie stagen. Nach einem Push
   `gh run list --branch main --limit 1` prüfen und rote CI vor neuer Arbeit beheben.
+- **Testregeln:** Verhalten prüfen, nicht Markup oder Implementierung. Ein Verhalten steht in einem Test auf der
+  untersten möglichen Ebene (Unit vor HTTP vor DB vor Browser). Jeder Test muss durch Mutation sterben
+  können: Sicherheitsregeln (Nutzerbegrenzung, Rechte, Host-Prüfung) werden einmal abgeschaltet, um rote Tests
+  zu sehen. Auth- und Not-Found-Tests bleiben pro Controller. Keine echten LLM- oder Netzwerkaufrufe in Tests.
+- **Hooks in `.claude/hooks`** (mit eigenen Tests): Der Bash-Guard blockiert Force-Push, `--no-verify`, das
+  Abschalten von Husky und Zugriffe auf Secret-Dateien; er prüft auch Heredoc-Text, also Dateiinhalte mit den
+  Werkzeugen Write/Edit schreiben. Der Stop-Hook lässt dich erst fertig melden, wenn `pnpm check` für den
+  aktuellen Stand grün ist (blockiert höchstens einmal pro Zug). Beide sind ein Sicherheitsnetz, kein Ersatz
+  für Sorgfalt.
+- **Abschluss je Plan:** DoD-Beleg unter `docs/dod/` nach der [Vorlage](docs/dod/TEMPLATE.md), im selben Commit
+  wie die Docs-Änderungen.
 - **Abhängigkeiten** dürfen ohne Rückfrage ergänzt werden: aktuelle Doku prüfen (Regel 10), Menge klein
   halten, Grund in die Commit-Nachricht. Neue Pakete mit Installationsskripten nur bewusst in
   `onlyBuiltDependencies` freigeben.
