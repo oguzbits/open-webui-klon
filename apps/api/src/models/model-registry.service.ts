@@ -1,5 +1,5 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
-import type { LanguageModel } from 'ai';
+import type { EmbeddingModel, LanguageModel } from 'ai';
 import { PinoLogger } from 'nestjs-pino';
 
 import { ProviderError, type ProviderErrorReason } from '../http/safe-fetch/provider-error.js';
@@ -20,6 +20,11 @@ import type { ProviderType } from './provider-type.js';
 export interface ResolvedModel {
   model: LanguageModel;
   connection: { id: string; name: string; type: ProviderType };
+  rawModelId: string;
+}
+
+export interface ResolvedEmbeddingModel {
+  model: EmbeddingModel;
   rawModelId: string;
 }
 
@@ -113,21 +118,38 @@ export class ModelRegistryService {
    * is used. Every refusal is the same 404 so the answer does not tell which part was wrong.
    */
   async resolve(modelId: string): Promise<ResolvedModel> {
+    const { connection, rawModelId } = await this.activeConnection(modelId);
+    const model = this.adapterFor(connection.type).languageModel(
+      this.connections.targetOf(connection),
+      rawModelId
+    );
+    return {
+      model,
+      connection: { id: connection.id, name: connection.name, type: connection.type },
+      rawModelId,
+    };
+  }
+
+  /** The embedding model for an id from `list()`; the same checks and the same 404 as `resolve`. */
+  async resolveEmbedding(modelId: string): Promise<ResolvedEmbeddingModel> {
+    const { connection, rawModelId } = await this.activeConnection(modelId);
+    const model = this.adapterFor(connection.type).embeddingModel(
+      this.connections.targetOf(connection),
+      rawModelId
+    );
+    return { model, rawModelId };
+  }
+
+  private async activeConnection(
+    modelId: string
+  ): Promise<{ connection: ProviderConnection; rawModelId: string }> {
     const parsed = parseModelId(modelId);
     if (parsed === undefined) throw new NotFoundException('Model not found');
     const connection = await this.connections.findEnabled(parsed.connectionId);
     if (connection === null || connection.hiddenModelIds.includes(parsed.rawModelId)) {
       throw new NotFoundException('Model not found');
     }
-    const model = this.adapterFor(connection.type).languageModel(
-      this.connections.targetOf(connection),
-      parsed.rawModelId
-    );
-    return {
-      model,
-      connection: { id: connection.id, name: connection.name, type: connection.type },
-      rawModelId: parsed.rawModelId,
-    };
+    return { connection, rawModelId: parsed.rawModelId };
   }
 
   private async attempt(connection: ProviderConnection): Promise<Attempt> {

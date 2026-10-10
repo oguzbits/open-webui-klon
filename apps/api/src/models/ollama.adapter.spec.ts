@@ -8,7 +8,7 @@ import {
   ProviderFetchService,
 } from '../http/safe-fetch/provider-fetch.service.js';
 import { FAKE_MODE, FakeProvider } from '../testing/fake-provider.js';
-import { asV4 } from '../testing/v4-model.js';
+import { asEmbeddingV4, asV4 } from '../testing/v4-model.js';
 import { OllamaAdapter } from './ollama.adapter.js';
 import type { ProviderTarget } from './provider-adapter.js';
 
@@ -127,6 +127,38 @@ describe('OllamaAdapter: language model', () => {
     const model = asV4(adapter([]).languageModel(targetFor(provider), 'llama3:8b'));
 
     const error = await failureOf(model.doGenerate({ prompt: PROMPT }));
+
+    expect(error.reason).toBe(PROVIDER_ERROR.BLOCKED_HOST);
+    expect(provider.requests).toHaveLength(0);
+  });
+});
+
+describe('OllamaAdapter: embedding model', () => {
+  it('talks to /v1/embeddings of the same host with the raw model id and the key', async () => {
+    const provider = await startProvider();
+    const target = targetFor(provider, 'sk-secret');
+
+    const model = asEmbeddingV4(adapter().embeddingModel(target, 'nomic-embed-text'));
+    const result = await model.doEmbed({ values: ['Hund', 'Katze'] });
+
+    expect(model.modelId).toBe('nomic-embed-text');
+    expect(result.embeddings).toHaveLength(2);
+    const request = provider.requests[0];
+    expect(request?.path).toBe('/v1/embeddings');
+    expect(request?.authorization).toBe('Bearer sk-secret');
+    expect(JSON.parse(request?.body ?? '{}')).toMatchObject({
+      model: 'nomic-embed-text',
+      input: ['Hund', 'Katze'],
+    });
+  });
+
+  it('refuses a host that is not allowed, without a request', async () => {
+    const provider = await startProvider();
+    const model = asEmbeddingV4(
+      adapter([]).embeddingModel(targetFor(provider), 'nomic-embed-text')
+    );
+
+    const error = await failureOf(model.doEmbed({ values: ['Hund'] }));
 
     expect(error.reason).toBe(PROVIDER_ERROR.BLOCKED_HOST);
     expect(provider.requests).toHaveLength(0);

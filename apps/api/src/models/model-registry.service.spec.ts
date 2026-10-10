@@ -1,8 +1,8 @@
 import { randomUUID } from 'node:crypto';
 import { NotFoundException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
-import type { LanguageModel } from 'ai';
-import { MockLanguageModelV4 } from 'ai/test';
+import type { EmbeddingModel, LanguageModel } from 'ai';
+import { MockEmbeddingModelV4, MockLanguageModelV4 } from 'ai/test';
 import { PinoLogger } from 'nestjs-pino';
 import { describe, expect, it } from 'vitest';
 
@@ -46,6 +46,8 @@ class FakeAdapter implements ProviderAdapter {
   readonly answers = new Map<string, RawModel[] | Error>();
   gate: Promise<void> | undefined;
   readonly model: LanguageModel = new MockLanguageModelV4();
+  readonly embedding: EmbeddingModel = new MockEmbeddingModelV4();
+  readonly builtEmbedding: { target: ProviderTarget; rawModelId: string }[] = [];
 
   constructor(readonly type: ProviderType) {}
 
@@ -60,6 +62,11 @@ class FakeAdapter implements ProviderAdapter {
   languageModel(target: ProviderTarget, rawModelId: string): LanguageModel {
     this.built.push({ target, rawModelId });
     return this.model;
+  }
+
+  embeddingModel(target: ProviderTarget, rawModelId: string): EmbeddingModel {
+    this.builtEmbedding.push({ target, rawModelId });
+    return this.embedding;
   }
 }
 
@@ -361,5 +368,40 @@ describe('ModelRegistryService.resolve', () => {
     const { registry } = await setup();
 
     await expect(registry.resolve(id)).rejects.toThrow(NotFoundException);
+  });
+});
+
+describe('ModelRegistryService.resolveEmbedding', () => {
+  it('returns the adapter embedding model for the raw id of an active connection', async () => {
+    const { registry, state, ollama } = await setup();
+    const local = connection();
+    state.connections.push(local);
+
+    const resolved = await registry.resolveEmbedding(formatModelId(local.id, 'nomic-embed-text'));
+
+    expect(resolved.model).toBe(ollama.embedding);
+    expect(resolved.rawModelId).toBe('nomic-embed-text');
+    expect(ollama.builtEmbedding).toEqual([
+      {
+        target: { connectionId: local.id, baseUrl: local.baseUrl, apiKey: undefined },
+        rawModelId: 'nomic-embed-text',
+      },
+    ]);
+  });
+
+  it('refuses a hidden model, a disabled or unknown connection and a malformed id with 404', async () => {
+    const { registry, state } = await setup();
+    const hidden = connection({ hiddenModelIds: ['nomic-embed-text'] });
+    const off = connection({ enabled: false });
+    state.connections.push(hidden, off);
+
+    for (const id of [
+      formatModelId(hidden.id, 'nomic-embed-text'),
+      formatModelId(off.id, 'nomic-embed-text'),
+      formatModelId(randomUUID(), 'nomic-embed-text'),
+      'not-a-model-id',
+    ]) {
+      await expect(registry.resolveEmbedding(id)).rejects.toBeInstanceOf(NotFoundException);
+    }
   });
 });

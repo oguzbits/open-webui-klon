@@ -1,6 +1,6 @@
 import { createOpenAICompatible } from '@ai-sdk/openai-compatible';
 import { Injectable } from '@nestjs/common';
-import type { LanguageModel } from 'ai';
+import type { EmbeddingModel, LanguageModel } from 'ai';
 import { z } from 'zod';
 
 import { PROVIDER_ERROR, ProviderError } from '../http/safe-fetch/provider-error.js';
@@ -36,5 +36,14 @@ export class OpenAiCompatibleAdapter implements ProviderAdapter {
       apiKey: target.apiKey,
       fetch: this.providerFetch.createFetch(target.baseUrl),
     }).languageModel(rawModelId);
+  }
+
+  embeddingModel(target: ProviderTarget, rawModelId: string): EmbeddingModel {
+    return createOpenAICompatible({
+      name: target.connectionId,
+      baseURL: target.baseUrl,
+      apiKey: target.apiKey,
+      fetch: this.providerFetch.createFetch(target.baseUrl),
+    }).embeddingModel(rawModelId);
   }
 }

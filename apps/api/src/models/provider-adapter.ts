@@ -1,4 +1,4 @@
-import type { LanguageModel } from 'ai';
+import type { EmbeddingModel, LanguageModel } from 'ai';
 
 import type { ProviderType } from './provider-type.js';
 
@@ -22,6 +22,8 @@ export interface ProviderAdapter {
   listModels(target: ProviderTarget): Promise<RawModel[]>;
   /** No network call: the returned model calls the provider when it is used. */
   languageModel(target: ProviderTarget, rawModelId: string): LanguageModel;
+  /** No network call either; the request goes through the same guarded fetch as every other call to the provider. */
+  embeddingModel(target: ProviderTarget, rawModelId: string): EmbeddingModel;
 }
 
 export const PROVIDER_ADAPTERS = Symbol('PROVIDER_ADAPTERS');

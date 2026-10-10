@@ -1,6 +1,8 @@
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from 'node:http';
 import type { AddressInfo } from 'node:net';
 
+import { fakeEmbedding } from './fake-embedding.js';
+
 export const FAKE_MODE = {
   OK: 'ok',
   UNAUTHORIZED: 'unauthorized',
@@ -54,7 +56,7 @@ function chunk(model: string, delta: object, finish: string | null): string {
 
 /**
  * A model provider for tests and hand checks: Ollama (`/api/tags`) and OpenAI format (`/v1/models`,
- * `/v1/chat/completions`, also as a stream). `mode` switches every answer to one kind of failure.
+ * `/v1/chat/completions`, also as a stream, `/v1/embeddings`). `mode` switches every answer to one kind of failure.
  */
 export class FakeProvider {
   mode: FakeMode = FAKE_MODE.OK;
@@ -193,6 +195,25 @@ export class FakeProvider {
         return;
       }
       return json(200, completion(model, this.deltas.join('')));
+    }
+    if (method === 'POST' && path === '/v1/embeddings') {
+      const parsed: unknown = JSON.parse(body);
+      const input =
+        typeof parsed === 'object' && parsed !== null && 'input' in parsed ? parsed.input : [];
+      const texts = (Array.isArray(input) ? input : [input]).map(String);
+      const data = texts.map((text, index) => ({
+        object: 'embedding',
+        index,
+        embedding: fakeEmbedding(text),
+      }));
+      return json(
+        200,
+        JSON.stringify({
+          object: 'list',
+          data,
+          usage: { prompt_tokens: texts.length, total_tokens: texts.length },
+        })
+      );
     }
     return json(404, '{"error":"not found"}');
   }
