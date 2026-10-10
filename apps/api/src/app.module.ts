@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 
 import { AuthModule } from './auth/auth.module.js';
+import { ChatsModule } from './chats/chats.module.js';
 import { CommonModule } from './common/common.module.js';
 import { AppConfigModule } from './config/app-config.module.js';
 import { AuditModule } from './database/audit/audit.module.js';
@@ -22,6 +23,7 @@ import { ModelsModule } from './models/models.module.js';
     UsersModule,
     AuthModule,
     ModelsModule,
+    ChatsModule,
     HealthModule,
   ],
 })

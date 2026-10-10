@@ -4,6 +4,7 @@ import { DataSource } from 'typeorm';
 
 import { configureApp } from '../app.factory.js';
 import { AuthModule } from '../auth/auth.module.js';
+import { ChatsModule } from '../chats/chats.module.js';
 import { CommonModule } from '../common/common.module.js';
 import { AppConfigModule } from '../config/app-config.module.js';
 import { AuditModule } from '../database/audit/audit.module.js';
@@ -14,6 +15,7 @@ import { ModelsModule } from '../models/models.module.js';
 import { SecurityModule } from '../security/security.module.js';
 import { UsersModule } from '../users/users.module.js';
 import { BASE_TEST_ENV } from './create-test-app.js';
+import { resetChatTables } from './chat-fixtures.js';
 import { resetAuthTables, resetProviderTables } from './db-fixtures.js';
 
 export interface DbTestAppOptions {
@@ -51,6 +53,7 @@ export async function createDbTestApp(
       UsersModule,
       AuthModule,
       ModelsModule,
+      ChatsModule,
       HealthModule,
     ],
   });
@@ -60,6 +63,7 @@ export async function createDbTestApp(
   configureApp(app);
   if (options.resetUsers !== false) {
     const dataSource = app.get(DataSource);
+    await resetChatTables(dataSource);
     await resetAuthTables(dataSource);
     await resetProviderTables(dataSource);
   }
