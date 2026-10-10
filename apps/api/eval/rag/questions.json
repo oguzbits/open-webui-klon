@@ -1,0 +1,26 @@
+[
+  {
+    "question": "Wie oft wird die Linse des Leuchtturms geputzt?",
+    "expect": "leuchtturm-wartung.md"
+  },
+  { "question": "Wo finde ich die Reservelampe?", "expect": "leuchtturm-wartung.md" },
+  { "question": "Ab welcher Sichtweite läuft das Nebelhorn?", "expect": "leuchtturm-wartung.md" },
+  {
+    "question": "Wann werden die Bienen gegen Milben behandelt?",
+    "expect": "bienenstock-pflege.md"
+  },
+  {
+    "question": "Welches Mischungsverhältnis hat das Winterfutter für die Völker?",
+    "expect": "bienenstock-pflege.md"
+  },
+  {
+    "question": "Was heißt die Fehlermeldung E14 am Kaffeeautomaten?",
+    "expect": "kaffeemaschine-anleitung.md"
+  },
+  { "question": "Welcher Mahlgrad passt für Espresso?", "expect": "kaffeemaschine-anleitung.md" },
+  {
+    "question": "Wie viel darf eine Hotelübernachtung auf Dienstreise kosten?",
+    "expect": "reisekostenregel.md"
+  },
+  { "question": "Bis wann muss ich die Reisekosten einreichen?", "expect": "reisekostenregel.md" }
+]

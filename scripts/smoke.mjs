@@ -112,6 +112,15 @@ check(
 const chatsWithoutSession = await fetch(`${BASE_URL}/api/chats`);
 check('chat list needs a session', chatsWithoutSession.status === 401);
 
+const collectionsWithoutSession = await fetch(`${BASE_URL}/api/collections`);
+check('collection list needs a session', collectionsWithoutSession.status === 401);
+
+const uploadWithoutSession = await fetch(`${BASE_URL}/api/documents`, {
+  method: 'POST',
+  headers: { origin: BASE_URL },
+});
+check('document upload needs a session', uploadWithoutSession.status === 401);
+
 const streamWithoutSession = await fetch(
   `${BASE_URL}/api/chats/00000000-0000-4000-8000-000000000000/stream`,
   {
@@ -121,6 +130,106 @@ const streamWithoutSession = await fetch(
   }
 );
 check('chat stream needs a session', streamWithoutSession.status === 401);
+
+// Knowledge: needs an active account, a chat model and the embedding model of the stack. Skipped without them.
+const { SMOKE_EMAIL, SMOKE_PASSWORD, SMOKE_MODEL_ID, EMBEDDING_MODEL_ID } = process.env;
+if (SMOKE_EMAIL && SMOKE_PASSWORD && SMOKE_MODEL_ID && EMBEDDING_MODEL_ID) {
+  await smokeKnowledge();
+} else {
+  console.log(
+    'skip knowledge checks (set SMOKE_EMAIL, SMOKE_PASSWORD, SMOKE_MODEL_ID and EMBEDDING_MODEL_ID to run them)'
+  );
+}
+
+async function smokeKnowledge() {
+  const login = await fetch(`${BASE_URL}/api/auth/login`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json', origin: BASE_URL },
+    body: JSON.stringify({ email: SMOKE_EMAIL, password: SMOKE_PASSWORD }),
+  });
+  const session = login.ok ? await login.json() : undefined;
+  check('knowledge: login works', session !== undefined && typeof session.csrfToken === 'string');
+  if (session === undefined) return;
+  const cookie = login.headers
+    .getSetCookie()
+    .map((entry) => entry.split(';')[0])
+    .join('; ');
+  const headers = { cookie, origin: BASE_URL, 'x-csrf-token': session.csrfToken };
+  const json = { ...headers, 'content-type': 'application/json' };
+
+  const collection = await (
+    await fetch(`${BASE_URL}/api/collections`, {
+      method: 'POST',
+      headers: json,
+      body: JSON.stringify({ name: `smoke-${Date.now()}` }),
+    })
+  ).json();
+  let chatId;
+  try {
+    const form = new FormData();
+    form.append('collectionId', collection.id);
+    form.append(
+      'file',
+      new Blob(['# Smoke\n\nDer Leuchtturm Rothenwind hat die Kennung Blitz 5.'], {
+        type: 'text/markdown',
+      }),
+      'smoke.md'
+    );
+    const upload = await fetch(`${BASE_URL}/api/documents`, {
+      method: 'POST',
+      headers,
+      body: form,
+    });
+    check('knowledge: upload is accepted', upload.status === 201);
+
+    const deadline = Date.now() + TIMEOUT_MS;
+    let status = 'pending';
+    while (Date.now() < deadline && ['pending', 'processing'].includes(status)) {
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      const list = await (
+        await fetch(`${BASE_URL}/api/collections/${collection.id}/documents`, { headers })
+      ).json();
+      status = list.items?.[0]?.status ?? 'missing';
+    }
+    check(`knowledge: document becomes ready (was ${status})`, status === 'ready');
+
+    const chat = await (
+      await fetch(`${BASE_URL}/api/chats`, {
+        method: 'POST',
+        headers: json,
+        body: JSON.stringify({ modelId: SMOKE_MODEL_ID }),
+      })
+    ).json();
+    chatId = chat.id;
+    await fetch(`${BASE_URL}/api/chats/${chatId}`, {
+      method: 'PATCH',
+      headers: json,
+      body: JSON.stringify({ collectionIds: [collection.id] }),
+    });
+    const stream = await fetch(`${BASE_URL}/api/chats/${chatId}/stream`, {
+      method: 'POST',
+      headers: json,
+      body: JSON.stringify({ parentId: null, text: 'Welche Kennung hat der Leuchtturm?' }),
+    });
+    const body = await stream.text();
+    const start = body
+      .split('\n')
+      .filter((line) => line.startsWith('data: {'))
+      .map((line) => JSON.parse(line.slice(6)))
+      .find((event) => event.type === 'start');
+    check(
+      'knowledge: the stream announces the sources',
+      stream.status === 200 && Array.isArray(start?.messageMetadata?.sources)
+    );
+  } finally {
+    if (chatId) await fetch(`${BASE_URL}/api/chats/${chatId}`, { method: 'DELETE', headers });
+    const list = await fetch(`${BASE_URL}/api/collections/${collection.id}/documents`, { headers });
+    for (const item of (await list.json()).items ?? []) {
+      await fetch(`${BASE_URL}/api/documents/${item.id}`, { method: 'DELETE', headers });
+    }
+    await fetch(`${BASE_URL}/api/collections/${collection.id}`, { method: 'DELETE', headers });
+  }
+}
 
 if (failures.length > 0) {
   console.error(`\n${failures.length} check(s) failed`);

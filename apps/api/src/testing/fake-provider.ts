@@ -1,7 +1,7 @@
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from 'node:http';
 import type { AddressInfo } from 'node:net';
 
-import { fakeEmbedding } from './fake-embedding.js';
+import { fakeEmbedding } from './fake-embedding.ts'; // .ts: scripts/fake-provider.mjs runs this file with Node directly
 
 export const FAKE_MODE = {
   OK: 'ok',

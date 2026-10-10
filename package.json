@@ -19,7 +19,8 @@
     "db:down": "PROVIDER_KEY_ENCRYPTION_KEYS=${PROVIDER_KEY_ENCRYPTION_KEYS:-unused-by-db} docker compose -f compose.yml -f compose.dev.yml down",
     "openapi": "pnpm --filter @owui/api build && pnpm --filter @owui/api openapi && pnpm --filter @owui/web api:generate",
     "depcruise": "depcruise --config config/dependency-cruiser.cjs apps",
-    "prepare": "husky"
+    "prepare": "husky",
+    "eval:rag": "pnpm --filter @owui/api build && pnpm --filter @owui/api eval:rag"
   },
   "packageManager": "pnpm@12.6.0",
   "devDependencies": {
