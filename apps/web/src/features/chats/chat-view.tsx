@@ -25,13 +25,16 @@ import { ModelPicker } from './model-picker';
 import { useChatDetail } from './use-chat-detail';
 import { useTitlePolling } from './use-title-polling';
 
-/**
- * After a stop or a lost connection the server stores the partial answer when its own stream closes, a moment after
- * the browser let go. Reloading sooner would replace the visible text by a chat without it. A heuristic, checked by
- * hand (Task 11).
- */
-const ABORT_SETTLE_MS = 500;
-const THROTTLE_MS = 50;
+export const CHAT_TIMING = {
+  /**
+   * After a stop or a lost connection the server stores the partial answer when its own stream closes, a moment after
+   * the browser let go. Reloading sooner would replace the visible text by a chat without it. A heuristic, checked by
+   * hand (Task 11).
+   */
+  ABORT_SETTLE_MS: 500,
+  /** useChat publishes new message content at most this often while an answer streams. */
+  THROTTLE_MS: 50,
+} as const;
 
 const REQUEST_KIND = { SEND: 'send', EDIT: 'edit', REGENERATE: 'regenerate' } as const;
 
@@ -106,7 +109,7 @@ export function ChatSession({ chat, syncToken }: { chat: ChatDetailDto; syncToke
       id: chat.id,
       transport,
       messages: initialMessages,
-      throttle: THROTTLE_MS,
+      throttle: CHAT_TIMING.THROTTLE_MS,
       onError: (caught) => {
         failure.current = caught;
         // The server refused the request (an HTTP status, before any stream): nothing is stored. Giving back here,
@@ -115,7 +118,7 @@ export function ChatSession({ chat, syncToken }: { chat: ChatDetailDto; syncToke
       },
       onFinish: ({ isAbort, isDisconnect, isError, messages: current }) => {
         // Also runs after errors. The stream is closed here, so the server has stored what it will store.
-        const delay = isAbort || isDisconnect ? ABORT_SETTLE_MS : 0;
+        const delay = isAbort || isDisconnect ? CHAT_TIMING.ABORT_SETTLE_MS : 0;
         settling.current = true;
         window.setTimeout(() => {
           settling.current = false;

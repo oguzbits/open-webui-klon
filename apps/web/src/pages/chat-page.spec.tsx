@@ -9,6 +9,7 @@ import {
   MessageDtoStatus,
 } from '@/api/generated/model';
 import { firstMessageState } from '@/features/chats/chat-navigation';
+import { CHAT_TIMING } from '@/features/chats/chat-view';
 import {
   chatDetailDto,
   chatTime,
@@ -67,6 +68,7 @@ beforeEach(() => {
 
 afterEach(() => {
   vi.unstubAllGlobals();
+  vi.restoreAllMocks();
 });
 
 /** The chat after one more question and answer, as the server stores it. */
@@ -146,17 +148,44 @@ async function ask(user: ReturnType<typeof userEvent.setup>, text: string) {
   await user.type(screen.getByLabelText('Nachricht'), `${text}{Enter}`);
 }
 
-/**
- * Lets useChat's throttled message updates (THROTTLE_MS) reach the screen, well within ABORT_SETTLE_MS: a wrongly
- * applied reload would show by then.
- */
+/** Lets useChat's throttled message updates reach the screen: a wrongly applied reload shows by then. */
 async function settleRenders() {
   await act(
     () =>
       new Promise((resolve) => {
-        setTimeout(resolve, 150);
+        setTimeout(resolve, 3 * CHAT_TIMING.THROTTLE_MS);
       })
   );
+}
+
+/**
+ * Holds back the reload the page schedules ABORT_SETTLE_MS after a stop, so a test decides when it comes instead of
+ * racing a real 500 ms window. Every other timer runs as usual.
+ */
+function holdSettleTimer() {
+  const held: (() => void)[] = [];
+  const realSetTimeout = window.setTimeout.bind(window);
+  const spy = vi.spyOn(window, 'setTimeout').mockImplementation(((
+    handler: TimerHandler,
+    delay?: number,
+    ...args: unknown[]
+  ) => {
+    if (delay === CHAT_TIMING.ABORT_SETTLE_MS) {
+      // Released later as an ordinary timer without delay.
+      held.push(() => {
+        realSetTimeout(handler, 0, ...args);
+      });
+      return 0;
+    }
+    return realSetTimeout(handler, delay, ...args);
+  }) as typeof window.setTimeout);
+  return {
+    held: () => held.length,
+    release() {
+      spy.mockRestore();
+      for (const run of held.splice(0)) run();
+    },
+  };
 }
 
 const START = { type: 'start', messageId: 'local-a', messageMetadata: IDS };
@@ -470,7 +499,7 @@ describe('ChatPage: sending', () => {
     const sse = await stream.open();
     detail = afterExchange('', MessageDtoStatus.aborted);
     sse.send(START);
-    // One macrotask lets the stream reader take the first part; the page renders it only after THROTTLE_MS.
+    // One macrotask lets the stream reader take the first part; the page renders it only after CHAT_TIMING.THROTTLE_MS.
     await new Promise((resolve) => {
       setTimeout(resolve, 0);
     });
@@ -535,15 +564,16 @@ describe('ChatPage: sending', () => {
     await waitFor(() => {
       expect(callsTo(fetchMock, 'GET', DETAIL_PATH).length).toBeGreaterThan(loadsBefore);
     });
+    const settle = holdSettleTimer();
     await user.click(screen.getByRole('button', { name: 'Stoppen' }));
     await settleRenders();
 
+    expect(settle.held()).toBe(1);
     expect(within(messageList()).getByText('Teil', { selector: 'p' })).toBeInTheDocument();
     expect(within(messageList()).getByText('Neue Frage')).toBeInTheDocument();
     detail = afterExchange('Teil', MessageDtoStatus.aborted);
-    expect(
-      await screen.findByText('Die Antwort wurde abgebrochen.', undefined, { timeout: 3000 })
-    ).toBeInTheDocument();
+    settle.release();
+    expect(await screen.findByText('Die Antwort wurde abgebrochen.')).toBeInTheDocument();
   });
 
   it('keeps the partial answer when a reload finishes while the stopped answer is being stored', async () => {
@@ -563,6 +593,7 @@ describe('ChatPage: sending', () => {
     sse.send(TEXT_START);
     sse.send(delta('Teil'));
     await within(messageList()).findByText('Teil', { selector: 'p' });
+    const settle = holdSettleTimer();
     await user.click(screen.getByRole('button', { name: 'Stoppen' }));
     const loadsAfterStop = callsTo(fetchMock, 'GET', DETAIL_PATH).length;
 
@@ -578,11 +609,11 @@ describe('ChatPage: sending', () => {
     });
     await settleRenders();
 
+    expect(settle.held()).toBe(1);
     expect(within(messageList()).getByText('Teil', { selector: 'p' })).toBeInTheDocument();
     detail = afterExchange('Teil', MessageDtoStatus.aborted);
-    expect(
-      await screen.findByText('Die Antwort wurde abgebrochen.', undefined, { timeout: 3000 })
-    ).toBeInTheDocument();
+    settle.release();
+    expect(await screen.findByText('Die Antwort wurde abgebrochen.')).toBeInTheDocument();
   });
 
   it('sends the first message a new chat handed over, once, and clears the router state', async () => {
