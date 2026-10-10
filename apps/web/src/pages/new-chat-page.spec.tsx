@@ -130,6 +130,18 @@ describe('NewChatPage', () => {
     expect(screen.getByRole('button', { name: 'Senden' })).toBeEnabled();
   });
 
+  it('blames the instruction, not the message, when the server refuses the new chat with 422', async () => {
+    stubMember({ 'POST /api/chats': () => problem(422, 'Unprocessable Entity') });
+    const user = userEvent.setup();
+    await openNewChat();
+
+    await user.type(screen.getByLabelText('Nachricht'), 'Hallo{Enter}');
+
+    expect(await screen.findByText('Die Anweisung ist zu lang.')).toBeInTheDocument();
+    expect(screen.queryByText('Die Nachricht ist zu lang.')).not.toBeInTheDocument();
+    expect(screen.getByLabelText('Nachricht')).toHaveValue('Hallo');
+  });
+
   it('blocks the box while the chat is being created', async () => {
     let release: () => void = () => undefined;
     const fetchMock = stubMember({

@@ -2,13 +2,13 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router';
 
+import { errorMessageKey } from '@/api/error-message';
 import { useChatsCreate } from '@/api/generated/api';
 import { LoadError } from '@/components/common/load-error';
 import { PageLoading } from '@/components/common/page-loading';
 import { Button } from '@/components/ui/button';
 import { useModels } from '@/features/models/use-models';
 
-import { chatErrorKey } from './chat-errors';
 import { firstMessageState } from './chat-navigation';
 import { type ChatSettings, ChatSettingsDialog } from './chat-settings-dialog';
 import { Composer } from './composer';
@@ -98,7 +98,13 @@ export function NewChat() {
       </header>
       {create.isError && (
         <p role="alert" className="text-destructive text-sm">
-          {t(chatErrorKey(create.error))}
+          {/* Creating sends no message yet: a 422 is about the instruction or the parameters. */}
+          {t(
+            errorMessageKey(create.error, {
+              404: 'chats.error.gone',
+              422: 'chats.settings.tooLong',
+            })
+          )}
         </p>
       )}
       {create.isPending && (
