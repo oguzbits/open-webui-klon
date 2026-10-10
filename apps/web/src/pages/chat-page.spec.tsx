@@ -480,6 +480,57 @@ describe('ChatPage: sending', () => {
   });
 });
 
+describe('ChatPage: first message under StrictMode', () => {
+  it('sends the first message exactly once, and a later message still goes out', async () => {
+    detail = chatDetailDto({ id: CHAT_ID, modelId: LLAMA.id, title: 'Neuer Chat' });
+    const fetchMock = stubChat({
+      [STREAM]: () => {
+        const first = callsTo(fetchMock, 'POST', STREAM_PATH).length === 1;
+        const ids = first ? { userMessageId: 'u1', assistantMessageId: 'a1' } : IDS;
+        detail = first
+          ? {
+              ...detail,
+              messages: [
+                { ...U1, parts: textParts('Erste Frage') },
+                { ...A1, parts: textParts('Antwort') },
+              ],
+              activeLeafId: 'a1',
+            }
+          : afterExchange('Zweite Antwort');
+        return sseResponse(answerChunks(first ? 'Antwort' : 'Zweite Antwort', ids));
+      },
+    });
+    const user = userEvent.setup();
+    renderApp(`/chats/${CHAT_ID}`, firstMessageState('Erste Frage'), { strict: true });
+    await screen.findByRole('heading', { level: 1 });
+
+    // The streamed text is replaced by the stored one after the reload: look again until it stands.
+    await waitFor(() => {
+      expect(within(messageList()).getByText('Antwort')).toBeInTheDocument();
+    });
+    expect(callsTo(fetchMock, 'POST', STREAM_PATH)).toHaveLength(1);
+    expect(bodyOfLast(fetchMock, 'POST', STREAM_PATH)).toEqual({
+      parentId: null,
+      text: 'Erste Frage',
+    });
+    await screen.findByRole('button', { name: 'Senden' });
+
+    await ask(user, 'Neue Frage');
+
+    await waitFor(() => {
+      expect(callsTo(fetchMock, 'POST', STREAM_PATH)).toHaveLength(2);
+    });
+    expect(bodyOfLast(fetchMock, 'POST', STREAM_PATH)).toEqual({
+      parentId: 'a1',
+      text: 'Neue Frage',
+    });
+    // The streamed text is replaced by the stored one after the reload: look again until it stands.
+    await waitFor(() => {
+      expect(within(messageList()).getByText('Zweite Antwort')).toBeInTheDocument();
+    });
+  });
+});
+
 describe('ChatPage: regenerate, edit, versions', () => {
   it('regenerates through the route of the answer, once, and shows the new version', async () => {
     const stream = manualStream();
@@ -523,7 +574,7 @@ describe('ChatPage: regenerate, edit, versions', () => {
   });
 
   it('puts the old answer back when regenerating is refused', async () => {
-    stubChat({
+    const fetchMock = stubChat({
       [`POST ${DETAIL_PATH}/messages/a1/regenerate`]: () => problem(429, 'Too Many Requests'),
     });
     const user = userEvent.setup();
@@ -537,6 +588,12 @@ describe('ChatPage: regenerate, edit, versions', () => {
       )
     ).toBeInTheDocument();
     expect(within(messageList()).getByText('du')).toBeInTheDocument();
+
+    // The refused request does not leave the page locked: the next try goes out.
+    await user.click(screen.getByRole('button', { name: 'Neu erzeugen' }));
+    await waitFor(() => {
+      expect(callsTo(fetchMock, 'POST', `${DETAIL_PATH}/messages/a1/regenerate`)).toHaveLength(2);
+    });
   });
 
   it('edits a question as a new version under the same parent', async () => {

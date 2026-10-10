@@ -139,11 +139,6 @@ export function ChatSession({ chat, syncToken }: { chat: ChatDetailDto; syncToke
     if (isStreamFailure(error)) clearError();
   }, [idle, syncToken, chat, error, setMessages, clearError]);
 
-  useEffect(() => {
-    // A second action in the same tick sees the ref; the status catches up one render later.
-    if (idle) sending.current = false;
-  }, [idle]);
-
   useTitlePolling(chat, idle);
 
   const branchUpdate = useChatsUpdate();
@@ -154,6 +149,11 @@ export function ChatSession({ chat, syncToken }: { chat: ChatDetailDto; syncToke
   const { mutateAsync: saveSettingsRequest } = settingsUpdate;
   const locked = busy || branchUpdate.isPending;
 
+  // A second action in the same tick sees the ref; `busy` catches up one render later.
+  const releaseSending = useCallback(() => {
+    sending.current = false;
+  }, []);
+
   const send = useCallback(
     (request: Exclude<LastRequest, { kind: typeof REQUEST_KIND.REGENERATE }>) => {
       if (sending.current) return;
@@ -161,11 +161,15 @@ export function ChatSession({ chat, syncToken }: { chat: ChatDetailDto; syncToke
       lastRequest.current = request;
       setComposerRestore(undefined);
       setEditRestore(undefined);
-      void (request.kind === REQUEST_KIND.EDIT
-        ? sendMessage({ text: request.text, messageId: request.messageId })
-        : sendMessage({ text: request.text }));
+      // The guard holds until the request is over, whatever its end: an answer, an error, or a send that never
+      // started (stop() aborts it while it is being prepared, so the status never leaves `ready`).
+      void (
+        request.kind === REQUEST_KIND.EDIT
+          ? sendMessage({ text: request.text, messageId: request.messageId })
+          : sendMessage({ text: request.text })
+      ).finally(releaseSending);
     },
-    [sendMessage]
+    [sendMessage, releaseSending]
   );
 
   const handleSend = useCallback(
@@ -188,9 +192,9 @@ export function ChatSession({ chat, syncToken }: { chat: ChatDetailDto; syncToke
       sending.current = true;
       lastRequest.current = { kind: REQUEST_KIND.REGENERATE };
       setEditRestore(undefined);
-      void regenerate({ messageId });
+      void regenerate({ messageId }).finally(releaseSending);
     },
-    [regenerate]
+    [regenerate, releaseSending]
   );
 
   const handleSwitch = useCallback(
@@ -236,13 +240,20 @@ export function ChatSession({ chat, syncToken }: { chat: ChatDetailDto; syncToke
   );
 
   // The first message of a freshly created chat comes along in the router state: send it once, then drop the state
-  // so a reload does not send it again (StrictMode runs this effect twice; the ref makes the second run a no-op).
+  // so a reload does not send it again. It is sent a tick later: in StrictMode React unmounts once in between, and
+  // that cleanup (here, and useChat's stop()) would cancel a send made right away. The cleanup clears the timer, so
+  // only the timer of the mount that stays fires.
   const firstMessage = readFirstMessage(location.state);
   useEffect(() => {
     if (firstMessage === undefined || firstSent.current) return;
-    firstSent.current = true;
-    void navigate(location.pathname, { replace: true, state: null });
-    send({ kind: REQUEST_KIND.SEND, text: firstMessage });
+    const timer = window.setTimeout(() => {
+      firstSent.current = true;
+      void navigate(location.pathname, { replace: true, state: null });
+      send({ kind: REQUEST_KIND.SEND, text: firstMessage });
+    }, 0);
+    return () => {
+      window.clearTimeout(timer);
+    };
   }, [firstMessage, location.pathname, navigate, send]);
 
   const end = useRef<HTMLDivElement>(null);
