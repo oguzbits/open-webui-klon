@@ -1,6 +1,6 @@
 # Teilprojekt 2: Modell-Anbindung
 
-Stand: 2026-10-09. Status: zur Prüfung durch Oguz. Übergeordnet:
+Stand: 2026-10-09. Status: umgesetzt (Pläne 2a und 2b). Übergeordnet:
 [Gesamt-Spec](2026-10-09-open-webui-nestjs-design.md), Abschnitt 4, Zeile 2.
 
 ## 1. Ziel und Rahmen

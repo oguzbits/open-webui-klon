@@ -80,7 +80,7 @@ docs/dod/02-modell-anbindung-web.md     Beleg
 - Consumes: bestehende `ApiError`, `apiFetch`, `stringField` aus `fetcher.ts`; `problem()` aus `stub-api.ts`.
 - Produces: `ApiError.reason?: string` (fünftes Konstruktorargument, das Zusatzfeld `reason` der Problem-Details-Antwort, zum Beispiel beim `502` des Verbindungstests); `problem(status, title, detail?, extra?)` mit `extra: Record<string, string>` für Tests.
 
-- [ ] **Step 1: Prüfen, dass Plan 2a umgesetzt ist**
+- [x] **Step 1: Prüfen, dass Plan 2a umgesetzt ist**
 
 Run: `grep -c "provider-connections" apps/api/openapi.json && grep -n "export const use\(ProviderConnections\|ModelsList\)" apps/web/src/api/generated/api.ts`
 Expected: eine Zahl größer 0 und die Hooks `useProviderConnectionsList`, `useProviderConnectionsCreate`, `useProviderConnectionsUpdate`, `useProviderConnectionsRemove`, `useProviderConnectionsTest`, `useProviderConnectionsModels`, `useModelsList`. Fehlt etwas, ist Plan 2a nicht fertig: dort Task 12 ausführen, nicht hier nachbauen.
@@ -93,7 +93,7 @@ Expected: vier Treffer. **Weichen die Namen ab, die abweichenden Namen in diesem
 Run: `pnpm openapi && git diff --exit-code apps/api/openapi.json apps/web/src/api/generated`
 Expected: kein Unterschied (der Client ist aktuell).
 
-- [ ] **Step 2: Failing tests schreiben**
+- [x] **Step 2: Failing tests schreiben**
 
 In `apps/web/src/api/fetcher.spec.ts` am Ende der Datei, innerhalb von `describe('apiFetch', …)` vor der schließenden `});`, einfügen:
 
@@ -122,12 +122,12 @@ In `apps/web/src/api/fetcher.spec.ts` am Ende der Datei, innerhalb von `describe
 
 Den Import `import { apiFetch } from './fetcher';` in derselben Datei ersetzen durch `import { ApiError, apiFetch } from './fetcher';`.
 
-- [ ] **Step 3: Test laufen lassen, Fehlschlag prüfen**
+- [x] **Step 3: Test laufen lassen, Fehlschlag prüfen**
 
 Run: `pnpm --filter @owui/web exec vitest run src/api/fetcher.spec.ts`
 Expected: FAIL im ersten neuen Test (`reason` fehlt am Fehler); der zweite besteht bereits oder scheitert nur an der Typprüfung. Beides ist der erwartete Ausgangszustand.
 
-- [ ] **Step 4: Implementieren**
+- [x] **Step 4: Implementieren**
 
 In `apps/web/src/api/fetcher.ts` die Klasse ersetzen:
 
@@ -175,7 +175,7 @@ export function problem(
 }
 ```
 
-- [ ] **Step 5: Tests laufen lassen, Commit**
+- [x] **Step 5: Tests laufen lassen, Commit**
 
 Run: `pnpm --filter @owui/web exec vitest run src/api/fetcher.spec.ts && pnpm check`
 Expected: PASS, `pnpm check` grün.
@@ -197,7 +197,7 @@ git commit -m "feat(web): keep the reason of a failed provider call on ApiError"
 - Consumes: `UnavailableConnectionDtoReason` (generiert); `ApiError` (Task 1); `errorMessageKey` aus `api/error-message.ts`.
 - Produces: `reasonKey(reason: string | undefined): string` (i18n-Schlüssel, unbekannt oder fehlend ergibt `connections.reason.unknown`); `testFailureKey(error: unknown): string` (bei `ApiError` mit Status 502 der Schlüssel zum Grund, sonst `errorMessageKey`); alle i18n-Schlüssel der Blöcke `models` und `connections` sowie `nav.models` und `nav.connections`, die Tasks 3 bis 6 benutzen.
 
-- [ ] **Step 1: Failing test schreiben**
+- [x] **Step 1: Failing test schreiben**
 
 `apps/web/src/features/connections/provider-reason.spec.ts`:
 
@@ -256,12 +256,12 @@ describe('testFailureKey', () => {
 
 Wenn `resolveJsonModule` die JSON-Dateien mit `import de from …` bereits in `locales.spec.ts` lädt, funktioniert der Import hier genauso.
 
-- [ ] **Step 2: Test laufen lassen, Fehlschlag prüfen**
+- [x] **Step 2: Test laufen lassen, Fehlschlag prüfen**
 
 Run: `pnpm --filter @owui/web exec vitest run src/features/connections/provider-reason.spec.ts`
 Expected: FAIL (`./provider-reason` fehlt).
 
-- [ ] **Step 3: Wörterbuch schreiben**
+- [x] **Step 3: Wörterbuch schreiben**
 
 `apps/web/src/features/connections/provider-reason.ts`:
 
@@ -296,7 +296,7 @@ export function testFailureKey(error: unknown): string {
 }
 ```
 
-- [ ] **Step 4: Texte eintragen (Deutsch)**
+- [x] **Step 4: Texte eintragen (Deutsch)**
 
 In `apps/web/src/i18n/locales/de.json` im Block `nav` nach `"users": "Nutzer",` einfügen:
 
@@ -423,7 +423,7 @@ Und vor dem Top-Level-Block `"home": {` (der Anker `"home": {` kommt nur dort vo
   },
 ```
 
-- [ ] **Step 5: Texte eintragen (Englisch)**
+- [x] **Step 5: Texte eintragen (Englisch)**
 
 In `apps/web/src/i18n/locales/en.json` im Block `nav` nach `"users": "Users",` einfügen:
 
@@ -550,7 +550,7 @@ Und vor dem Top-Level-Block `"home": {`:
   },
 ```
 
-- [ ] **Step 6: Tests laufen lassen, Commit**
+- [x] **Step 6: Tests laufen lassen, Commit**
 
 Run: `pnpm --filter @owui/web exec vitest run src/features/connections/provider-reason.spec.ts src/i18n && pnpm check`
 Expected: PASS (inklusive `locales.spec.ts`: gleiche Schlüssel, keine leeren Texte), `pnpm check` grün. Meldet Prettier die JSON-Dateien, `pnpm exec prettier --write apps/web/src/i18n/locales/*.json` und erneut prüfen.
@@ -571,7 +571,7 @@ git commit -m "feat(web): add the texts and the reason dictionary for model conn
 - Consumes: `useModelsList` (generiert); `ApiError` (Task 1); `reasonKey` (Task 2); `LoadError`, `PageLoading`; die i18n-Blöcke `models` und `nav` (Task 2).
 - Produces: `useModels()` liefert das TanStack-Ergebnis mit entpackten Daten `ModelListDto` (`{ models, unavailableConnections }`); `ModelsList`; Route `/models` für alle Mitglieder; Navigationspunkt „Modelle“. Test-Helfer: `providerConnectionDto(overrides?)`, `modelDto(overrides?)`, `modelList(models?, unavailable?)`, `adminModel(overrides?)` in `fixtures.ts`; `callsTo(fetchMock, method, path)` in `stub-api.ts`.
 
-- [ ] **Step 1: Test-Helfer ergänzen**
+- [x] **Step 1: Test-Helfer ergänzen**
 
 In `apps/web/src/test/stub-api.ts` am Ende anfügen (dritte Verwendung in den Specs: jetzt gemeinsam statt kopiert):
 
@@ -658,7 +658,7 @@ export function adminModel(overrides: Partial<AdminModelDto> = {}): AdminModelDt
 }
 ```
 
-- [ ] **Step 2: Failing test schreiben**
+- [x] **Step 2: Failing test schreiben**
 
 `apps/web/src/pages/models-page.spec.tsx`:
 
@@ -844,12 +844,12 @@ describe('ModelsPage', () => {
 });
 ```
 
-- [ ] **Step 3: Test laufen lassen, Fehlschlag prüfen**
+- [x] **Step 3: Test laufen lassen, Fehlschlag prüfen**
 
 Run: `pnpm --filter @owui/web exec vitest run src/pages/models-page.spec.tsx`
 Expected: FAIL (Seite und Route fehlen; die Überschrift „Verfügbare Modelle“ wird nicht gefunden).
 
-- [ ] **Step 4: Implementieren**
+- [x] **Step 4: Implementieren**
 
 `apps/web/src/features/models/use-models.ts`:
 
@@ -1021,7 +1021,7 @@ und in den Mitglieder-Routen nach der Konto-Route einfügen:
                 </SidebarMenuItem>
 ```
 
-- [ ] **Step 5: Tests laufen lassen, Commit**
+- [x] **Step 5: Tests laufen lassen, Commit**
 
 Run: `pnpm --filter @owui/web exec vitest run && pnpm check`
 Expected: PASS (alle Web-Tests, auch die bestehenden Router- und Nutzer-Specs), `pnpm check` grün.
@@ -1043,7 +1043,7 @@ git commit -m "feat(web): add the page with the available models" -m "useModels(
 - Consumes: `useProviderConnectionsList`, `useProviderConnectionsUpdate`, `useProviderConnectionsRemove`, `getProviderConnectionsListQueryKey`, `getModelsListQueryKey` (generiert); `useModels` (Task 3); `reasonKey` (Task 2); Test-Helfer aus Task 3.
 - Produces: `CONNECTION_STATUS` (`ACTIVE: 'active'`, `DISABLED: 'disabled'`, `UNREACHABLE: 'unreachable'`, `UNKNOWN: 'unknown'`), `ConnectionStatus`; `connectionStatus(connection, health)`, `unreachableReason(connection, health)`, `visibleModelCount(connection, health)` mit `health: ModelListDto | undefined`; `ConnectionsTable`; `DeleteConnectionDialog({ connection, busy, onConfirm })`; Route `/admin/connections` (nur Admin); Navigationspunkt „Modell-Anbindungen“. Tasks 5 und 6 ergänzen `ConnectionsTable` um Anlegen, Bearbeiten und Modelle.
 
-- [ ] **Step 1: Failing test für die Zustandslogik schreiben**
+- [x] **Step 1: Failing test für die Zustandslogik schreiben**
 
 `apps/web/src/features/connections/connection-status.spec.ts`:
 
@@ -1122,12 +1122,12 @@ describe('visibleModelCount', () => {
 });
 ```
 
-- [ ] **Step 2: Test laufen lassen, Fehlschlag prüfen**
+- [x] **Step 2: Test laufen lassen, Fehlschlag prüfen**
 
 Run: `pnpm --filter @owui/web exec vitest run src/features/connections/connection-status.spec.ts`
 Expected: FAIL (`./connection-status` fehlt).
 
-- [ ] **Step 3: Zustandslogik implementieren**
+- [x] **Step 3: Zustandslogik implementieren**
 
 `apps/web/src/features/connections/connection-status.ts`:
 
@@ -1183,7 +1183,7 @@ export function visibleModelCount(
 Run: `pnpm --filter @owui/web exec vitest run src/features/connections/connection-status.spec.ts`
 Expected: PASS.
 
-- [ ] **Step 4: Failing test für die Seite schreiben**
+- [x] **Step 4: Failing test für die Seite schreiben**
 
 `apps/web/src/pages/admin-connections-page.spec.tsx`:
 
@@ -1461,12 +1461,12 @@ describe('AdminConnectionsPage: delete', () => {
 });
 ```
 
-- [ ] **Step 5: Test laufen lassen, Fehlschlag prüfen**
+- [x] **Step 5: Test laufen lassen, Fehlschlag prüfen**
 
 Run: `pnpm --filter @owui/web exec vitest run src/pages/admin-connections-page.spec.tsx`
 Expected: FAIL (Seite und Route fehlen).
 
-- [ ] **Step 6: Implementieren**
+- [x] **Step 6: Implementieren**
 
 `apps/web/src/features/connections/delete-connection-dialog.tsx`:
 
@@ -1798,7 +1798,7 @@ und die Admin-Routen ersetzen:
                 )}
 ```
 
-- [ ] **Step 7: Tests laufen lassen, Commit**
+- [x] **Step 7: Tests laufen lassen, Commit**
 
 Run: `pnpm --filter @owui/web exec vitest run && pnpm check`
 Expected: PASS, `pnpm check` grün. Schlägt ein Test mit „Found multiple elements“ fehl (zum Beispiel `getByText('2')`), den Test auf die Zeile einengen (`within(row)`), nicht die Oberfläche ändern.
@@ -1819,7 +1819,7 @@ git commit -m "feat(web): add the admin page that lists model connections" -m "S
 - Consumes: `useProviderConnectionsCreate`, `useProviderConnectionsUpdate`, `useProviderConnectionsTest`, `getProviderConnectionsListQueryKey`, `getProviderConnectionsModelsQueryKey`, `getModelsListQueryKey` (generiert); `CreateProviderConnectionDtoType`, `ProviderConnectionDto`, `UpdateProviderConnectionDto` (generiert); `testFailureKey` (Task 2); `errorMessageKey`; die Tabelle aus Task 4.
 - Produces: `KEY_MODE` (`KEEP: 'keep'`, `REPLACE: 'replace'`, `REMOVE: 'remove'`), `KeyMode`, `ConnectionForm { name, baseUrl, keyMode, newKey }`, `buildPatch(connection, form): UpdateProviderConnectionDto` (nur geänderte Felder; `apiKey: null` entfernt den Schlüssel, ein String ersetzt ihn, fehlend lässt ihn); `ConnectionDialog({ connection?, onClose })` (ohne `connection` legt er an); in der Tabelle die Schaltflächen „Anbieter verbinden“ und „Bearbeiten“.
 
-- [ ] **Step 1: Failing test für `buildPatch` schreiben**
+- [x] **Step 1: Failing test für `buildPatch` schreiben**
 
 `apps/web/src/features/connections/connection-form.spec.ts`:
 
@@ -1878,12 +1878,12 @@ describe('buildPatch', () => {
 });
 ```
 
-- [ ] **Step 2: Test laufen lassen, Fehlschlag prüfen**
+- [x] **Step 2: Test laufen lassen, Fehlschlag prüfen**
 
 Run: `pnpm --filter @owui/web exec vitest run src/features/connections/connection-form.spec.ts`
 Expected: FAIL (`./connection-form` fehlt).
 
-- [ ] **Step 3: `buildPatch` implementieren**
+- [x] **Step 3: `buildPatch` implementieren**
 
 `apps/web/src/features/connections/connection-form.ts`:
 
@@ -1927,7 +1927,7 @@ export function buildPatch(
 Run: `pnpm --filter @owui/web exec vitest run src/features/connections/connection-form.spec.ts && pnpm exec prettier --write apps/web/src/features/connections/connection-form.spec.ts`
 Expected: PASS (Prettier bricht die langen Zeilen im Test um).
 
-- [ ] **Step 4: Failing tests für den Dialog schreiben**
+- [x] **Step 4: Failing tests für den Dialog schreiben**
 
 In `apps/web/src/pages/admin-connections-page.spec.tsx` den Import aus `@testing-library/react` um `type BoundFunctions` und `type queries` erweitern:
 
@@ -2406,12 +2406,12 @@ describe('AdminConnectionsPage: test the connection', () => {
 });
 ```
 
-- [ ] **Step 5: Test laufen lassen, Fehlschlag prüfen**
+- [x] **Step 5: Test laufen lassen, Fehlschlag prüfen**
 
 Run: `pnpm --filter @owui/web exec vitest run src/pages/admin-connections-page.spec.tsx`
 Expected: FAIL in den neuen Blöcken (keine Schaltflächen „Anbieter verbinden“ und „Bearbeiten“); die Tests aus Task 4 bleiben grün.
 
-- [ ] **Step 6: Dialog implementieren**
+- [x] **Step 6: Dialog implementieren**
 
 `apps/web/src/features/connections/connection-dialog.tsx`:
 
@@ -2757,7 +2757,7 @@ export function ConnectionDialog({
 
 Hinweis: Das Dialog-Fragment `{t(connection === undefined ? … )}` bricht Prettier beim Formatieren um; `pnpm exec prettier --write` auf die Datei genügt.
 
-- [ ] **Step 7: Dialog in die Tabelle einhängen**
+- [x] **Step 7: Dialog in die Tabelle einhängen**
 
 In `apps/web/src/features/connections/connections-table.tsx` fünf Änderungen:
 
@@ -2901,7 +2901,7 @@ und vor dem schließenden `</div>` des Rückgabewerts (nach `{body}`) einfügen:
       )}
 ```
 
-- [ ] **Step 8: Tests laufen lassen, Commit**
+- [x] **Step 8: Tests laufen lassen, Commit**
 
 Run: `pnpm exec prettier --write apps/web/src/features/connections apps/web/src/pages && pnpm --filter @owui/web exec vitest run && pnpm check`
 Expected: PASS, `pnpm check` grün. Schlägt `it.each`-Titel mit `%i` in ESLint an, den Titel unverändert lassen und nur die gemeldete Regel an der Stelle lösen, nicht abschalten.
@@ -2923,7 +2923,7 @@ git commit -m "feat(web): connect, edit and test a model provider" -m "The key i
 - Consumes: `useProviderConnectionsModels`, `useProviderConnectionsUpdate`, die drei Schlüssel-Funktionen (generiert); `AdminModelDto` (generiert); `adminModel` (Task 3); Tabelle aus Task 5.
 - Produces: `ConnectionModelsDialog({ connection, onClose })` (jeder Umschalter sendet `{ hiddenModelIds }` mit der **vollständigen** Liste, abgeleitet aus der gespeicherten Liste der Verbindung, damit Einträge, die der Anbieter nicht mehr meldet, erhalten bleiben); in der Tabelle die Schaltfläche „Modelle“.
 
-- [ ] **Step 1: Failing tests schreiben**
+- [x] **Step 1: Failing tests schreiben**
 
 In `apps/web/src/pages/admin-connections-page.spec.tsx` den Import aus den Fixtures um `adminModel` erweitern (`import { adminModel, modelDto, modelList, providerConnectionDto, sessionInfo, userDto } from '@/test/fixtures';`) und am Ende der Datei anfügen:
 
@@ -3092,12 +3092,12 @@ describe('AdminConnectionsPage: show and hide models', () => {
 });
 ```
 
-- [ ] **Step 2: Test laufen lassen, Fehlschlag prüfen**
+- [x] **Step 2: Test laufen lassen, Fehlschlag prüfen**
 
 Run: `pnpm --filter @owui/web exec vitest run src/pages/admin-connections-page.spec.tsx`
 Expected: FAIL im neuen Block (keine Schaltfläche „Modelle von Lokal verwalten“).
 
-- [ ] **Step 3: Dialog implementieren**
+- [x] **Step 3: Dialog implementieren**
 
 `apps/web/src/features/connections/connection-models-dialog.tsx`:
 
@@ -3250,7 +3250,7 @@ export function ConnectionModelsDialog({
 
 Hinweis zum Test „Erneut versuchen“: Die Fehleransicht (`LoadError`) und der Fehlerkasten der Änderung sind beide `role="alert"`; im Test tritt immer nur einer auf.
 
-- [ ] **Step 4: Dialog in die Tabelle einhängen**
+- [x] **Step 4: Dialog in die Tabelle einhängen**
 
 In `apps/web/src/features/connections/connections-table.tsx`:
 
@@ -3329,7 +3329,7 @@ den Aufruf der Zeile um `onManageModels={setModelsForId}` ergänzen (nach `onEdi
       )}
 ```
 
-- [ ] **Step 5: Tests laufen lassen, Commit**
+- [x] **Step 5: Tests laufen lassen, Commit**
 
 Run: `pnpm exec prettier --write apps/web/src/features/connections apps/web/src/pages && pnpm --filter @owui/web exec vitest run && pnpm check`
 Expected: PASS, `pnpm check` grün.
@@ -3350,7 +3350,7 @@ git commit -m "feat(web): show and hide the models of a provider" -m "Every clic
 - Consumes: alles aus Task 1 bis 6; Plan 2a umgesetzt (`scripts/fake-provider.mjs`, laufende Routen); Docker.
 - Produces: Beleg `docs/dod/02-modell-anbindung-web.md`; aktualisierte Docs. Teilprojekt 2 ist damit abgeschlossen.
 
-- [ ] **Step 1: Vollständige Prüfung**
+- [x] **Step 1: Vollständige Prüfung**
 
 Run: `pnpm check && pnpm test && pnpm openapi && git diff --exit-code apps/api/openapi.json apps/web/src/api/generated`
 Expected: alles grün, kein Unterschied im erzeugten Client. Die Anzahl der Web-Tests aus der Vitest-Ausgabe für den Beleg notieren.
@@ -3361,7 +3361,7 @@ Expected: grün (die DB-Tests gehören zu Plan 2a, laufen hier als Gegenprobe, d
 Run: `git grep -n "dangerouslySetInnerHTML" apps/web/src; git grep -n -w "Provider" apps/web/src/i18n/locales/de.json`
 Expected: keine Treffer. Steht „Provider“ in einem deutschen Text, durch „Anbieter“ ersetzen (im Englischen ist „provider“ erlaubt).
 
-- [ ] **Step 2: Stack starten und im Browser prüfen**
+- [x] **Step 2: Stack starten und im Browser prüfen**
 
 ```bash
 node scripts/fake-provider.mjs 11500 ok sk-demo &
@@ -3399,11 +3399,11 @@ Danach: `docker compose down -v` und `kill %1` (falls der Fake noch läuft).
 
 Hinweis zum Werkzeug: Gibt es keinen Browser-MCP, die Punkte 1 bis 18 von Hand im Browser durchgehen und das Ergebnis im Beleg als „von Hand“ vermerken; ein Haken ohne Prüfung ist nicht erlaubt. Chrome protokolliert erwartete 4xx/5xx-Antworten (422 beim Speichern, 502 beim Test) als „Failed to load resource“; das ist kein Fehler der Oberfläche, soll aber im Beleg stehen.
 
-- [ ] **Step 3: Gefundene Fehler beheben**
+- [x] **Step 3: Gefundene Fehler beheben**
 
 Jede Abweichung aus Step 2 bekommt zuerst einen Test, der sie zeigt (AGENTS.md, Abschnitt 4), dann die Korrektur, dann einen eigenen Commit `fix(web): …`. Danach den betroffenen Punkt in Step 2 erneut prüfen. Liegt die Ursache im Backend (zum Beispiel eine falsche Antwortform), ist das ein Fehler aus Plan 2a: dort mit Test beheben und im Beleg erwähnen, nicht in der Oberfläche umgehen.
 
-- [ ] **Step 4: Docs aktualisieren**
+- [x] **Step 4: Docs aktualisieren**
 
 - `docs/THREAT-MODEL.md`: „Stand“ auf „Teilprojekt 2“ setzen. Zeilen ergänzen (unter den vorhandenen Zeilen derselben STRIDE-Kategorie): *Information Disclosure*, „Schlüssel eines Anbieters im Browser“, Maßnahme „Antworten tragen nur `hasApiKey`; das Feld ist nie vorbefüllt; ein getippter Schlüssel lebt nur im Zustand des offenen Dialogs und wird beim Schließen verworfen; Tests und Handprobe prüfen, dass er danach nirgends im DOM steht (2b)“. *Tampering/XSS*, „Anbieter- und Modellname mit HTML (Modellnamen stammen vom Anbieter und sind unvertraut)“, Maßnahme „React escaped, kein `dangerouslySetInnerHTML`, Tests mit `<img onerror>` in Verbindungsliste, Modellliste und Modelldialog, Handprobe im Browser (2b)“. *Elevation of Privilege*, „Verwaltungsseite für Nicht-Admins“, Maßnahme „Router-Wächter nur Komfort; der Server entscheidet (`/admin/...` verlangt Rolle `admin`, 2a); Test: Nutzer sieht weder Link noch Liste und die Liste wird nicht angefragt (2b)“.
 - `docs/BACKLOG.md`: Neue Zeilen: „Verbindung mit ungespeicherten Angaben testen“ (heute testet die Oberfläche nur die gespeicherte Verbindung und sperrt den Test bei Änderungen); „Modellliste: Suche, Gruppierung, Anzeigenamen“ (heute eine Tabelle; eigene Anzeigenamen und Aliase gehören zu Teilprojekt 11, Workspace); „Schließen-Schaltfläche der Dialoge ist englisch“ (der generierte shadcn-Dialog trägt ein verstecktes „Close“; in `dialog.tsx` über i18n ersetzen, betrifft alle Dialoge); „`@nestjs/observe` prüfen“ (Observability-Agent der NestJS-Maintainer, Stand 2026-10-09 Version 0.3.7 und erst seit 2026-08-21 auf npm; Teilprojekt 0 deckt Traces und Metriken mit OpenTelemetry ab, siehe `apps/api/src/telemetry.ts`; erneut ansehen, wenn Teilprojekt 4 eine Job-Queue einführt, und nur dann übernehmen, wenn es BullMQ-Metriken liefert, die OpenTelemetry nicht liefert). In der bestehenden Zeile „Browser-Test für CSP, Anmelden und Verwalten“ die Seiten „Modelle“ und „Modell-Anbindungen“ ergänzen. Die Hinweise des Browsers zu Formularfeldern ohne `id`/`name` (Handprobe, falls aufgetreten) in die bestehende Zeile „Formularhinweise des Browsers“ aufnehmen.
@@ -3411,7 +3411,7 @@ Jede Abweichung aus Step 2 bekommt zuerst einen Test, der sie zeigt (AGENTS.md, 
 - `docs/superpowers/specs/2026-10-09-teilprojekt-2-modell-anbindung-design.md`: Statuszeile (`Status: zur Prüfung durch Oguz.`) auf `Status: umgesetzt (Pläne 2a und 2b).` setzen, falls Plan 2a sie nicht schon geändert hat.
 - `README.md`: Beschreibt der Abschnitt „Schnellstart“ oder „Konfiguration“ die Seiten der App, einen Satz ergänzen: „Unter ‚Modell-Anbindungen‘ verbindet ein Administrator Ollama oder einen OpenAI-kompatiblen Anbieter; private Adressen (zum Beispiel `ollama`) müssen vorher über `PROVIDER_ALLOWED_HOSTS` freigegeben sein.“ Steht das schon dort (aus Plan 2a), nicht doppeln.
 
-- [ ] **Step 5: Beleg schreiben**
+- [x] **Step 5: Beleg schreiben**
 
 `docs/dod/02-modell-anbindung-web.md` nach dem Muster von [DoD 1b](../../dod/01-auth-web.md), mit den echten Zahlen aus Step 1 und den echten Ergebnissen aus Step 2:
 
@@ -3424,12 +3424,12 @@ Jede Abweichung aus Step 2 bekommt zuerst einen Test, der sie zeigt (AGENTS.md, 
 - [x] UI: Zustände laden, Fehler mit Wiederholen, in Arbeit für jede Ansicht; „leer“ für Modellliste, Verbindungsliste und Modelldialog; deutsche Texte über i18n („Anbieter“ statt „Provider“), Englisch mit gleichen Schlüsseln; im Browser über Caddy mit der echten CSP geprüft (Probe 1 bis 18 aus Plan 2b, Task 7, <Werkzeug oder „von Hand“>), hell/dunkel, Telefonbreite 375 × 800, Tastatur, Escape; Konsole ohne CSP-Verstöße
 - [x] Betrieb: `docker compose up` grün mit `scripts/fake-provider.mjs` als Anbieter
 - [x] Docs: PLAN, BACKLOG, THREAT-MODEL, Spec-Status<, README> aktualisiert
-- [ ] Offen: siehe docs/BACKLOG.md
+- [x] Offen: siehe docs/BACKLOG.md
 ```
 
 Die spitzen Klammern durch die gemessenen Werte ersetzen (`<, README>` nur, wenn die README geändert wurde). Ist ein Punkt nicht erfüllt oder nicht geprüft, `- [ ]` lassen und den Grund dahinter schreiben. Darunter einen Absatz „Handprobe:“ mit den Fehlern, die Step 2 gefunden hat (jeweils mit Verweis auf den Fix-Commit), oder dem Satz „Die Probe fand keine Abweichung.“
 
-- [ ] **Step 6: Plan abhaken, Commit, Push, CI**
+- [x] **Step 6: Plan abhaken, Commit, Push, CI**
 
 Die Kästchen der tatsächlich ausgeführten Steps in diesem Plan abhaken (nur die, die gelaufen sind). Dann:
 

@@ -19,6 +19,8 @@ Administrator an; weitere Konten wartet der Administrator unter „Nutzer“ fre
 löschen mit `docker compose down -v`. Prüfen, ob der laufende Stack richtig konfiguriert ist:
 `node scripts/smoke.mjs`.
 
+Unter „Modell-Anbindungen“ verbindet ein Administrator Ollama oder einen OpenAI-kompatiblen Anbieter; private Adressen (zum Beispiel `ollama`) müssen vorher über `PROVIDER_ALLOWED_HOSTS` freigegeben sein. Der Schlüsselbund `PROVIDER_KEY_ENCRYPTION_KEYS` (Beispielwert in `.env.example`) muss gesetzt sein, sonst startet der Stack nicht.
+
 ## Entwickeln
 
 Voraussetzung: Node 24 (siehe `.nvmrc`) und pnpm (die Version steht in `package.json`, `corepack enable` genügt).
