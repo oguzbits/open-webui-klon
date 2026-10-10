@@ -30,7 +30,10 @@ Regel 10) in den installierten Typen von `ai` 7.0.127 und per Vertragstest
    immer leergelesen. Verlässt der Client die Seite, steht die Teilantwort trotzdem mit Status `aborted` in der
    Datenbank.
 4. **Metadaten im ersten Teil:** `{ userMessageId, assistantMessageId }`, damit der Client die nächste
-   `parentId` kennt, ohne die Liste neu zu laden.
+   `parentId` kennt, ohne die Liste neu zu laden. Nachtrag (Plan 4a): Hat der Chat Sammlungen, trägt dieser
+   Teil zusätzlich `sources` (die an das Modell gesendeten, nummerierten Quellen, auch leer, wenn nichts gefunden
+   wurde); ohne Sammlungen fehlt der Schlüssel. Der gespeicherte Text enthält nur `[n]`, die in `sources`
+   vorkommen; der Stream selbst bleibt unverändert, der Client zeigt nur `[n]` aus `sources`.
 5. **Fehler** gehen als fester Fehler-Teil (`stream_failed`) zum Client, nie als Text des Anbieters.
 
 ## Folgen
