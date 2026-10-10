@@ -12,6 +12,7 @@ import { DocumentsService } from './documents.service.js';
 import { EmbeddingService } from './embedding.service.js';
 import { FILE_STORAGE } from './file-storage.js';
 import { IngestionService } from './ingestion.service.js';
+import { KnowledgeSearchService } from './knowledge-search.service.js';
 import { LocalFileStorage } from './local-file-storage.js';
 import { ParserService } from './parser.service.js';
 
@@ -43,6 +44,7 @@ const MAX_FIELD_BYTES = 1024;
     EmbeddingService,
     ParserService,
     IngestionService,
+    KnowledgeSearchService,
     {
       provide: FILE_STORAGE,
       inject: [ConfigService],
@@ -50,6 +52,6 @@ const MAX_FIELD_BYTES = 1024;
         new LocalFileStorage(config.get('FILE_STORAGE_PATH', { infer: true })),
     },
   ],
-  exports: [CollectionsService, EmbeddingService, FILE_STORAGE],
+  exports: [CollectionsService, EmbeddingService, KnowledgeSearchService, FILE_STORAGE],
 })
 export class KnowledgeModule {}
