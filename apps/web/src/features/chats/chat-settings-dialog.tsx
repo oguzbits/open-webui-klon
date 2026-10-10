@@ -55,6 +55,8 @@ export function ChatSettingsDialog({
   const savingRef = useRef(false);
 
   function handleOpenChange(next: boolean) {
+    // Not while saving: closing would hide the error of a save that fails.
+    if (!next && savingRef.current) return;
     if (next) {
       setPrompt(value.systemPrompt ?? '');
       setDraft(draftFromParams(value.params));
@@ -109,31 +111,33 @@ export function ChatSettingsDialog({
             <DialogTitle>{t('chats.settings.title')}</DialogTitle>
             <DialogDescription>{t('chats.settings.description')}</DialogDescription>
           </DialogHeader>
-          <div className="space-y-1.5">
-            <Label htmlFor="chat-system-prompt">{t('chats.settings.prompt')}</Label>
-            <Textarea
-              id="chat-system-prompt"
-              value={prompt}
-              placeholder={t('chats.settings.promptHint')}
-              onChange={(event) => {
-                setPrompt(event.target.value);
-              }}
-            />
-          </div>
-          {PARAM_FIELDS.map(({ name, labelKey }) => (
-            <div key={name} className="space-y-1.5">
-              <Label htmlFor={`chat-param-${name}`}>{t(labelKey)}</Label>
-              <Input
-                id={`chat-param-${name}`}
-                inputMode="decimal"
-                value={draft[name]}
-                aria-invalid={invalid.includes(name)}
+          <fieldset disabled={saving} className="min-w-0 space-y-4">
+            <div className="space-y-1.5">
+              <Label htmlFor="chat-system-prompt">{t('chats.settings.prompt')}</Label>
+              <Textarea
+                id="chat-system-prompt"
+                value={prompt}
+                placeholder={t('chats.settings.promptHint')}
                 onChange={(event) => {
-                  setDraft({ ...draft, [name]: event.target.value });
+                  setPrompt(event.target.value);
                 }}
               />
             </div>
-          ))}
+            {PARAM_FIELDS.map(({ name, labelKey }) => (
+              <div key={name} className="space-y-1.5">
+                <Label htmlFor={`chat-param-${name}`}>{t(labelKey)}</Label>
+                <Input
+                  id={`chat-param-${name}`}
+                  inputMode="decimal"
+                  value={draft[name]}
+                  aria-invalid={invalid.includes(name)}
+                  onChange={(event) => {
+                    setDraft({ ...draft, [name]: event.target.value });
+                  }}
+                />
+              </div>
+            ))}
+          </fieldset>
           <p className="text-muted-foreground text-xs">{t('chats.settings.paramsHint')}</p>
           {invalid.length > 0 && (
             <p role="alert" className="text-destructive text-sm">

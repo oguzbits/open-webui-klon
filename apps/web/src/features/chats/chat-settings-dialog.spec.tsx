@@ -1,4 +1,4 @@
-import { fireEvent, screen } from '@testing-library/react';
+import { act, fireEvent, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 
@@ -88,6 +88,30 @@ describe('ChatSettingsDialog', () => {
     expect(onSave).toHaveBeenCalledTimes(1);
     expect(screen.getByRole('button', { name: 'Wird gespeichert …' })).toBeDisabled();
     resolve();
+  });
+
+  it('stays open and locked while saving, so a failed save is shown', async () => {
+    let reject: (reason: unknown) => void = () => undefined;
+    const onSave = vi.fn<(next: ChatSettings) => Promise<void>>().mockImplementation(
+      () =>
+        new Promise<void>((_, fail) => {
+          reject = fail;
+        })
+    );
+    const user = await openDialog(onSave);
+    await user.click(screen.getByRole('button', { name: 'Speichern' }));
+
+    expect(screen.getByLabelText('Anweisung für das Modell')).toBeDisabled();
+    expect(screen.getByLabelText(/Kreativität/)).toBeDisabled();
+    await user.keyboard('{Escape}');
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+
+    act(() => {
+      reject(new ApiError(422, 'Unprocessable'));
+    });
+
+    expect(await screen.findByText('Die Anweisung ist zu lang.')).toBeInTheDocument();
+    expect(screen.getByLabelText('Anweisung für das Modell')).toBeEnabled();
   });
 
   it('starts from the stored values each time it opens', async () => {
