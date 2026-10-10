@@ -15,7 +15,7 @@ import {
   type MessageRole,
   type MessageStatus,
 } from './chat-dictionaries.js';
-import type { MessagePart } from './chat-params.js';
+import type { MessagePart, MessageSource } from './chat-params.js';
 import { Chat } from './chat.entity.js';
 
 const ROLE_VALUES = Object.values(MESSAGE_ROLE)
@@ -53,6 +53,10 @@ export class Message {
 
   @Column({ type: 'jsonb' })
   parts!: MessagePart[];
+
+  /** The sources sent to the model for this answer; null if no search ran. */
+  @Column({ type: 'jsonb', nullable: true })
+  sources!: MessageSource[] | null;
 
   @Column({ type: 'text', default: MESSAGE_STATUS.COMPLETE })
   status!: MessageStatus;

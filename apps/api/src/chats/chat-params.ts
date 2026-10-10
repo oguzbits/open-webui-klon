@@ -33,3 +33,12 @@ export interface MessagePart {
   type: 'text';
   text: string;
 }
+
+/** One numbered source sent to the model with an answer (the excerpt is shown in the UI). */
+export interface MessageSource {
+  n: number;
+  documentId: string;
+  filename: string;
+  page: number | null;
+  excerpt: string;
+}

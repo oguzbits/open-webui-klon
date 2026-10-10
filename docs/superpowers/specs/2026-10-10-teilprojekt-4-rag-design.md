@@ -53,7 +53,7 @@ Stand 2026-10-10, geprüft in den installierten Typen, im Quellcode und in der n
 
 **Spike-Ergebnisse (Plan 4a, Task 1, 2026-10-10):**
 
-- **(a) Migration:** `migration:generate` erzeugt gültiges SQL für `halfvec` ohne Länge und für `search_vector tsvector GENERATED ALWAYS AS (to_tsvector('simple', content)) STORED`. Einen **GIN-Index** kann die Entity nicht ausdrücken (`IndexOptions` kennt kein `using`), und ein per Raw-SQL angelegter Index würde vom nächsten `migration:generate` wieder gelöscht. Entscheidung: **kein GIN-Index in 4a**; die Volltextsuche liest nur die Chunks des Nutzers (Index `(user_id, document_id)`), das genügt für die erwarteten Mengen. Ein GIN-Index steht im Backlog, sobald eine Messung ihn verlangt.
+- **(a) Migration:** `migration:generate` erzeugt gültiges SQL für `halfvec` ohne Länge (belegt). Eine gespeicherte erzeugte `tsvector`-Spalte (`generatedType: 'STORED'`) legt den Datenbanknamen in `typeorm_metadata` ab; in jeder Datenbank mit anderem Namen (Test: `owui_test`) meldet `migration:generate` danach dauerhaft einen Unterschied. Als Raw-SQL-Spalte scheitert der Schema-Vergleich, weil `typeorm_metadata` fehlt. Einen **GIN-Index** kann die Entity nicht ausdrücken (`IndexOptions` kennt kein `using`), und ein Raw-SQL-Index würde vom nächsten `migration:generate` gelöscht. Entscheidung: **weder gespeicherter Volltextvektor noch GIN-Index in 4a**; die Volltextsuche rechnet `to_tsvector('simple', content)` über die Chunks des Nutzers (Index `(user_id, document_id)`). Das genügt für die erwarteten Mengen; Spalte und GIN-Index stehen im Backlog, sobald eine Messung sie verlangt. Ein Test (`knowledge-schema.db.spec.ts`) belegt, dass die Migration und die Entities übereinstimmen.
 - **(b) Embedding-Vertrag:** `createOpenAICompatible(...).embeddingModel(id)` schickt `POST {baseURL}/embeddings` mit `model` und `input` (Liste) über die übergebene `fetch`, Bearer-Schlüssel inklusive, und `embedMany` liefert die Vektoren in Eingabereihenfolge und `usage.tokens` (belegt in `models/embedding.contract.spec.ts`). Echtes Ollama bleibt offen bis zur Eval in Task 10.
 - **(c) Worker:** Eine eigenständige `parse-worker.ts` (importiert nur Pakete) lädt unter Vitest direkt als `.ts` (Node-Typentfernung, Node ≥ 24 laut `engines`), und `nest build` legt `dist/knowledge/parse-worker.js` ab. Die Worker-URL wählt die Endung nach `import.meta.url`.
 - **(d) Installationsskripte:** `pnpm add unpdf mammoth` löst keine blockierten Skripte aus; `allowBuilds` bleibt unverändert.
@@ -71,8 +71,8 @@ Neue Entities, einzutragen in `database/entities.ts` (Regel 9). Werte, die Logik
 - **`CollectionDocument`**: `collectionId`, `documentId`; Löschen einer Sammlung entfernt nur die Zuordnung.
   Ein Dokument ohne Zuordnung bleibt in der Dokumentenliste des Nutzers erhalten und kann gelöscht werden.
 - **`Chunk`**: `id`, `documentId`, `userId` (denormalisiert für das SQL-Filtern), `ordinal`, `content`, `page`
-  (nullable), `embedding` (`halfvec` ohne feste Dimension), `embeddingModelId`, `searchVector` (`tsvector`, erzeugte
-  Spalte aus `content` mit Konfiguration `simple`; kein GIN-Index, siehe Abschnitt 2). **Kein ANN-Index** (Entscheidung A): Die exakte Suche ist
+  (nullable), `embedding` (`halfvec` ohne feste Dimension), `embeddingModelId`, (kein gespeicherter
+  Volltextvektor: die Suche rechnet `to_tsvector('simple', content)` in der Abfrage, siehe Abschnitt 2). **Kein ANN-Index** (Entscheidung A): Die exakte Suche ist
   auf Nutzer und Sammlungen begrenzt; HNSW steht im Backlog, bis eine Messung ihn verlangt.
 - **`Chat.collectionIds`** (`uuid[]`, Standard leer) und **`Message.sources`** (`jsonb`, nullable, Liste aus
   `{ n, documentId, filename, page, excerpt }`). Beide sind Änderungen an Entities aus Teilprojekt 3.

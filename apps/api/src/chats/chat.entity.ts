@@ -49,6 +49,10 @@ export class Chat {
   @Column({ type: 'jsonb', default: () => "'{}'" })
   params!: ChatParams;
 
+  /** Collections searched for every answer; ids of deleted collections are filtered out when reading. */
+  @Column({ name: 'collection_ids', type: 'uuid', array: true, default: () => "'{}'" })
+  collectionIds!: string[];
+
   /** Foreign key to `message` by entity name: a relation would import `Message`, which imports `Chat` (cycle). */
   @ForeignKey('Message', { onDelete: 'SET NULL' })
   @Column({ name: 'active_leaf_id', type: 'uuid', nullable: true })

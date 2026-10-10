@@ -93,7 +93,7 @@ Modell: mittel. Kein eigenes Review.
 - Modify: `chats/chat.entity.ts` (`collectionIds: string[]`, `uuid[]`, Standard leer), `chats/message.entity.ts` (`sources: MessageSource[] | null`, `jsonb`), `database/entities.ts`, `database/migrations/index.ts`, `testing/db-fixtures.ts` und `testing/chat-fixtures.ts` (neue Tabellen in die Reset-Funktionen, Reihenfolge nach Fremdschlüsseln)
 
 **Interfaces:**
-- Produces: Entities nach Spec Abschnitt 3. `Document`: Unique `(user_id, sha256)`, `CHECK` auf `status`, `failure_reason`, `type` aus den Wörterbüchern (wie `@Check` in `chat.entity.ts`), `ON DELETE CASCADE` auf `user`. `Chunk`: Fremdschlüssel `document_id` CASCADE, Index `(user_id, document_id)`, GIN-Index auf `search_vector`. `CollectionDocument`: Primärschlüssel `(collection_id, document_id)`, beide CASCADE. `Collection`: Unique `(user_id, name)`. `MessageSource` (Typ, in `chats/chat-params.ts`): `{ n: number; documentId: string; filename: string; page: number | null; excerpt: string }`.
+- Produces: Entities nach Spec Abschnitt 3. `Document`: Unique `(user_id, sha256)`, `CHECK` auf `status`, `failure_reason`, `type` aus den Wörterbüchern (wie `@Check` in `chat.entity.ts`), `ON DELETE CASCADE` auf `user`. `Chunk`: Fremdschlüssel `document_id` CASCADE, Index `(user_id, document_id)`, kein gespeicherter Volltextvektor (Spike a). `CollectionDocument`: Primärschlüssel `(collection_id, document_id)`, beide CASCADE. `Collection`: Unique `(user_id, name)`. `MessageSource` (Typ, in `chats/chat-params.ts`): `{ n: number; documentId: string; filename: string; page: number | null; excerpt: string }`.
 
 **Testfälle (`knowledge-schema.db.spec.ts`, Muster `chat-schema.db.spec.ts`):**
 
@@ -103,7 +103,7 @@ Modell: mittel. Kein eigenes Review.
 | zweites `Document` mit gleichem `(user_id, sha256)` wird abgelehnt, anderer Nutzer mit gleichem Hash ist erlaubt | Unique entfernen |
 | `status` außerhalb des Wörterbuchs wird abgelehnt | `CHECK` entfernen |
 | Löschen des Nutzers entfernt Dokumente, Sammlungen, Chunks (Kaskade); Löschen des Dokuments entfernt Chunks und Zuordnungen | `ON DELETE` entfernen |
-| `halfvec`-Spalte nimmt Vektoren beliebiger, aber je Zeile fester Länge an; `search_vector` füllt sich aus `content` | – |
+| `halfvec`-Spalte nimmt Vektoren beliebiger, aber je Zeile fester Länge an; Volltextsuche über `to_tsvector('simple', content)` findet den Text | – |
 
 - [ ] **Steps:** Entities und Schema-Test (Rot), `pnpm --filter @owui/api migration:generate src/database/migrations/<Name>` (oder Raw-SQL laut Spike a), in die Listen eintragen, Test Grün, `pnpm check`. Commit `feat(api): add knowledge tables`.
 
@@ -269,7 +269,7 @@ Modell: mittel. Eigenes Review (Zustand und Idempotenz).
 | Embedding-Anbieter nicht erreichbar: erste Versuche werfen, letzter setzt `failed/embedding_failed` | Versuchslogik entfernen |
 | Dokument wird während des Laufs gelöscht: Lauf endet ohne Fehler, keine verwaisten Chunks | Fremdschlüssel/Prüfung entfernen |
 | Log enthält weder Dateiname noch Chunk-Text (Logger-Spion über `PinoLogger`) | Inhalt ins Log schreiben |
-| Gegen echte DB: Chunk-Zeilen haben `search_vector` und Vektor-Länge = Länge des Fake-Embeddings | – |
+| Gegen echte DB: Chunk-Zeilen haben die Vektor-Länge = Länge des Fake-Embeddings | – |
 
 - [ ] **Steps:** Tests (Rot) → Umsetzung → Grün → `pnpm check`, `pnpm test:db`. Commit `feat(api): ingest uploaded documents as a background job`.
 
@@ -288,7 +288,7 @@ Modell: **stark** (zentrale Zugriffsregel). Eigenes Review.
 
 ```sql
 WITH scope AS (
-  SELECT c.id, c.document_id, c.content, c.page, c.embedding, c.search_vector, d.filename
+  SELECT c.id, c.document_id, c.content, c.page, c.embedding, d.filename
     FROM chunk c
     JOIN document d ON d.id = c.document_id AND d.user_id = $1 AND d.status = 'ready'
     JOIN collection_document cd ON cd.document_id = d.id AND cd.collection_id = ANY($2::uuid[])
@@ -300,9 +300,9 @@ vec AS (
    ORDER BY embedding <=> $4::halfvec LIMIT $6
 ),
 fts AS (
-  SELECT id, row_number() OVER (ORDER BY ts_rank_cd(search_vector, q) DESC) AS rank
+  SELECT id, row_number() OVER (ORDER BY ts_rank_cd(to_tsvector('simple', content), q) DESC) AS rank
     FROM scope, websearch_to_tsquery('simple', $5) q
-   WHERE search_vector @@ q ORDER BY ts_rank_cd(search_vector, q) DESC LIMIT $6
+   WHERE to_tsvector('simple', content) @@ q ORDER BY ts_rank_cd(to_tsvector('simple', content), q) DESC LIMIT $6
 )
 SELECT s.id, s.document_id, s.filename, s.page, s.content
   FROM scope s
