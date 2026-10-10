@@ -10,6 +10,7 @@ import { AppConfigModule } from '../config/app-config.module.js';
 import { AuditModule } from '../database/audit/audit.module.js';
 import { DatabaseModule } from '../database/database.module.js';
 import { HealthModule } from '../health/health.module.js';
+import { JOB_QUEUE } from '../jobs/job-queue.js';
 import { AppLoggerModule } from '../logging/logger.module.js';
 import { ModelsModule } from '../models/models.module.js';
 import { SecurityModule } from '../security/security.module.js';
@@ -17,12 +18,15 @@ import { UsersModule } from '../users/users.module.js';
 import { BASE_TEST_ENV } from './create-test-app.js';
 import { resetChatTables } from './chat-fixtures.js';
 import { resetAuthTables, resetProviderTables } from './db-fixtures.js';
+import { FakeJobQueue } from './fake-job-queue.js';
 
 export interface DbTestAppOptions {
   /** Empty the user and connection tables before the app starts (default). Turn off to test start-up against existing data. */
   resetUsers?: boolean;
   /** Swap providers (for example the logger) before the app is built. */
   configure?: (builder: TestingModuleBuilder) => TestingModuleBuilder;
+  /** The job queue: an in-memory fake (default) or the real pg-boss one. */
+  jobs?: 'fake' | 'real';
 }
 
 /** The real modules against the test database. Limits are lifted so a test only hits the one it is about. */
@@ -58,6 +62,8 @@ export async function createDbTestApp(
     ],
   });
   if (options.configure) builder = options.configure(builder);
+  if (options.jobs !== 'real')
+    builder = builder.overrideProvider(JOB_QUEUE).useValue(new FakeJobQueue());
   const moduleRef = await builder.compile();
   const app = moduleRef.createNestApplication<NestExpressApplication>();
   configureApp(app);

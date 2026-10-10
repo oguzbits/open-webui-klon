@@ -50,6 +50,24 @@ export function chatModel(options: ChatModelOptions = {}): MockLanguageModelV4 {
   const deltas = options.deltas ?? ['Hallo ', 'Welt'];
   const usage = options.usage ?? { input: 3, output: 5 };
   return new MockLanguageModelV4({
+    // The non-streaming call (the title job): the whole text at once, or the failure.
+    doGenerate: () => {
+      if (options.failWith !== undefined) return Promise.reject(options.failWith);
+      return Promise.resolve({
+        content: [{ type: 'text', text: deltas.join('') }],
+        finishReason: { unified: 'stop', raw: 'stop' },
+        usage: {
+          inputTokens: {
+            total: usage.input,
+            noCache: usage.input,
+            cacheRead: undefined,
+            cacheWrite: undefined,
+          },
+          outputTokens: { total: usage.output, text: usage.output, reasoning: undefined },
+        },
+        warnings: [],
+      });
+    },
     doStream: () => {
       if (options.failWith !== undefined) {
         const failure = options.failWith;

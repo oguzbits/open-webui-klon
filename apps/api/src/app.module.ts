@@ -7,6 +7,7 @@ import { AppConfigModule } from './config/app-config.module.js';
 import { AuditModule } from './database/audit/audit.module.js';
 import { DatabaseModule } from './database/database.module.js';
 import { HealthModule } from './health/health.module.js';
+import { JobsModule } from './jobs/jobs.module.js';
 import { AppLoggerModule } from './logging/logger.module.js';
 import { SecurityModule } from './security/security.module.js';
 import { UsersModule } from './users/users.module.js';
@@ -23,6 +24,7 @@ import { ModelsModule } from './models/models.module.js';
     UsersModule,
     AuthModule,
     ModelsModule,
+    JobsModule,
     ChatsModule,
     HealthModule,
   ],
