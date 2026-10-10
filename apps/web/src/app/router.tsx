@@ -5,6 +5,7 @@ import { GATE, SessionGate } from '@/features/auth/session-gate';
 import { AccountPage } from '@/pages/account-page';
 import { AdminConnectionsPage } from '@/pages/admin-connections-page';
 import { AdminUsersPage } from '@/pages/admin-users-page';
+import { ChatPage } from '@/pages/chat-page';
 import { HomePage } from '@/pages/home-page';
 import { LoginPage } from '@/pages/login-page';
 import { ModelsPage } from '@/pages/models-page';
@@ -30,6 +31,7 @@ export const routes: RouteObject[] = [
           { index: true, element: <HomePage /> },
           { path: 'settings/account', element: <AccountPage /> },
           { path: 'models', element: <ModelsPage /> },
+          { path: 'chats/:id', element: <ChatPage /> },
           {
             element: <SessionGate allow={GATE.ADMIN} />,
             children: [

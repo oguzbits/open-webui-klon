@@ -175,8 +175,7 @@ describe('ChatList', () => {
     expect(callsTo(fetchMock, 'DELETE', '/api/chats/c-1')).toHaveLength(1);
   });
 
-  // Needs the route /chats/:id with its h1 from Task 9: re-enabled there (Task 9 Step 7).
-  it.skip('leaves the chat that is open when it is deleted', async () => {
+  it('leaves the chat that is open when it is deleted', async () => {
     const user = userEvent.setup();
     const handlers: Record<string, Handler> = {
       'GET /api/chats': () => json(200, chatList([REISE])),
