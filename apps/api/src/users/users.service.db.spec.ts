@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { ConflictException, ForbiddenException, NotFoundException } from '@nestjs/common';
 import { DataSource, IsNull } from 'typeorm';
-import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { testDatabaseUrl } from '../../test/db-global-setup.js';
 import { ApiKey } from '../auth/api-key.entity.js';
@@ -11,6 +11,8 @@ import { AUDIT_ACTION } from '../database/audit/audit-action.js';
 import { AuditLog } from '../database/audit/audit-log.entity.js';
 import { AuditService } from '../database/audit/audit.service.js';
 import { insertUser, resetAuthTables } from '../testing/db-fixtures.js';
+import { insertDocument } from '../testing/knowledge-fixtures.js';
+import type { FileStorage } from '../knowledge/file-storage.js';
 import { User } from './user.entity.js';
 import { USER_ROLE } from './user-role.js';
 import { UsersService } from './users.service.js';
@@ -24,11 +26,28 @@ function person(name: string) {
 describe('UsersService (database)', () => {
   let dataSource: DataSource;
   let service: UsersService;
+  let removedFiles: string[];
+  let failingKeys: Set<string>;
+  const logger = { setContext: vi.fn(), error: vi.fn() };
+  const storage: FileStorage = {
+    put: () => Promise.resolve(),
+    get: () => Promise.resolve(new Uint8Array()),
+    remove: (key) => {
+      if (failingKeys.has(key)) return Promise.reject(new Error('disk gone'));
+      removedFiles.push(key);
+      return Promise.resolve();
+    },
+  };
 
   beforeAll(async () => {
     dataSource = new DataSource(buildDataSourceOptions(testDatabaseUrl()));
     await dataSource.initialize();
-    service = new UsersService(dataSource, new AuditService(dataSource.getRepository(AuditLog)));
+    service = new UsersService(
+      dataSource,
+      new AuditService(dataSource.getRepository(AuditLog)),
+      storage,
+      logger
+    );
   });
 
   afterAll(async () => {
@@ -36,6 +55,8 @@ describe('UsersService (database)', () => {
   });
 
   beforeEach(async () => {
+    removedFiles = [];
+    failingKeys = new Set();
     await resetAuthTables(dataSource);
   });
 
@@ -280,6 +301,44 @@ describe('UsersService (database)', () => {
       expect(await service.findById(bob.id)).toBeNull();
       expect(await dataSource.getRepository(Session).count()).toBe(0);
       expect(await dataSource.getRepository(ApiKey).count()).toBe(0);
+    });
+
+    it('removes the uploaded files of the deleted account, and only those', async () => {
+      const admin = await insertUser(dataSource, { role: USER_ROLE.ADMIN });
+      const bob = await insertUser(dataSource);
+      const first = await insertDocument(dataSource, bob.id);
+      const second = await insertDocument(dataSource, bob.id);
+      const foreign = await insertDocument(dataSource, admin.id);
+
+      await service.remove(admin.id, bob.id);
+
+      expect(removedFiles.sort()).toEqual([first.storageKey, second.storageKey].sort());
+      expect(removedFiles).not.toContain(foreign.storageKey);
+    });
+
+    it('still deletes the account when a file cannot be removed, and logs only the document id', async () => {
+      const admin = await insertUser(dataSource, { role: USER_ROLE.ADMIN });
+      const bob = await insertUser(dataSource);
+      const stuck = await insertDocument(dataSource, bob.id);
+      const other = await insertDocument(dataSource, bob.id);
+      failingKeys.add(stuck.storageKey);
+
+      await service.remove(admin.id, bob.id);
+
+      expect(await service.findById(bob.id)).toBeNull();
+      expect(removedFiles).toEqual([other.storageKey]);
+      expect(logger.error).toHaveBeenCalledWith(
+        expect.objectContaining({ documentId: stuck.id, errorName: 'Error' })
+      );
+    });
+
+    it('keeps the files when the deletion is refused', async () => {
+      const only = await insertUser(dataSource, { role: USER_ROLE.ADMIN });
+      await insertDocument(dataSource, only.id);
+
+      await expect(service.remove(only.id, only.id)).rejects.toBeInstanceOf(ConflictException);
+
+      expect(removedFiles).toEqual([]);
     });
 
     it('never deletes the last active admin and reports unknown ids', async () => {

@@ -16,4 +16,6 @@ export interface JobQueue {
     name: N,
     handler: (data: JobPayload[N], attempt: JobAttempt) => Promise<void>
   ): Promise<void>;
+  /** True while a job of `name` whose data contain `data` is waiting, delayed for a retry, or running. */
+  hasLiveJob<N extends JobName>(name: N, data: Partial<JobPayload[N]>): Promise<boolean>;
 }

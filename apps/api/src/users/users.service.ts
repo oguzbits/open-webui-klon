@@ -1,14 +1,17 @@
 import {
   ConflictException,
   ForbiddenException,
+  Inject,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { PinoLogger } from 'nestjs-pino';
 import { DataSource, type EntityManager, IsNull, Not } from 'typeorm';
 
 import { Session } from '../auth/session.entity.js';
 import { AUDIT_ACTION } from '../database/audit/audit-action.js';
 import { AuditService } from '../database/audit/audit.service.js';
+import { FILE_STORAGE, type FileStorage } from '../knowledge/file-storage.js';
 import { normalizeEmail } from './email.js';
 import { User } from './user.entity.js';
 import { USER_ROLE, type UserRole } from './user-role.js';
@@ -41,8 +44,12 @@ function isActiveAdmin(user: User): boolean {
 export class UsersService {
   constructor(
     private readonly dataSource: DataSource,
-    private readonly audit: AuditService
-  ) {}
+    private readonly audit: AuditService,
+    @Inject(FILE_STORAGE) private readonly storage: FileStorage,
+    @Inject(PinoLogger) private readonly logger: Pick<PinoLogger, 'setContext' | 'error'>
+  ) {
+    this.logger.setContext(UsersService.name);
+  }
 
   findById(id: string): Promise<User | null> {
     return this.dataSource.getRepository(User).findOneBy({ id });
@@ -191,18 +198,38 @@ export class UsersService {
   }
 
   async remove(actorId: string, id: string): Promise<void> {
-    await this.withUserLock(async (manager) => {
+    const files = await this.withUserLock(async (manager) => {
       const found = await manager.findOneBy(User, { id });
       if (found === null) throw new NotFoundException('User not found');
       if (isActiveAdmin(found)) await this.assertAnotherActiveAdmin(manager, id);
+      // The rows of the documents go with the account (cascade); the files on disk need an explicit remove.
+      const owned: { id: string; storage_key: string }[] = await manager.query(
+        'SELECT id, storage_key FROM document WHERE user_id = $1',
+        [id]
+      );
       await manager.delete(User, { id });
+      return owned;
     });
+    for (const file of files) await this.removeFile(file.storage_key, file.id);
     await this.audit.record({
       actorId,
       action: AUDIT_ACTION.USER_DELETED,
       targetType: 'user',
       targetId: id,
     });
+  }
+
+  /** The account is already gone: a file that stays behind is logged (id only), not a reason to fail. */
+  private async removeFile(storageKey: string, documentId: string): Promise<void> {
+    try {
+      await this.storage.remove(storageKey);
+    } catch (error) {
+      this.logger.error({
+        documentId,
+        errorName: error instanceof Error ? error.name : 'unknown',
+        msg: 'could not remove a document file of a deleted account',
+      });
+    }
   }
 
   private withUserLock<T>(work: (manager: EntityManager) => Promise<T>): Promise<T> {

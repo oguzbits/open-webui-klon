@@ -14,6 +14,7 @@ import type { JobAttempt, JobQueue } from './job-queue.js';
 const RETRY_LIMIT = 2;
 const RETRY_DELAY_SECONDS = 1;
 const SHUTDOWN_TIMEOUT_MS = 10_000;
+const LIVE_STATES: readonly string[] = ['created', 'retry', 'active'];
 
 /**
  * pg-boss with its own small connection pool (it cannot share TypeORM's). It starts on the first use or at
@@ -61,10 +62,24 @@ export class PgBossJobQueue implements JobQueue, OnApplicationBootstrap, BeforeA
       { includeMetadata: true },
       async (jobs) => {
         for (const job of jobs) {
-          await handler(job.data, { retryCount: job.retryCount, retryLimit: job.retryLimit });
+          // pg-boss stores the thrown error in the job table, with every property it carries. Provider and
+          // driver errors carry request bodies and query parameters, that is document and chat text. So only
+          // the name goes on, and no `cause`.
+          await handler(job.data, { retryCount: job.retryCount, retryLimit: job.retryLimit }).catch(
+            (error: unknown) => {
+              throw new Error(error instanceof Error ? error.name : 'unknown');
+            }
+          );
         }
       }
     );
+  }
+
+  async hasLiveJob<N extends JobName>(name: N, data: Partial<JobPayload[N]>): Promise<boolean> {
+    const boss = await this.started();
+    await boss.createQueue(name);
+    const jobs = await boss.findJobs(name, { data });
+    return jobs.some((job) => LIVE_STATES.includes(job.state));
   }
 
   private started(): Promise<PgBoss> {

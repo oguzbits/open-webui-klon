@@ -85,17 +85,33 @@ export class IngestionService implements OnApplicationBootstrap, OnApplicationSh
 
   /**
    * A job that was lost (the process died, the queue gave up) leaves its document `pending` or `processing`.
-   * After `RAG_STALE_AFTER_MINUTES` such a document is marked failed (timeout) so the user can try again. A run
-   * that is still working then finds the document no longer `processing` and stores nothing.
+   * After `RAG_STALE_AFTER_MINUTES` such a document is marked failed (timeout) so the user can try again. A
+   * document whose job is still waiting or running is left alone: jobs run one at a time, so a long queue makes
+   * documents old without losing them. A run that is still working when its document is swept finds it no longer
+   * `processing` and stores nothing.
    */
   async sweepStale(): Promise<number> {
+    const candidates: { id: string }[] = await this.dataSource.query(
+      `SELECT id FROM document
+        WHERE status IN ($1, $2) AND updated_at < now() - make_interval(mins => $3)`,
+      [DOCUMENT_STATUS.PENDING, DOCUMENT_STATUS.PROCESSING, this.staleMinutes]
+    );
+    const lost: string[] = [];
+    for (const { id } of candidates) {
+      if (!(await this.queue.hasLiveJob(RAG_JOB.INGEST_DOCUMENT, { documentId: id }))) {
+        lost.push(id);
+      }
+    }
+    if (lost.length === 0) return 0;
+    // The conditions are repeated: a document that moved on since the SELECT is not touched.
     const [swept]: [{ id: string }[], number] = await this.dataSource.query(
       `UPDATE document SET status = $1, failure_reason = $2, updated_at = now()
-        WHERE status IN ($3, $4) AND updated_at < now() - make_interval(mins => $5)
+        WHERE id = ANY($3::uuid[]) AND status IN ($4, $5) AND updated_at < now() - make_interval(mins => $6)
         RETURNING id`,
       [
         DOCUMENT_STATUS.FAILED,
         DOCUMENT_FAILURE.TIMEOUT,
+        lost,
         DOCUMENT_STATUS.PENDING,
         DOCUMENT_STATUS.PROCESSING,
         this.staleMinutes,

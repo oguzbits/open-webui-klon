@@ -10,6 +10,8 @@ export const LAST_ATTEMPT: JobAttempt = { retryCount: 2, retryLimit: 2 };
 /** In memory: jobs wait until a test calls `run`. */
 export class FakeJobQueue implements JobQueue {
   readonly sent: { name: JobName; data: JobPayload[JobName] }[] = [];
+  /** Jobs a `run` has handled; the others still count as live. */
+  private readonly finished = new Set<object>();
   private readonly handlers = new Map<JobName, AnyHandler>();
 
   send<N extends JobName>(name: N, data: JobPayload[N]): Promise<void> {
@@ -32,6 +34,21 @@ export class FakeJobQueue implements JobQueue {
     if (handler === undefined) throw new Error(`No worker registered for ${name}`);
     for (const job of this.sent.filter((entry) => entry.name === name)) {
       await handler(job.data, attempt);
+      this.finished.add(job);
     }
+  }
+
+  hasLiveJob<N extends JobName>(name: N, data: Partial<JobPayload[N]>): Promise<boolean> {
+    const wanted = Object.entries(data);
+    return Promise.resolve(
+      this.sent.some(
+        (job) =>
+          job.name === name &&
+          !this.finished.has(job) &&
+          wanted.every(([key, value]) =>
+            Object.entries(job.data).some(([k, v]) => k === key && v === value)
+          )
+      )
+    );
   }
 }

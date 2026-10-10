@@ -438,6 +438,20 @@ describe('ingestion (database)', () => {
       expect((await documentOf(oldReady.id))?.status).toBe(DOCUMENT_STATUS.READY);
     });
 
+    it('leaves a document alone while its job is still waiting in the queue', async () => {
+      await start({ RAG_STALE_AFTER_MINUTES: '30' });
+      const queued = await pendingDocument();
+      const lost = await pendingDocument();
+      await queue.send(RAG_JOB.INGEST_DOCUMENT, { documentId: queued.id });
+      await age(queued.id, 120);
+      await age(lost.id, 120);
+
+      await ingestion.sweepStale();
+
+      expect((await documentOf(queued.id))?.status).toBe(DOCUMENT_STATUS.PENDING);
+      expect((await documentOf(lost.id))?.status).toBe(DOCUMENT_STATUS.FAILED);
+    });
+
     it('lets a document that was swept be read again after a retry', async () => {
       await start();
       const document = await pendingDocument();
