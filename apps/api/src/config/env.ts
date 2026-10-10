@@ -197,6 +197,48 @@ export class Env {
   @Max(120000)
   PROVIDER_REQUEST_TIMEOUT_MS = 10000;
 
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  @Max(20)
+  CHAT_MAX_CONCURRENT_STREAMS = 2;
+
+  @Type(() => Number)
+  @IsInt()
+  @Min(1000)
+  @Max(3600000)
+  CHAT_STREAM_MAX_DURATION_MS = 300000;
+
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  @Max(200000)
+  CHAT_MESSAGE_MAX_LENGTH = 20000;
+
+  @Type(() => Number)
+  @IsInt()
+  @Min(0)
+  @Max(200000)
+  CHAT_SYSTEM_PROMPT_MAX_LENGTH = 4000;
+
+  @Type(() => Number)
+  @IsInt()
+  @Min(1000)
+  @Max(2000000)
+  CHAT_CONTEXT_MAX_CHARS = 60000;
+
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  @Max(100000)
+  CHAT_MAX_OUTPUT_TOKENS = 4096;
+
+  @Type(() => Number)
+  @IsInt()
+  @Min(2)
+  @Max(100000)
+  CHAT_MAX_MESSAGES_PER_CHAT = 1000;
+
   @Transform(emptyToUndefined)
   @IsOptional()
   @Matches(HTTP_URL_PATTERN, { message: 'OTEL_EXPORTER_OTLP_ENDPOINT must be an http(s) URL' })

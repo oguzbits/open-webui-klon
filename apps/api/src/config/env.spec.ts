@@ -27,6 +27,28 @@ describe('validateEnv', () => {
     expect(env.OTEL_EXPORTER_OTLP_ENDPOINT).toBeUndefined();
   });
 
+  it('has defaults for the chat limits and rejects values outside their range', () => {
+    const env = validateEnv(VALID);
+
+    expect(env.CHAT_MAX_CONCURRENT_STREAMS).toBe(2);
+    expect(env.CHAT_STREAM_MAX_DURATION_MS).toBe(300000);
+    expect(env.CHAT_MESSAGE_MAX_LENGTH).toBe(20000);
+    expect(env.CHAT_SYSTEM_PROMPT_MAX_LENGTH).toBe(4000);
+    expect(env.CHAT_CONTEXT_MAX_CHARS).toBe(60000);
+    expect(env.CHAT_MAX_OUTPUT_TOKENS).toBe(4096);
+    expect(env.CHAT_MAX_MESSAGES_PER_CHAT).toBe(1000);
+
+    expect(() => validateEnv({ ...VALID, CHAT_MAX_CONCURRENT_STREAMS: '0' })).toThrow(
+      /CHAT_MAX_CONCURRENT_STREAMS/
+    );
+    expect(() => validateEnv({ ...VALID, CHAT_STREAM_MAX_DURATION_MS: '10' })).toThrow(
+      /CHAT_STREAM_MAX_DURATION_MS/
+    );
+    expect(() => validateEnv({ ...VALID, CHAT_MAX_OUTPUT_TOKENS: 'many' })).toThrow(
+      /CHAT_MAX_OUTPUT_TOKENS/
+    );
+  });
+
   it('converts numbers and splits the CORS origin list', () => {
     const env = validateEnv({
       ...VALID,
