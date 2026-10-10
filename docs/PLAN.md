@@ -27,5 +27,5 @@ Offenes und bewusst Verworfenes: [docs/BACKLOG.md](BACKLOG.md).
 
 ## Als Nächstes
 
-1. Spec für Teilprojekt 3 (Chat und Streaming) schreiben.
+1. Spec für Teilprojekt 3 ([Chat und Streaming](superpowers/specs/2026-10-10-teilprojekt-3-chat-streaming-design.md)) freigeben lassen, dann Plan 3a (Backend) schreiben.
 2. Plan für Stufe 2 des Agentic-Setups (Stop-Hook, Bash-Guard mit Tests, DoD-Vorlage, Testregeln).
