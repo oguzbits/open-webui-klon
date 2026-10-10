@@ -301,11 +301,98 @@
   },
   "home": {
     "title": "Willkommen",
-    "intro": "Hier entsteht dein persönlicher Chat-Assistent."
+    "intro": "Hier entsteht dein persönlicher Chat-Assistent.",
+    "startChat": "Chat starten"
   },
   "notFound": {
     "title": "Seite nicht gefunden",
     "body": "Diese Adresse gibt es nicht.",
     "back": "Zur Startseite"
+  },
+  "chats": {
+    "untitled": "Neuer Chat",
+    "messages": "Nachrichten",
+    "list": {
+      "title": "Chats",
+      "new": "Neuer Chat",
+      "search": "Chats durchsuchen",
+      "empty": "Du hast noch keine Chats.",
+      "noMatches": "Keine Chats gefunden.",
+      "more": "Mehr laden",
+      "loadingMore": "Wird geladen …",
+      "delete": {
+        "named": "Chat „{{title}}“ löschen",
+        "title": "Chat „{{title}}“ löschen?",
+        "body": "Der Chat mit allen Nachrichten wird gelöscht. Das lässt sich nicht rückgängig machen.",
+        "action": "Löschen",
+        "failed": "Das Löschen hat nicht geklappt."
+      }
+    },
+    "new": {
+      "title": "Neuer Chat",
+      "intro": "Wähle ein Modell und schreibe deine erste Nachricht.",
+      "noModels": "Es ist noch kein Modell verfügbar. Ein Administrator muss zuerst einen Anbieter verbinden.",
+      "noModelsReachable": "Im Moment ist kein Modell erreichbar.",
+      "toModels": "Zu den Modellen",
+      "creating": "Der Chat wird angelegt …"
+    },
+    "model": {
+      "label": "Modell",
+      "provider": "Dieser Chat läuft bei: {{provider}}",
+      "unavailable": "Das Modell dieses Chats ist gerade nicht verfügbar.",
+      "loading": "Die Modelle werden geladen …"
+    },
+    "composer": {
+      "label": "Nachricht",
+      "placeholder": "Schreibe eine Nachricht …",
+      "hint": "Die Eingabetaste sendet, Umschalt plus Eingabetaste macht eine neue Zeile.",
+      "send": "Senden",
+      "stop": "Stoppen"
+    },
+    "message": {
+      "user": "Du",
+      "assistant": "Modell",
+      "pending": "Die Antwort wird erzeugt …",
+      "empty": "Die Antwort ist leer.",
+      "aborted": "Die Antwort wurde abgebrochen.",
+      "failed": "Die Antwort ist fehlgeschlagen und wird dem Modell nicht mitgeschickt.",
+      "regenerate": "Neu erzeugen",
+      "edit": "Bearbeiten",
+      "editLabel": "Nachricht bearbeiten",
+      "editSend": "Als neue Version senden",
+      "editCancel": "Abbrechen"
+    },
+    "branch": {
+      "label": "Version wechseln",
+      "previous": "Vorherige Version",
+      "next": "Nächste Version",
+      "position": "Version {{index}} von {{count}}"
+    },
+    "settings": {
+      "open": "Einstellungen",
+      "title": "Chat-Einstellungen",
+      "description": "Diese Einstellungen gelten für die nächsten Antworten dieses Chats.",
+      "prompt": "Anweisung für das Modell",
+      "promptHint": "Zum Beispiel: Antworte kurz und auf Deutsch.",
+      "temperature": "Kreativität (Temperatur, 0 bis 2)",
+      "topP": "Auswahlbreite (Top-P, 0 bis 1)",
+      "maxOutputTokens": "Maximale Antwortlänge (in Token, 1 bis 100000)",
+      "paramsHint": "Leere Felder nutzen den Standard des Modells.",
+      "invalid": "Bitte prüfe die markierten Felder.",
+      "save": "Speichern",
+      "saving": "Wird gespeichert …",
+      "tooLong": "Die Anweisung ist zu lang."
+    },
+    "code": {
+      "copy": "Kopieren",
+      "copied": "Kopiert.",
+      "copyFailed": "Kopieren ist nicht möglich."
+    },
+    "error": {
+      "streamFailed": "Die Antwort wurde unterbrochen. Sie steht mit einem Hinweis im Verlauf.",
+      "gone": "Der Chat oder das Modell ist nicht mehr verfügbar.",
+      "tooLong": "Die Nachricht ist zu lang.",
+      "tooManyStreams": "Es laufen schon zu viele Antworten gleichzeitig. Bitte warte einen Moment."
+    }
   }
 }

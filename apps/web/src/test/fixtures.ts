@@ -1,6 +1,15 @@
 import {
   type AdminModelDto,
   type AuthConfigDto,
+  type ChatDetailDto,
+  ChatDetailDtoTitleSource,
+  type ChatListDto,
+  type ChatSummaryDto,
+  type MessageDto,
+  MessageDtoRole,
+  MessageDtoStatus,
+  type MessagePartDto,
+  MessagePartDtoType,
   type ModelDto,
   ModelDtoProviderType,
   type ModelListDto,
@@ -69,4 +78,60 @@ export function modelList(
 
 export function adminModel(overrides: Partial<AdminModelDto> = {}): AdminModelDto {
   return { rawModelId: 'llama3:8b', name: 'llama3:8b', hidden: false, ...overrides };
+}
+
+/** A moment of the test conversation: `chatTime(3)` is always after `chatTime(2)`, so sibling order is explicit. */
+export function chatTime(second: number): string {
+  return `2026-10-10T09:00:${String(second).padStart(2, '0')}.000Z`;
+}
+
+export function textParts(text: string): MessagePartDto[] {
+  return [{ type: MessagePartDtoType.text, text }];
+}
+
+export function messageDto(overrides: Partial<MessageDto> = {}): MessageDto {
+  return {
+    id: 'm-1',
+    parentId: null,
+    role: MessageDtoRole.user,
+    parts: textParts('Hallo'),
+    status: MessageDtoStatus.complete,
+    errorReason: null,
+    modelId: null,
+    createdAt: chatTime(0),
+    ...overrides,
+  };
+}
+
+export function chatDetailDto(overrides: Partial<ChatDetailDto> = {}): ChatDetailDto {
+  return {
+    id: 'c-1',
+    title: 'Erster Chat',
+    titleSource: ChatDetailDtoTitleSource.generated,
+    modelId: 'c-local:llama3:8b',
+    systemPrompt: null,
+    params: {},
+    activeLeafId: null,
+    messages: [],
+    createdAt: chatTime(0),
+    updatedAt: chatTime(0),
+    ...overrides,
+  };
+}
+
+export function chatSummaryDto(overrides: Partial<ChatSummaryDto> = {}): ChatSummaryDto {
+  return {
+    id: 'c-1',
+    title: 'Erster Chat',
+    modelId: 'c-local:llama3:8b',
+    updatedAt: chatTime(0),
+    ...overrides,
+  };
+}
+
+export function chatList(
+  items: ChatSummaryDto[] = [chatSummaryDto()],
+  nextCursor: string | null = null
+): ChatListDto {
+  return { items, nextCursor };
 }

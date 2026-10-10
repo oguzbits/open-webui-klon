@@ -297,11 +297,98 @@
   },
   "home": {
     "title": "Welcome",
-    "intro": "Your personal chat assistant will live here."
+    "intro": "Your personal chat assistant will live here.",
+    "startChat": "Start a chat"
   },
   "notFound": {
     "title": "Page not found",
     "body": "This address does not exist.",
     "back": "Back to the start page"
+  },
+  "chats": {
+    "untitled": "New chat",
+    "messages": "Messages",
+    "list": {
+      "title": "Chats",
+      "new": "New chat",
+      "search": "Search chats",
+      "empty": "You have no chats yet.",
+      "noMatches": "No chats found.",
+      "more": "Load more",
+      "loadingMore": "Loading …",
+      "delete": {
+        "named": "Delete chat “{{title}}”",
+        "title": "Delete chat “{{title}}”?",
+        "body": "The chat and all its messages will be deleted. This cannot be undone.",
+        "action": "Delete",
+        "failed": "Deleting did not work."
+      }
+    },
+    "new": {
+      "title": "New chat",
+      "intro": "Pick a model and write your first message.",
+      "noModels": "No model is available yet. An administrator has to connect a provider first.",
+      "noModelsReachable": "No model is reachable right now.",
+      "toModels": "Go to the models",
+      "creating": "Creating the chat …"
+    },
+    "model": {
+      "label": "Model",
+      "provider": "This chat runs at: {{provider}}",
+      "unavailable": "The model of this chat is not available right now.",
+      "loading": "Loading the models …"
+    },
+    "composer": {
+      "label": "Message",
+      "placeholder": "Write a message …",
+      "hint": "Enter sends, Shift plus Enter starts a new line.",
+      "send": "Send",
+      "stop": "Stop"
+    },
+    "message": {
+      "user": "You",
+      "assistant": "Model",
+      "pending": "The answer is being generated …",
+      "empty": "The answer is empty.",
+      "aborted": "The answer was stopped.",
+      "failed": "The answer failed and is not sent to the model.",
+      "regenerate": "Regenerate",
+      "edit": "Edit",
+      "editLabel": "Edit message",
+      "editSend": "Send as new version",
+      "editCancel": "Cancel"
+    },
+    "branch": {
+      "label": "Switch version",
+      "previous": "Previous version",
+      "next": "Next version",
+      "position": "Version {{index}} of {{count}}"
+    },
+    "settings": {
+      "open": "Settings",
+      "title": "Chat settings",
+      "description": "These settings apply to the next answers of this chat.",
+      "prompt": "Instruction for the model",
+      "promptHint": "For example: Answer briefly and in German.",
+      "temperature": "Creativity (temperature, 0 to 2)",
+      "topP": "Selection range (top-p, 0 to 1)",
+      "maxOutputTokens": "Maximum answer length (in tokens, 1 to 100000)",
+      "paramsHint": "Empty fields use the model's default.",
+      "invalid": "Please check the marked fields.",
+      "save": "Save",
+      "saving": "Saving …",
+      "tooLong": "The instruction is too long."
+    },
+    "code": {
+      "copy": "Copy",
+      "copied": "Copied.",
+      "copyFailed": "Copying is not possible."
+    },
+    "error": {
+      "streamFailed": "The answer was interrupted. It is in the history with a note.",
+      "gone": "The chat or the model is no longer available.",
+      "tooLong": "The message is too long.",
+      "tooManyStreams": "Too many answers are running at the same time. Please wait a moment."
+    }
   }
 }
