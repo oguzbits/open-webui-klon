@@ -21,6 +21,8 @@ löschen mit `docker compose down -v`. Prüfen, ob der laufende Stack richtig ko
 
 Unter „Modell-Anbindungen“ verbindet ein Administrator Ollama oder einen OpenAI-kompatiblen Anbieter; private Adressen (zum Beispiel `ollama`) müssen vorher über `PROVIDER_ALLOWED_HOSTS` freigegeben sein. Der Schlüsselbund `PROVIDER_KEY_ENCRYPTION_KEYS` (Beispielwert in `.env.example`) muss gesetzt sein, sonst startet der Stack nicht.
 
+Der Chat-Teil des Backends (Chats, Antworten als Stream, Titel) ist über die Variablen `CHAT_*` in `.env.example` begrenzbar (gleichzeitige Streams je Nutzer, Dauer, Längen). Für den automatisch erzeugten Chat-Titel legt pg-boss beim ersten Start sein eigenes Schema `pgboss` in der Datenbank an; der Datenbank-Nutzer braucht dafür das Recht, Schemas und Tabellen anzulegen.
+
 ## Entwickeln
 
 Voraussetzung: Node 24 (siehe `.nvmrc`) und pnpm (die Version steht in `package.json`, `corepack enable` genügt).

@@ -1,6 +1,6 @@
 # Teilprojekt 3: Chat und Streaming
 
-Stand: 2026-10-10. Status: Entwurf, wartet auf Freigabe. Übergeordnet:
+Stand: 2026-10-10. Status: Backend umgesetzt (Plan 3a), Web offen (Plan 3b). Übergeordnet:
 [Gesamt-Spec](2026-10-09-open-webui-nestjs-design.md), Abschnitt 4, Zeile 3.
 
 ## 1. Ziel und Rahmen
@@ -47,9 +47,9 @@ Typdateien.
 
 | Thema | Befund | Sicherheit |
 | ----- | ------ | ---------- |
-| `streamText` | `streamText({ model, messages, system, abortSignal, maxOutputTokens, temperature, topP, timeout, ... })`; Callbacks `onEnd` (Alias `onFinish`), `onAbort`, `onError`, `onChunk`. Fehler laufen im Stream, sie werden nicht geworfen. | sicher |
-| UI-Stream | `result.toUIMessageStreamResponse(options)` liefert eine Web-`Response`; für Express/Nest `result.pipeUIMessageStreamToResponse(res, options)`. Optionen u. a. `originalMessages`, `messageMetadata`, `onError`, `onEnd`, `consumeSseStream`. | sicher |
-| Abbruch | `onAbort`-Event: `{ callId, steps, reason? }`; `result.text` lehnt bei Abbruch ab. Text des **unterbrochenen** Steps ist nicht dokumentiert. | **unsicher** → Vertragstest in Plan 3a, Task 1; Rückfall: Text selbst über `onChunk` puffern |
+| `streamText` | `streamText({ model, messages, system, abortSignal, maxOutputTokens, temperature, topP, timeout, ... })`; Callbacks `onEnd` (Alias `onFinish`), `onAbort`, `onError`, `onChunk`. Ein Fehler im Modellstrom wird vom **Stream geworfen** (Vertragstest), nicht als Fehler-Teil geschickt. | sicher (Vertragstest) |
+| UI-Stream | Die Methoden am Ergebnis sind in `ai` 7 veraltet. Genutzt werden `toUIMessageStream({ stream: result.stream, ... })` und `pipeUIMessageStreamToResponse({ response, stream })`. Optionen u. a. `messageMetadata`, `onError`, `onEnd`. | sicher (Vertragstest) |
+| Abbruch | `result.text` und `result.usage` lehnen bei Abbruch und Fehler ab. Der `onEnd`-Callback von `toUIMessageStream` liefert `isAborted`, `outcome` (`completed`, `failed`, `aborted`, `unknown`) und `responseMessage.parts` mit dem **Teiltext**. | sicher (Vertragstest, `ai-stream.contract.spec.ts`) |
 | Nutzung | `usage` (`inputTokens`, `outputTokens`, `totalTokens`) als `PromiseLike`; `totalUsage` ist veraltet. | sicher |
 | Historie | `convertToModelMessages(uiMessages)` ist `async`. Wir bauen den Verlauf aus der DB und übergeben ihn nicht vom Client. | sicher |
 | Mocks | `MockLanguageModelV4` aus `ai/test`, `simulateReadableStream` aus `ai` (in `ai/test` als veraltet markiert); `doStreamCalls` zum Prüfen. | sicher |
@@ -161,8 +161,14 @@ Rate Limit. Beginnt der Stream erst, wenn die Prüfungen bestanden sind, sind da
 7. Am Ende wird die Antwort **genau einmal** gespeichert, und zwar in der Transaktion mit `activeLeafId`:
    `complete` bei Ende, `aborted` bei Abbruch (Teiltext, auch leer), `error` bei Fehler (Teiltext und
    `errorReason`). Token-Zahlen kommen aus `usage`, falls vorhanden. Der Stream wird auch bei getrenntem Client
-   zu Ende gelesen (`consumeStream`), damit Speichern und Freigeben nie ausbleiben.
-8. Nach `complete` wird das Ereignis `chat.message.completed` über `@nestjs/event-emitter` ausgelöst (Abschnitt 7).
+   zu Ende gelesen (der Strom wird geteilt: ein Zweig zum Client, ein Zweig, der immer leergelesen wird), damit
+   Speichern und Freigeben nie ausbleiben. Den Teiltext liefert `onEnd` des UI-Streams.
+8. Nach `complete` ruft der Dienst `ChatTitleService.scheduleAfterAnswer()` direkt auf (kein Event-Emitter: es gibt
+   genau einen Aufrufer, siehe Abschnitt 7).
+
+Ein Fehler im Modellstrom wird vom Stream geworfen. Der Dienst schreibt dann selbst einen Fehler-Teil
+(`{ type: 'error', errorText: 'stream_failed' }`) und schließt die Antwort sauber; ohne das würde
+`pipeUIMessageStreamToResponse` die Antwort ohne Fehlermeldung beenden.
 
 **Regenerieren** nutzt dieselben Schritte 1, 2, 4 bis 8, ohne neue Nutzernachricht: der Verlauf endet bei der
 Nutzernachricht, die Elternteil der alten Antwort ist.
@@ -185,17 +191,21 @@ Modellausgabe.
 | `CHAT_CONTEXT_MAX_CHARS` | 60000 | Zeichen des gesendeten Verlaufs |
 | `CHAT_MAX_OUTPUT_TOKENS` | 4096 | Obergrenze der Antwortlänge |
 | `CHAT_MAX_MESSAGES_PER_CHAT` | 1000 | Schutz vor unbegrenztem Wachstum |
-| `CHAT_STREAM_RATE_LIMIT` | 30 je Minute | enges Rate Limit auf den Stream-Routen |
+
+Das Rate Limit der Stream-Routen (30 je Minute) ist wie bei der Test-Route aus Teilprojekt 2 eine Konstante am
+Dekorator `@Throttle`; die Missbrauchsgrenze ist `CHAT_MAX_CONCURRENT_STREAMS`.
 
 Modell-IDs stehen nie in der Konfiguration oder im Code; sie kommen aus der Verbindung des Nutzers (Invariante 5).
 
 ## 7. Titel-Job (`jobs`-Modul)
 
 - Neues Modul `jobs` kapselt pg-boss hinter einem Injection-Token `JOB_QUEUE` (`send`, `work`); Tests tauschen es
-  per `overrideProvider` gegen eine Fake-Warteschlange im Speicher. Start in `onApplicationBootstrap`, Stop mit
+  per `overrideProvider` gegen eine Fake-Warteschlange im Speicher (`FakeJobQueue`, im DB-Test-App Standard). Start in `onApplicationBootstrap`, Stop mit
   `stop({ graceful: true })` im Shutdown. Eigene Verbindung über `DATABASE_URL`, kleiner Pool.
-- Das Ereignis `chat.message.completed` stellt `chat.generate-title` mit **nur** `{ chatId }` in die Queue, aber
-  nur wenn `titleSource = fallback` und es die erste fertige Antwort ist. `retryLimit: 2` mit Backoff.
+- Nach der ersten fertigen Antwort stellt `ChatTitleService.scheduleAfterAnswer()` (direkter Aufruf aus
+  `ChatStreamService`) `chat.generate-title` mit **nur** `{ chatId }` in die Queue, aber nur wenn
+  `titleSource = fallback` und es die erste fertige Antwort ist. Das Einreihen ist best effort: scheitert es, bleibt
+  der Rückfalltitel und der Fehler wird geloggt. `retryLimit: 2` mit Backoff.
   Inhalte stehen nie in der Job-Tabelle.
 - Der Worker lädt erste Nutzernachricht und erste Antwort (gekürzt), ruft `generateText` mit dem Modell des Chats
   (`maxOutputTokens` klein, Anweisung: kurzer Titel, nur Text) und bereinigt die Ausgabe: erste Zeile, Anführungs-
@@ -240,7 +250,7 @@ Ergänzungen für [THREAT-MODEL.md](../../THREAT-MODEL.md) im selben Commit wie 
 | Zugriff auf fremde Chats (IDOR) | jede Abfrage in SQL mit `userId`; fremde `parentId` und fremde `messageId` sind `404` |
 | Daten-Ausleitung über Markdown (Bilder, Links) | Bilder nicht laden, Links nur mit festen Schemata |
 | Übermäßiger Verbrauch | Limits für Stream-Dauer, Antwortlänge, Nachrichtenlänge, Kontext, Nachrichtenzahl, gleichzeitige Streams, Rate Limit |
-| Hängende Streams / Ressourcenleck | `abortSignal` aus Verbindung und Timeout, `finally` gibt den Platz frei, `consumeStream` |
+| Hängende Streams / Ressourcenleck | `abortSignal` aus Verbindung und Timeout, `finally` gibt den Platz frei, der Strom wird immer leergelesen |
 | Inhalte in Logs oder Job-Tabelle | nur IDs und Zahlen; Job trägt nur `chatId`; Log-Test |
 | Fehlertext des Anbieters beim Nutzer | grobe, feste Fehlermeldung im Stream; `errorReason` aus dem Wörterbuch |
 | Prompt Injection im Titel | Titel wird bereinigt gekürzt und nur als Text angezeigt |

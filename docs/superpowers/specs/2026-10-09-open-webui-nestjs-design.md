@@ -244,6 +244,6 @@ nativ liest oder die Erweiterung `xk6-sse` nötig ist, ist vor Teilprojekt 6 geg
   Bestätigung, keine Kombination aus privaten Daten und Ausgangskanal), nicht Erkennung allein.
 - **Sandbox für Nutzercode (Teilprojekt 8):** sicherheitskritisch und aufwendig. Gegenmittel: erst eingebaute
   Tools und MCP, Nutzercode erst nach eigenem Sicherheitsdesign.
-- **Streaming-Protokoll:** Die Kopplung von Backend-SSE und `useChat` ist zu entscheiden (Teilprojekt 3).
+- **Streaming-Protokoll:** entschieden, siehe [ADR 0004](../../adr/0004-chat-streaming-protokoll.md).
 - **Tool-Kompatibilität (Vitest+SWC mit Nest-Decorators):** in Teilprojekt 0 verifizieren, Rückfall auf Jest für `apps/api`.
 - **Ressourcen für späteres Deployment:** siehe Teilprojekt 10; nichts davon blockiert die Entwicklung.
