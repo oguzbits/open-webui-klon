@@ -151,7 +151,7 @@
 .hljs-symbol,
 .hljs-regexp,
 .hljs-meta {
-  color: var(--chart-2);
+  color: var(--muted-foreground);
 }
 .hljs-emphasis {
   font-style: italic;
