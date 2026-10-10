@@ -5,4 +5,20 @@
  * OpenAPI spec version: 0.0.0
  */
 
-export interface ChatParams { [key: string]: unknown }
+export interface ChatParams {
+  /**
+     * @minimum 0
+     * @maximum 2
+     */
+  temperature?: number;
+  /**
+     * @minimum 0
+     * @maximum 1
+     */
+  topP?: number;
+  /**
+     * @minimum 1
+     * @maximum 100000
+     */
+  maxOutputTokens?: number;
+}

@@ -6,6 +6,9 @@ import { ApiKeyManagementService } from '../auth/api-key-management.service.js';
 import { ApiKeysController } from '../auth/api-keys.controller.js';
 import { AuthController } from '../auth/auth.controller.js';
 import { AuthService } from '../auth/auth.service.js';
+import { ChatStreamService } from '../chats/chat-stream.service.js';
+import { ChatsController } from '../chats/chats.controller.js';
+import { ChatsService } from '../chats/chats.service.js';
 import { HealthModule } from '../health/health.module.js';
 import { createTestApp } from '../testing/create-test-app.js';
 import { PasswordHasher } from '../users/password-hasher.js';
@@ -75,5 +78,26 @@ describe('buildOpenApiDocument', () => {
     );
     expect(document.components?.schemas).toHaveProperty('CreatedApiKeyDto');
     expect(JSON.stringify(document)).not.toMatch(/passwordHash|tokenHash|keyHash/);
+  });
+
+  it('declares the sampling settings of a chat with the limits the server enforces', async () => {
+    // The services stay empty: only the contract is read.
+    app = await createTestApp({
+      controllers: [ChatsController],
+      providers: [
+        { provide: ChatsService, useValue: {} },
+        { provide: ChatStreamService, useValue: {} },
+      ],
+    });
+
+    const document = buildOpenApiDocument(app);
+
+    expect(document.components?.schemas?.['ChatParams']).toMatchObject({
+      properties: {
+        temperature: { type: 'number', minimum: 0, maximum: 2 },
+        topP: { type: 'number', minimum: 0, maximum: 1 },
+        maxOutputTokens: { type: 'integer', minimum: 1, maximum: 100000 },
+      },
+    });
   });
 });
