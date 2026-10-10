@@ -70,10 +70,9 @@ export function ChatSession({ chat, syncToken }: { chat: ChatDetailDto; syncToke
   const appliedToken = useRef(syncToken);
   const firstSent = useRef(false);
   // What the callbacks of useChat need from later in this render; set by an effect below.
-  const latest = useRef<{ messages: UIMessage[]; resync: () => void }>({
-    messages: [],
-    resync: noop,
-  });
+  const latest = useRef<{ resync: () => void }>({ resync: noop });
+  // The error of the request that is ending; onFinish (which runs after onError) decides what it means.
+  const failure = useRef<unknown>(undefined);
   const chatNow = useLatest(chat);
 
   const invalidateChat = useCallback(() => {
@@ -81,6 +80,23 @@ export function ChatSession({ chat, syncToken }: { chat: ChatDetailDto; syncToke
     void queryClient.invalidateQueries({ queryKey: getChatsListQueryKey() });
   }, [queryClient, chat.id]);
   const invalidateNow = useLatest(invalidateChat);
+
+  /** A request that never reached the server: drop the optimistic message and give the text back. */
+  function giveBack() {
+    latest.current.resync();
+    const request = lastRequest.current;
+    restoreToken.current += 1;
+    if (request?.kind === REQUEST_KIND.SEND) {
+      setComposerRestore({ token: restoreToken.current, text: request.text });
+    }
+    if (request?.kind === REQUEST_KIND.EDIT) {
+      setEditRestore({
+        token: restoreToken.current,
+        text: request.text,
+        messageId: request.messageId,
+      });
+    }
+  }
 
   const [initialMessages] = useState(() => activePath(chat).map(toUiMessage));
   const transport = useMemo(() => createChatTransport(chat.id), [chat.id]);
@@ -92,26 +108,12 @@ export function ChatSession({ chat, syncToken }: { chat: ChatDetailDto; syncToke
       messages: initialMessages,
       throttle: THROTTLE_MS,
       onError: (caught) => {
-        // An error inside the stream: the answer is stored with status error; the reload shows it with its note.
-        if (isStreamFailure(caught)) return;
-        // The server has the question already (the stream began, then the connection broke): nothing to give back.
-        if (questionIsStored(latest.current.messages.at(-1))) return;
-        // The request failed before an answer began: drop the optimistic message and give the text back.
-        latest.current.resync();
-        const request = lastRequest.current;
-        restoreToken.current += 1;
-        if (request?.kind === REQUEST_KIND.SEND) {
-          setComposerRestore({ token: restoreToken.current, text: request.text });
-        }
-        if (request?.kind === REQUEST_KIND.EDIT) {
-          setEditRestore({
-            token: restoreToken.current,
-            text: request.text,
-            messageId: request.messageId,
-          });
-        }
+        failure.current = caught;
+        // The server refused the request (an HTTP status, before any stream): nothing is stored. Giving back here,
+        // before the SDK shows the error, keeps the optimistic message from flashing up with it.
+        if (caught instanceof ApiError) giveBack();
       },
-      onFinish: ({ isAbort, isDisconnect }) => {
+      onFinish: ({ isAbort, isDisconnect, isError, messages: current }) => {
         // Also runs after errors. The stream is closed here, so the server has stored what it will store.
         const delay = isAbort || isDisconnect ? ABORT_SETTLE_MS : 0;
         settling.current = true;
@@ -119,12 +121,22 @@ export function ChatSession({ chat, syncToken }: { chat: ChatDetailDto; syncToke
           settling.current = false;
           invalidateNow.current();
         }, delay);
+
+        const caught = failure.current;
+        failure.current = undefined;
+        if (!isError || caught instanceof ApiError) return;
+        // An error inside the stream: the answer is stored with status error; the reload shows it with its note.
+        if (isStreamFailure(caught)) return;
+        // The connection broke after the server announced its ids: it has the question, nothing to give back.
+        // `current` is the SDK's own list; the rendered one lags behind by the throttle.
+        if (questionIsStored(current.at(-1))) return;
+        // The connection broke before an answer began.
+        giveBack();
       },
     });
 
   useEffect(() => {
     latest.current = {
-      messages,
       resync: () => {
         setMessages(activePath(chatNow.current).map(toUiMessage));
       },

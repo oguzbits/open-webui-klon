@@ -382,6 +382,22 @@ describe('ChatPage: sending', () => {
     expect(screen.getByRole('button', { name: 'Senden' })).toBeEnabled();
   });
 
+  it('gives the text back when the network fails before the server answered', async () => {
+    stubChat({ [STREAM]: () => Promise.reject(new TypeError('Failed to fetch')) });
+    const user = userEvent.setup();
+    await openChat();
+
+    await ask(user, 'Neue Frage');
+
+    await waitFor(() => {
+      expect(screen.getByLabelText('Nachricht')).toHaveValue('Neue Frage');
+    });
+    await waitFor(() => {
+      expect(within(messageList()).queryByText('Neue Frage')).not.toBeInTheDocument();
+    });
+    expect(screen.getByRole('alert')).toBeInTheDocument();
+  });
+
   it('says the model is gone when the server answers 404 to a send', async () => {
     stubChat({ [STREAM]: () => problem(404, 'Not Found') });
     const user = userEvent.setup();
@@ -435,6 +451,29 @@ describe('ChatPage: sending', () => {
     sse.send(delta('Anfang'));
     await within(messageList()).findByText('Anfang', { selector: 'p' });
     detail = afterExchange('Anfang', MessageDtoStatus.aborted);
+    sse.fail();
+
+    expect(
+      await screen.findByText('Die Antwort wurde abgebrochen.', undefined, { timeout: 3000 })
+    ).toBeInTheDocument();
+    expect(screen.getByLabelText('Nachricht')).toHaveValue('');
+    expect(within(messageList()).getAllByText('Neue Frage')).toHaveLength(1);
+  });
+
+  it('does not give the text back when the connection breaks right after the first part, before the page rendered it', async () => {
+    const stream = manualStream();
+    stubChat({ [STREAM]: stream.handler });
+    const user = userEvent.setup();
+    await openChat();
+
+    await ask(user, 'Neue Frage');
+    const sse = await stream.open();
+    detail = afterExchange('', MessageDtoStatus.aborted);
+    sse.send(START);
+    // One macrotask lets the stream reader take the first part; the page renders it only after THROTTLE_MS.
+    await new Promise((resolve) => {
+      setTimeout(resolve, 0);
+    });
     sse.fail();
 
     expect(
