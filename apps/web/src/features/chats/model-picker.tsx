@@ -1,7 +1,8 @@
 import { useTranslation } from 'react-i18next';
 
-import { NativeSelect, NativeSelectOption } from '@/components/ui/native-select';
+import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
+import { NativeSelect, NativeSelectOption } from '@/components/ui/native-select';
 import { useModels } from '@/features/models/use-models';
 
 /**
@@ -54,6 +55,23 @@ export function ModelPicker({
         <p role="alert" className="text-destructive text-xs">
           {t('chats.model.unavailable')}
         </p>
+      )}
+      {models.isError && (
+        <div className="flex items-center gap-2">
+          <p role="alert" className="text-destructive text-xs">
+            {t('common.loadFailed')}
+          </p>
+          <Button
+            variant="outline"
+            size="xs"
+            disabled={models.isFetching}
+            onClick={() => {
+              void models.refetch();
+            }}
+          >
+            {t('common.retry')}
+          </Button>
+        </div>
       )}
       {models.isPending && (
         <p className="text-muted-foreground text-xs">{t('chats.model.loading')}</p>

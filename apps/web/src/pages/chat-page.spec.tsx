@@ -670,6 +670,26 @@ describe('ChatPage: model and settings', () => {
     expect(within(messageList()).getByText('Hallo')).toBeInTheDocument();
   });
 
+  it('offers a retry when the model list fails to load, and keeps the chat readable', async () => {
+    let failing = true;
+    stubChat({
+      'GET /api/models': () =>
+        failing ? problem(500, 'Internal Server Error') : json(200, modelList([LLAMA, GPT])),
+    });
+    const user = userEvent.setup();
+    await openChat();
+
+    expect(await screen.findByText('Das Laden hat nicht geklappt.')).toBeInTheDocument();
+    expect(screen.getByLabelText('Modell')).toHaveValue(LLAMA.id);
+    expect(within(messageList()).getByText('Hallo')).toBeInTheDocument();
+
+    failing = false;
+    await user.click(screen.getByRole('button', { name: 'Erneut versuchen' }));
+
+    expect(await screen.findByRole('option', { name: 'gpt-x (Cloud)' })).toBeInTheDocument();
+    expect(screen.queryByText('Das Laden hat nicht geklappt.')).not.toBeInTheDocument();
+  });
+
   it('saves instruction and parameters of the chat', async () => {
     const fetchMock = stubChat({
       [`PATCH ${DETAIL_PATH}`]: () => {
