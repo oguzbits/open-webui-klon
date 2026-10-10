@@ -1,4 +1,9 @@
-import { Inject, Injectable, type OnApplicationBootstrap } from '@nestjs/common';
+import {
+  Inject,
+  Injectable,
+  type OnApplicationBootstrap,
+  type OnApplicationShutdown,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { PinoLogger } from 'nestjs-pino';
@@ -21,6 +26,9 @@ import {
 
 /** Chunks sent to the embedding model per call; keeps one call small however long the document is. */
 const EMBED_BATCH_SIZE = 64;
+/** Chunks per INSERT statement; the whole document still goes in one transaction. */
+const INSERT_SLICE_SIZE = 500;
+const SWEEP_INTERVAL_MS = 10 * 60 * 1000;
 
 interface ClaimedDocument {
   user_id: string;
@@ -38,7 +46,10 @@ const STAGE = { READ: 'read', EMBED: 'embed' } as const;
  * queue retries, and the last try marks the document `failed`.
  */
 @Injectable()
-export class IngestionService implements OnApplicationBootstrap {
+export class IngestionService implements OnApplicationBootstrap, OnApplicationShutdown {
+  private readonly maxChunks: number;
+  private readonly staleMinutes: number;
+  private sweeper: NodeJS.Timeout | undefined;
   private readonly chunkChars: number;
   private readonly chunkOverlap: number;
 
@@ -54,6 +65,8 @@ export class IngestionService implements OnApplicationBootstrap {
   ) {
     this.chunkChars = config.get('RAG_CHUNK_CHARS', { infer: true });
     this.chunkOverlap = config.get('RAG_CHUNK_OVERLAP_CHARS', { infer: true });
+    this.maxChunks = config.get('RAG_MAX_CHUNKS', { infer: true });
+    this.staleMinutes = config.get('RAG_STALE_AFTER_MINUTES', { infer: true });
     this.logger.setContext(IngestionService.name);
   }
 
@@ -61,6 +74,51 @@ export class IngestionService implements OnApplicationBootstrap {
     await this.queue.work(RAG_JOB.INGEST_DOCUMENT, (data, attempt) =>
       this.ingest(data.documentId, attempt)
     );
+    await this.sweepQuietly();
+    this.sweeper = setInterval(() => void this.sweepQuietly(), SWEEP_INTERVAL_MS);
+    this.sweeper.unref();
+  }
+
+  onApplicationShutdown(): void {
+    clearInterval(this.sweeper);
+  }
+
+  /**
+   * A job that was lost (the process died, the queue gave up) leaves its document `pending` or `processing`.
+   * After `RAG_STALE_AFTER_MINUTES` such a document is marked failed (timeout) so the user can try again. A run
+   * that is still working then finds the document no longer `processing` and stores nothing.
+   */
+  async sweepStale(): Promise<number> {
+    const [swept]: [{ id: string }[], number] = await this.dataSource.query(
+      `UPDATE document SET status = $1, failure_reason = $2, updated_at = now()
+        WHERE status IN ($3, $4) AND updated_at < now() - make_interval(mins => $5)
+        RETURNING id`,
+      [
+        DOCUMENT_STATUS.FAILED,
+        DOCUMENT_FAILURE.TIMEOUT,
+        DOCUMENT_STATUS.PENDING,
+        DOCUMENT_STATUS.PROCESSING,
+        this.staleMinutes,
+      ]
+    );
+    if (swept.length > 0) {
+      this.logger.warn({
+        documents: swept.length,
+        msg: 'marked documents without a job as failed',
+      });
+    }
+    return swept.length;
+  }
+
+  private async sweepQuietly(): Promise<void> {
+    try {
+      await this.sweepStale();
+    } catch (error) {
+      this.logger.warn({
+        errorName: error instanceof Error ? error.name : 'unknown',
+        msg: 'could not sweep stale documents',
+      });
+    }
   }
 
   async ingest(documentId: string, attempt: JobAttempt): Promise<void> {
@@ -72,11 +130,11 @@ export class IngestionService implements OnApplicationBootstrap {
     try {
       const bytes = await this.storage.get(claimed.storage_key);
       const parsed = await this.parser.parse(bytes, claimed.type);
-      const chunks = chunkPages(parsed.pages, {
-        chars: this.chunkChars,
-        overlap: this.chunkOverlap,
-      });
+      // Postgres text cannot hold NUL; some PDFs produce it.
+      const pages = parsed.pages.map((page) => ({ ...page, text: page.text.replaceAll('\0', '') }));
+      const chunks = chunkPages(pages, { chars: this.chunkChars, overlap: this.chunkOverlap });
       if (chunks.length === 0) throw new ParseError(DOCUMENT_FAILURE.NO_TEXT);
+      if (chunks.length > this.maxChunks) throw new ParseError(DOCUMENT_FAILURE.TOO_LARGE);
 
       stage = STAGE.EMBED;
       const embedded = await this.embedAll(chunks.map((chunk) => chunk.content));
@@ -89,7 +147,7 @@ export class IngestionService implements OnApplicationBootstrap {
       );
       this.logger.info({
         documentId,
-        status: stored ? DOCUMENT_STATUS.READY : 'deleted',
+        status: stored ? DOCUMENT_STATUS.READY : 'skipped',
         chunks: chunks.length,
         durationMs: Date.now() - started,
         tokens: embedded.tokens,
@@ -139,6 +197,11 @@ export class IngestionService implements OnApplicationBootstrap {
       ) {
         throw new Error('The embedding model returned the wrong number of vectors');
       }
+      if (
+        result.vectors.some((vector) => vector.length !== (vectors[0] ?? result.vectors[0])?.length)
+      ) {
+        throw new Error('The embedding model returned vectors of different lengths');
+      }
       modelId = result.modelId;
       tokens += result.tokens;
       vectors.push(...result.vectors);
@@ -164,20 +227,24 @@ export class IngestionService implements OnApplicationBootstrap {
       );
       if (locked.length === 0) return false;
       await manager.query('DELETE FROM chunk WHERE document_id = $1', [documentId]);
-      await manager.query(
-        `INSERT INTO chunk (document_id, user_id, ordinal, content, page, embedding, embedding_model_id)
-         SELECT $1, $2, t.ordinal, t.content, t.page, t.embedding::halfvec, $3
-           FROM unnest($4::int[], $5::text[], $6::int[], $7::text[]) AS t(ordinal, content, page, embedding)`,
-        [
-          documentId,
-          userId,
-          embedded.modelId,
-          chunks.map((chunk) => chunk.ordinal),
-          chunks.map((chunk) => chunk.content),
-          chunks.map((chunk) => chunk.page),
-          embedded.vectors.map((vector) => `[${vector.join(',')}]`),
-        ]
-      );
+      for (let start = 0; start < chunks.length; start += INSERT_SLICE_SIZE) {
+        const slice = chunks.slice(start, start + INSERT_SLICE_SIZE);
+        const vectors = embedded.vectors.slice(start, start + INSERT_SLICE_SIZE);
+        await manager.query(
+          `INSERT INTO chunk (document_id, user_id, ordinal, content, page, embedding, embedding_model_id)
+           SELECT $1, $2, t.ordinal, t.content, t.page, t.embedding::halfvec, $3
+             FROM unnest($4::int[], $5::text[], $6::int[], $7::text[]) AS t(ordinal, content, page, embedding)`,
+          [
+            documentId,
+            userId,
+            embedded.modelId,
+            slice.map((chunk) => chunk.ordinal),
+            slice.map((chunk) => chunk.content),
+            slice.map((chunk) => chunk.page),
+            vectors.map((vector) => `[${vector.join(',')}]`),
+          ]
+        );
+      }
       await manager.query(
         `UPDATE document SET status = $2, failure_reason = NULL, page_count = $3, updated_at = now()
           WHERE id = $1`,

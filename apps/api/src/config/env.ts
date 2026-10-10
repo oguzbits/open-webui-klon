@@ -311,6 +311,20 @@ export class Env {
   @Max(200000)
   RAG_CONTEXT_MAX_CHARS = 12000;
 
+  /** A document with more chunks than this fails as too large: its vectors are held in memory until stored. */
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  @Max(100000)
+  RAG_MAX_CHUNKS = 5000;
+
+  /** A document still pending or processing after this long lost its job (crash, expiry) and is marked failed. */
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  @Max(1440)
+  RAG_STALE_AFTER_MINUTES = 30;
+
   @Transform(emptyToUndefined)
   @IsOptional()
   @Matches(HTTP_URL_PATTERN, { message: 'OTEL_EXPORTER_OTLP_ENDPOINT must be an http(s) URL' })

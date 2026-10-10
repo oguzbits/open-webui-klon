@@ -34,6 +34,7 @@ const SECRET_TEXT = 'Vertraulicher Absatz über die Gehaltsverhandlung.';
 class FakeEmbedder {
   readonly batches: string[][] = [];
   failWith: Error | undefined;
+  vectorFor: (text: string) => number[] = (text) => fakeEmbedding(text);
   beforeAnswer: (() => Promise<void>) | undefined;
 
   isConfigured(): boolean {
@@ -48,7 +49,7 @@ class FakeEmbedder {
     if (this.failWith !== undefined) throw this.failWith;
     return {
       modelId: MODEL_ID,
-      vectors: texts.map((text) => fakeEmbedding(text)),
+      vectors: texts.map((text) => this.vectorFor(text)),
       tokens: texts.length,
     };
   }
@@ -84,6 +85,7 @@ describe('ingestion (database)', () => {
     embedder.batches.length = 0;
     embedder.failWith = undefined;
     embedder.beforeAnswer = undefined;
+    embedder.vectorFor = (text) => fakeEmbedding(text);
     parser.parsed = DEFAULT_PARSED;
   });
 
@@ -339,6 +341,131 @@ describe('ingestion (database)', () => {
 
     expect(await documentOf(document.id)).toBeUndefined();
     expect(await dataSource.query('SELECT 1 FROM chunk')).toHaveLength(0);
+  });
+
+  it('fails a document with more chunks than allowed as too large, before embedding anything', async () => {
+    await start({ RAG_MAX_CHUNKS: '3', RAG_CHUNK_CHARS: '100', RAG_CHUNK_OVERLAP_CHARS: '0' });
+    const document = await pendingDocument();
+    parser.parsed = () =>
+      Promise.resolve({
+        pages: [{ page: null, text: Array.from({ length: 100 }, (_, i) => `wort${i}`).join(' ') }],
+        pageCount: null,
+      });
+
+    await expect(ingestion.ingest(document.id, FIRST_ATTEMPT)).resolves.toBeUndefined();
+
+    expect(await documentOf(document.id)).toMatchObject({
+      status: DOCUMENT_STATUS.FAILED,
+      failure_reason: DOCUMENT_FAILURE.TOO_LARGE,
+    });
+    expect(embedder.batches).toHaveLength(0);
+  });
+
+  it('stores a document with many chunks completely, in several statements', async () => {
+    await start({ RAG_CHUNK_CHARS: '100', RAG_CHUNK_OVERLAP_CHARS: '0', RAG_MAX_CHUNKS: '5000' });
+    const document = await pendingDocument();
+    parser.parsed = () =>
+      Promise.resolve({
+        pages: [{ page: null, text: Array.from({ length: 9000 }, (_, i) => `w${i}`).join(' ') }],
+        pageCount: null,
+      });
+
+    await ingestion.ingest(document.id, FIRST_ATTEMPT);
+
+    const chunks = await chunksOf(document.id);
+    expect(chunks.length).toBeGreaterThan(500);
+    expect(chunks.map((chunk) => chunk.content)).toEqual(embedder.texts);
+  });
+
+  it('removes NUL characters from the text before it is stored', async () => {
+    await start();
+    const document = await pendingDocument();
+    parser.parsed = () =>
+      Promise.resolve({ pages: [{ page: 1, text: 'Vor\u0000Nach' }], pageCount: 1 });
+
+    await ingestion.ingest(document.id, FIRST_ATTEMPT);
+
+    expect((await chunksOf(document.id)).map((chunk) => chunk.content)).toEqual(['VorNach']);
+  });
+
+  it('refuses vectors of different lengths within one document and ends as embedding_failed', async () => {
+    await start({ RAG_CHUNK_CHARS: '100', RAG_CHUNK_OVERLAP_CHARS: '0' });
+    const document = await pendingDocument();
+    parser.parsed = () =>
+      Promise.resolve({
+        pages: [{ page: null, text: Array.from({ length: 1000 }, (_, i) => `wort${i}`).join(' ') }],
+        pageCount: null,
+      });
+    let calls = 0;
+    embedder.vectorFor = (text) => (++calls > 70 ? [1, 2, 3] : fakeEmbedding(text));
+
+    await ingestion.ingest(document.id, LAST_ATTEMPT);
+
+    expect(await documentOf(document.id)).toMatchObject({
+      status: DOCUMENT_STATUS.FAILED,
+      failure_reason: DOCUMENT_FAILURE.EMBEDDING_FAILED,
+    });
+    expect(await chunksOf(document.id)).toEqual([]);
+  });
+
+  describe('documents that lost their job', () => {
+    async function age(id: string, minutes: number): Promise<void> {
+      await dataSource.query(
+        `UPDATE document SET updated_at = now() - make_interval(mins => $2) WHERE id = $1`,
+        [id, minutes]
+      );
+    }
+
+    it('marks pending and processing documents older than the limit as failed (timeout), and only those', async () => {
+      await start({ RAG_STALE_AFTER_MINUTES: '30' });
+      const oldPending = await pendingDocument();
+      const oldProcessing = await pendingDocument({ status: DOCUMENT_STATUS.PROCESSING });
+      const fresh = await pendingDocument();
+      const oldReady = await pendingDocument({ status: DOCUMENT_STATUS.READY });
+      await age(oldPending.id, 31);
+      await age(oldProcessing.id, 31);
+      await age(fresh.id, 29);
+      await age(oldReady.id, 600);
+
+      await ingestion.sweepStale();
+
+      expect(await documentOf(oldPending.id)).toMatchObject({
+        status: DOCUMENT_STATUS.FAILED,
+        failure_reason: DOCUMENT_FAILURE.TIMEOUT,
+      });
+      expect((await documentOf(oldProcessing.id))?.status).toBe(DOCUMENT_STATUS.FAILED);
+      expect((await documentOf(fresh.id))?.status).toBe(DOCUMENT_STATUS.PENDING);
+      expect((await documentOf(oldReady.id))?.status).toBe(DOCUMENT_STATUS.READY);
+    });
+
+    it('lets a document that was swept be read again after a retry', async () => {
+      await start();
+      const document = await pendingDocument();
+      await age(document.id, 60);
+      await ingestion.sweepStale();
+
+      await dataSource.query(
+        `UPDATE document SET status = 'pending', failure_reason = NULL WHERE id = $1`,
+        [document.id]
+      );
+      await ingestion.ingest(document.id, FIRST_ATTEMPT);
+
+      expect((await documentOf(document.id))?.status).toBe(DOCUMENT_STATUS.READY);
+    });
+
+    it('leaves a run that was swept while it was working without chunks', async () => {
+      await start();
+      const document = await pendingDocument();
+      embedder.beforeAnswer = async () => {
+        await age(document.id, 60);
+        await ingestion.sweepStale();
+      };
+
+      await ingestion.ingest(document.id, FIRST_ATTEMPT);
+
+      expect((await documentOf(document.id))?.status).toBe(DOCUMENT_STATUS.FAILED);
+      expect(await chunksOf(document.id)).toEqual([]);
+    });
   });
 
   it('logs ids, counts and times, never the name or the text of a document', async () => {

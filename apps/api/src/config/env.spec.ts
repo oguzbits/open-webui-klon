@@ -64,6 +64,8 @@ describe('validateEnv', () => {
     expect(env.RAG_CANDIDATES).toBe(30);
     expect(env.RAG_TOP_K).toBe(6);
     expect(env.RAG_CONTEXT_MAX_CHARS).toBe(12000);
+    expect(env.RAG_MAX_CHUNKS).toBe(5000);
+    expect(env.RAG_STALE_AFTER_MINUTES).toBe(30);
 
     expect(validateEnv({ ...VALID, EMBEDDING_MODEL_ID: '' }).EMBEDDING_MODEL_ID).toBeUndefined();
     expect(() => validateEnv({ ...VALID, RAG_UPLOAD_MAX_BYTES: '0' })).toThrow(
