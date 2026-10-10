@@ -85,8 +85,10 @@ Nutze `pnpm`, nie `npm` oder `yarn`.
   Werkzeugen Write/Edit schreiben. Der Stop-Hook lässt dich erst fertig melden, wenn `pnpm check` für den
   aktuellen Stand grün ist (blockiert höchstens einmal pro Zug). Beide sind ein Sicherheitsnetz, kein Ersatz
   für Sorgfalt.
-- **Abschluss je Plan:** DoD-Beleg unter `docs/dod/` nach der [Vorlage](docs/dod/TEMPLATE.md), im selben Commit
-  wie die Docs-Änderungen.
+- **Abschluss je Teilprojekt:** DoD-Beleg unter `docs/dod/` nach der [Vorlage](docs/dod/TEMPLATE.md), im selben
+  Commit wie die Docs-Änderungen. Umfang nach Risiko: Kleine Pläne, die keinen Vertrag und keine Angriffsfläche
+  ändern, bekommen die Kurzform (Tests, Invarianten, offene Punkte, höchstens 15 Zeilen). Die volle Form mit
+  Browserprobe und Betrieb nur bei neuer UI, neuem Vertrag oder neuer Angriffsfläche.
 - **Abhängigkeiten** dürfen ohne Rückfrage ergänzt werden: aktuelle Doku prüfen (Regel 10), Menge klein
   halten, Grund in die Commit-Nachricht. Neue Pakete mit Installationsskripten nur bewusst in
   `onlyBuiltDependencies` freigeben.

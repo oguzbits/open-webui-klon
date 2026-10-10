@@ -5,6 +5,15 @@ Kopieren nach `docs/dod/NN-thema.md` (Teilprojekt `NN`, bei zwei Plänen `a` und
 fehlen. Was nur durch Komponententests und nicht im Browser belegt ist, steht unter „Nicht oder nur teilweise
 geprüft“.
 
+### Kurzform
+
+Für kleine Pläne ohne neuen Vertrag und ohne neue Angriffsfläche (Regel in [AGENTS.md](../../AGENTS.md), Abschnitt 4).
+Höchstens 15 Zeilen, jeder Punkt mit Beleg:
+
+- [ ] Tests: Zahlen aus `pnpm test` und `pnpm check` (grün); Mutationsprobe für betroffene Schutzregeln
+- [ ] Invarianten: betroffene Nummern aus AGENTS.md Abschnitt 2 mit Beleg
+- [ ] Offen: Einträge im [BACKLOG](../BACKLOG.md)
+
 ### DoD: Teilprojekt N (Name, Backend oder Web)
 
 - [ ] Vertrag: DTOs und OpenAPI; `pnpm openapi` ohne Abweichung; Web nutzt nur den erzeugten Client
