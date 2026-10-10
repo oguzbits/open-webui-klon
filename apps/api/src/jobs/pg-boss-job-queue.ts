@@ -9,7 +9,7 @@ import { PgBoss } from 'pg-boss';
 
 import type { Env } from '../config/env.js';
 import type { JobName, JobPayload } from './job-names.js';
-import type { JobQueue } from './job-queue.js';
+import type { JobAttempt, JobQueue } from './job-queue.js';
 
 const RETRY_LIMIT = 2;
 const RETRY_DELAY_SECONDS = 1;
@@ -52,13 +52,19 @@ export class PgBossJobQueue implements JobQueue, OnApplicationBootstrap, BeforeA
 
   async work<N extends JobName>(
     name: N,
-    handler: (data: JobPayload[N]) => Promise<void>
+    handler: (data: JobPayload[N], attempt: JobAttempt) => Promise<void>
   ): Promise<void> {
     const boss = await this.started();
     await boss.createQueue(name);
-    await boss.work<JobPayload[N]>(name, async (jobs) => {
-      for (const job of jobs) await handler(job.data);
-    });
+    await boss.work<JobPayload[N], void, { includeMetadata: true }>(
+      name,
+      { includeMetadata: true },
+      async (jobs) => {
+        for (const job of jobs) {
+          await handler(job.data, { retryCount: job.retryCount, retryLimit: job.retryLimit });
+        }
+      }
+    );
   }
 
   private started(): Promise<PgBoss> {

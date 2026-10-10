@@ -2,7 +2,7 @@ import { randomUUID } from 'node:crypto';
 import { mkdir, readFile, rename, rm, writeFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 
-import type { FileStorage } from './file-storage.js';
+import { FileNotFoundError, type FileStorage } from './file-storage.js';
 
 const KEY_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 
@@ -29,7 +29,15 @@ export class LocalFileStorage implements FileStorage {
   }
 
   async get(key: string): Promise<Uint8Array> {
-    return readFile(this.pathOf(key));
+    const path = this.pathOf(key);
+    try {
+      return await readFile(path);
+    } catch (error) {
+      if (error instanceof Error && 'code' in error && error.code === 'ENOENT') {
+        throw new FileNotFoundError();
+      }
+      throw error;
+    }
   }
 
   async remove(key: string): Promise<void> {

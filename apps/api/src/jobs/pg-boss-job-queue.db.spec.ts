@@ -38,8 +38,10 @@ describe('PgBossJobQueue (database)', () => {
     await start();
     const seen: string[] = [];
     let attempts = 0;
-    await queue.work(NAME, (data) => {
+    const tries: unknown[] = [];
+    await queue.work(NAME, (data, attempt) => {
       attempts += 1;
+      tries.push(attempt);
       if (attempts === 1) return Promise.reject(new Error('first attempt fails'));
       seen.push(data.chatId);
       return Promise.resolve();
@@ -53,5 +55,10 @@ describe('PgBossJobQueue (database)', () => {
     }
     expect(seen).toEqual(['chat-1']);
     expect(attempts).toBe(2);
+    // The handler learns which try it is on, so it can give up for good on the last one.
+    expect(tries).toEqual([
+      { retryCount: 0, retryLimit: 2 },
+      { retryCount: 1, retryLimit: 2 },
+    ]);
   }, 40_000);
 });

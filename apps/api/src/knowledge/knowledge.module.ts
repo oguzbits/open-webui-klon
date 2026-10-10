@@ -11,7 +11,9 @@ import { DocumentsController } from './documents.controller.js';
 import { DocumentsService } from './documents.service.js';
 import { EmbeddingService } from './embedding.service.js';
 import { FILE_STORAGE } from './file-storage.js';
+import { IngestionService } from './ingestion.service.js';
 import { LocalFileStorage } from './local-file-storage.js';
+import { ParserService } from './parser.service.js';
 
 /** Fields of the upload form besides the file: only `collectionId`, so a handful of small ones is a ceiling. */
 const MAX_FORM_FIELDS = 4;
@@ -39,6 +41,8 @@ const MAX_FIELD_BYTES = 1024;
     CollectionsService,
     DocumentsService,
     EmbeddingService,
+    ParserService,
+    IngestionService,
     {
       provide: FILE_STORAGE,
       inject: [ConfigService],

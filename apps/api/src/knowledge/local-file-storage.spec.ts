@@ -4,6 +4,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
+import { FileNotFoundError } from './file-storage.js';
 import { LocalFileStorage } from './local-file-storage.js';
 
 describe('LocalFileStorage', () => {
@@ -38,6 +39,10 @@ describe('LocalFileStorage', () => {
       await expect(storage.remove(key)).rejects.toThrow('Invalid storage key');
     }
   );
+
+  it('says so with a FileNotFoundError when a file is missing', async () => {
+    await expect(storage.get(randomUUID())).rejects.toBeInstanceOf(FileNotFoundError);
+  });
 
   it('removes a file and does not mind a file that is not there', async () => {
     const key = randomUUID();
