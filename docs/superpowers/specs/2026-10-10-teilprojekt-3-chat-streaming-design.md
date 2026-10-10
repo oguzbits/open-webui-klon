@@ -1,6 +1,6 @@
 # Teilprojekt 3: Chat und Streaming
 
-Stand: 2026-10-10. Status: Backend umgesetzt (Plan 3a), Web offen (Plan 3b). Übergeordnet:
+Stand: 2026-10-10. Status: umgesetzt (Plan 3a Backend, Plan 3b Web). Übergeordnet:
 [Gesamt-Spec](2026-10-09-open-webui-nestjs-design.md), Abschnitt 4, Zeile 3.
 
 ## 1. Ziel und Rahmen
@@ -54,7 +54,7 @@ Typdateien.
 | Historie | `convertToModelMessages(uiMessages)` ist `async`. Wir bauen den Verlauf aus der DB und übergeben ihn nicht vom Client. | sicher |
 | Mocks | `MockLanguageModelV4` aus `ai/test`, `simulateReadableStream` aus `ai` (in `ai/test` als veraltet markiert); `doStreamCalls` zum Prüfen. | sicher |
 | `useChat` | `@ai-sdk/react` 4.0.140 (Peer `react ^19.2.1` ok zu `^19.3.0`, Node ≥ 22). `status`: `submitted`, `streaming`, `ready`, `error`; `stop()`, `regenerate()`, `setMessages`. In `apps/web` noch nicht installiert. | sicher |
-| Transport | `DefaultChatTransport` kommt aus `ai`: Optionen `api`, `credentials`, `headers` (Objekt oder Funktion), `fetch`, `prepareSendMessagesRequest`. Standard sendet **alle** Nachrichten; mit `prepareSendMessagesRequest` senden wir nur `{ text, parentId }`. Verhalten von `regenerate({ messageId })` nur aus den Typen abgeleitet. | **teilweise unsicher** → Komponententest und Browserprobe in Plan 3b |
+| Transport | `DefaultChatTransport` kommt aus `ai`: Optionen `api`, `credentials`, `headers` (Objekt oder Funktion), `fetch`, `prepareSendMessagesRequest`. Standard sendet **alle** Nachrichten; mit `prepareSendMessagesRequest` senden wir nur `{ text, parentId }`. Verhalten von `regenerate({ messageId })` nur aus den Typen abgeleitet. | **bestätigt in Plan 3b** (siehe ADR 0004) |
 | pg-boss | 12.37.1, Node ≥ 22.12, ESM, `pg ^8.23.1`. `new PgBoss(connectionString)`, `start()`, `createQueue(name)`, `send(name, data, { retryLimit, retryDelay, retryBackoff })`, `work(name, options, handler)` (Handler bekommt ein **Array** von Jobs), `stop({ graceful, timeout })`. Schema-Name `pgboss` (Option `schema`). | sicher |
 | pg-boss und TypeORM-Pool | Es gibt keinen dokumentierten Adapter für einen bestehenden `pg.Pool`. **Entscheidung:** pg-boss bekommt eine eigene Verbindung über `DATABASE_URL`, kleine Poolgröße. | sicher |
 
@@ -240,6 +240,12 @@ Modell-IDs stehen nie in der Konfiguration oder im Code; sie kommen aus der Verb
 - **Zustände** (Invariante 8): Chatliste und Chatansicht kennen leer, laden, Fehler mit Retry; Senden, Regenerieren
   und Löschen sind während der Anfrage gesperrt (kein Doppel-Submit); `useChat`-`status` steuert die Knöpfe.
 - Texte nur über i18n-Schlüssel (Deutsch), ohne Fachbegriffe; semantische Tokens, keine Palettenfarben.
+
+**Umsetzung (Plan 3b):** Abweichungen und Ergänzungen gegenüber diesem Abschnitt: Antworten mit Status `error`
+bleiben im Verlauf sichtbar (Hinweis „fehlgeschlagen, wird dem Modell nicht mitgeschickt“, Neu erzeugen möglich);
+Aktionen gibt es nur für Nachrichten, die der Server kennt; die erste Nachricht eines neuen Chats reist im
+Router-State und wird einmal gesendet; nach einem Stopp lädt die Seite nach 500 ms neu (Heuristik, Backlog); der
+Titel wird bis zu zehnmal im Abstand von 3 s nachgeladen; `ChatParams` ist im OpenAPI-Schema typisiert.
 
 ## 9. Sicherheit und Bedrohungsmodell
 

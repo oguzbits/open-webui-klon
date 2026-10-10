@@ -39,9 +39,13 @@ Regel 10) in den installierten Typen von `ai` 7.0.127 und per Vertragstest
   [Backlog](../BACKLOG.md)). Der Nutzer sieht die gespeicherte Teilantwort und kann neu erzeugen.
 - Der Wechsel zwischen Ästen läuft über `PATCH /api/chats/:id` mit `activeMessageId`; der Client hält keinen
   eigenen Baum.
-- Der Web-Client (Plan 3b) muss `prepareSendMessagesRequest` setzen und `regenerate` auf die eigene Route
-  abbilden; das Verhalten von `regenerate({ messageId })` ist bisher nur aus den Typen abgeleitet und wird dort
-  per Komponententest und Browserprobe belegt.
+- Der Web-Client bildet mit `prepareSendMessagesRequest` das Senden auf `{ parentId, text }` und `regenerate` auf die
+  Route der Antwort ab. Geprüft in Plan 3b (2026-10-10): `regenerate({ messageId })` entfernt die Antwort und alles
+  danach aus der Liste und ruft den Transport mit dem Auslöser `regenerate-message` und der `messageId` auf; die
+  Metadaten der entfernten Antwort sind dann weg. Der Client erlaubt Neu erzeugen, Bearbeiten und Ast-Wechsel darum
+  nur für Nachrichten, die der Server kennt (aus dem geladenen Chat), und lädt den Chat nach jedem Ende eines
+  Streams neu. Belegt durch `chat-transport.spec.ts` und `chat-page.spec.tsx`, Handprobe im
+  [DoD 3b](../dod/03-chat-web.md).
 - Proxys dürfen die Antwort nicht puffern. Belegt für Caddy durch die Handprobe von Plan 3a (Chunks kommen
   zeitlich versetzt an).
 - Die Antwort ist erst gespeichert, wenn der Stream **schließt**: der `finish`-Teil und `[DONE]` gehen an den

@@ -1,8 +1,9 @@
 # Open-WebUI-Klon
 
 Ein Lernprojekt: Nachbau von [Open WebUI](https://github.com/open-webui/open-webui) mit einem NestJS-Backend und
-einem React-Frontend (Vite, shadcn/ui). Aktueller Stand: **Fundament (Teilprojekt 0)**. Es gibt ein abgesichertes
-Grundgerüst mit Statusanzeige, aber noch keinen Chat. Die Gesamt-Spec steht in
+einem React-Frontend (Vite, shadcn/ui). Aktueller Stand: **Chat mit Streaming (Teilprojekt 3)**. Es gibt
+Anmeldung mit Rollen, die Anbindung von Modellen und einen Chat, der Antworten live zeigt, mit Stoppen,
+Neu erzeugen, Bearbeiten und Chatliste. Die Gesamt-Spec steht in
 [docs/superpowers/specs/2026-10-09-open-webui-nestjs-design.md](docs/superpowers/specs/2026-10-09-open-webui-nestjs-design.md),
 der Fahrplan in [docs/PLAN.md](docs/PLAN.md).
 
