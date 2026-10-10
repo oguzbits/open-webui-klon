@@ -17,6 +17,9 @@ window.matchMedia = vi.fn().mockImplementation((query: string) => ({
   dispatchEvent: vi.fn(),
 }));
 
+// jsdom has no scrollIntoView; the chat scrolls to its newest message.
+Element.prototype.scrollIntoView = vi.fn();
+
 afterEach(() => {
   cleanup();
 });

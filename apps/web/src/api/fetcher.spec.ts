@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { noContent, json, problem, stubApi } from '@/test/stub-api';
 
-import { ApiError, apiFetch } from './fetcher';
+import { ApiError, apiFetch, readApiError } from './fetcher';
 import { csrfHeaderFor, rememberCsrfToken, setUnauthorizedHandler } from './session-state';
 
 function stubFetch(status: number, body: string, contentType: string) {
@@ -178,5 +178,32 @@ describe('apiFetch: session handling', () => {
 
     if (!(error instanceof ApiError)) throw new Error('expected an ApiError');
     expect(error.reason).toBeUndefined();
+  });
+});
+
+describe('readApiError', () => {
+  it('turns a failed response into the error apiFetch would have thrown', async () => {
+    const response = new Response(
+      '{"title":"Too Many Requests","detail":"slow down","requestId":"r-1","reason":"timeout"}',
+      { status: 429, headers: { 'content-type': 'application/problem+json' } }
+    );
+
+    const error = await readApiError(response);
+
+    expect(error).toBeInstanceOf(ApiError);
+    expect(error).toMatchObject({
+      status: 429,
+      message: 'Too Many Requests',
+      detail: 'slow down',
+      requestId: 'r-1',
+      reason: 'timeout',
+    });
+  });
+
+  it('names the status when the body is not a problem document', async () => {
+    const error = await readApiError(new Response('<html>Bad Gateway</html>', { status: 502 }));
+
+    expect(error.message).toBe('Request failed (502)');
+    expect(error.detail).toBeUndefined();
   });
 });

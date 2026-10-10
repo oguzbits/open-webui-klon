@@ -35,6 +35,25 @@ const LOGOUT = '/api/auth/logout';
 /** A 401 here means "wrong credentials" or "not signed in yet", not "the session ended". */
 const EXPECTED_401 = new Set([...TOKEN_SOURCES, '/api/auth/config']);
 
+function toApiError(status: number, body: unknown): ApiError {
+  return new ApiError(
+    status,
+    stringField(body, 'title') ?? `Request failed (${status})`,
+    stringField(body, 'detail'),
+    stringField(body, 'requestId'),
+    stringField(body, 'reason')
+  );
+}
+
+/**
+ * For callers that read a failed response themselves (the chat stream keeps its body as a stream, so it cannot
+ * go through `apiFetch`): the same error `apiFetch` would have thrown.
+ */
+export async function readApiError(response: Response): Promise<ApiError> {
+  const text = await response.text();
+  return toApiError(response.status, text === '' ? undefined : parseJson(text));
+}
+
 /**
  * Orval mutator. The server answers errors as RFC 9457 problem details; anything else
  * (a proxy's HTML page) still becomes an ApiError with the status code. Writing requests carry the CSRF token
@@ -56,13 +75,7 @@ export async function apiFetch<T>(url: string, options: RequestInit = {}): Promi
       if (TOKEN_SOURCES.has(path)) rememberCsrfToken(undefined);
       if (!EXPECTED_401.has(path)) notifyUnauthorized();
     }
-    throw new ApiError(
-      response.status,
-      stringField(body, 'title') ?? `Request failed (${response.status})`,
-      stringField(body, 'detail'),
-      stringField(body, 'requestId'),
-      stringField(body, 'reason')
-    );
+    throw toApiError(response.status, body);
   }
   if (TOKEN_SOURCES.has(path)) rememberCsrfToken(stringField(body, 'csrfToken'));
   if (path === LOGOUT) rememberCsrfToken(undefined);
