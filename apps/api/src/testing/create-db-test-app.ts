@@ -1,3 +1,6 @@
+import { mkdtempSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import type { NestExpressApplication } from '@nestjs/platform-express';
 import { Test, type TestingModuleBuilder } from '@nestjs/testing';
 import { DataSource } from 'typeorm';
@@ -11,6 +14,7 @@ import { AuditModule } from '../database/audit/audit.module.js';
 import { DatabaseModule } from '../database/database.module.js';
 import { HealthModule } from '../health/health.module.js';
 import { JOB_QUEUE } from '../jobs/job-queue.js';
+import { KnowledgeModule } from '../knowledge/knowledge.module.js';
 import { AppLoggerModule } from '../logging/logger.module.js';
 import { ModelsModule } from '../models/models.module.js';
 import { SecurityModule } from '../security/security.module.js';
@@ -18,6 +22,7 @@ import { UsersModule } from '../users/users.module.js';
 import { BASE_TEST_ENV } from './create-test-app.js';
 import { resetChatTables } from './chat-fixtures.js';
 import { resetAuthTables, resetProviderTables } from './db-fixtures.js';
+import { resetKnowledgeTables } from './knowledge-fixtures.js';
 import { FakeJobQueue } from './fake-job-queue.js';
 
 export interface DbTestAppOptions {
@@ -45,6 +50,8 @@ export async function createDbTestApp(
           LOGIN_MAX_ATTEMPTS: '1000',
           // The fake providers of the tests listen on loopback.
           PROVIDER_ALLOWED_HOSTS: '127.0.0.1',
+          // Uploads of a test land in a directory of their own, never in the working directory.
+          FILE_STORAGE_PATH: mkdtempSync(join(tmpdir(), 'owui-files-')),
           ...env,
         },
         ignoreEnvFile: true,
@@ -58,6 +65,7 @@ export async function createDbTestApp(
       AuthModule,
       ModelsModule,
       ChatsModule,
+      KnowledgeModule,
       HealthModule,
     ],
   });
@@ -69,6 +77,7 @@ export async function createDbTestApp(
   configureApp(app);
   if (options.resetUsers !== false) {
     const dataSource = app.get(DataSource);
+    await resetKnowledgeTables(dataSource);
     await resetChatTables(dataSource);
     await resetAuthTables(dataSource);
     await resetProviderTables(dataSource);

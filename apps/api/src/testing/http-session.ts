@@ -43,6 +43,7 @@ export async function loginUser(http: Http, email: string, password: string): Pr
 export function authed(http: Http, login: Login) {
   return {
     get: (url: string) => http.get(url).set('Cookie', login.cookie),
+    put: (url: string) => http.put(url).set('Cookie', login.cookie).set('X-CSRF-Token', login.csrf),
     post: (url: string) =>
       http.post(url).set('Cookie', login.cookie).set('X-CSRF-Token', login.csrf),
     patch: (url: string) =>

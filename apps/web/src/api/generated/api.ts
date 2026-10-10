@@ -31,12 +31,18 @@ import type {
   ChatDetailDto,
   ChatListDto,
   ChatsListParams,
+  CollectionDto,
+  CollectionListDto,
   ConnectionTestDto,
   CreateApiKeyDto,
   CreateChatDto,
+  CreateCollectionDto,
   CreateProviderConnectionDto,
   CreateUserDto,
   CreatedApiKeyDto,
+  DocumentDto,
+  DocumentListDto,
+  DocumentsUploadBody,
   HealthStatusDto,
   LoginDto,
   ModelListDto,
@@ -46,6 +52,7 @@ import type {
   SignupDto,
   StreamChatDto,
   UpdateChatDto,
+  UpdateCollectionDto,
   UpdateProviderConnectionDto,
   UpdateUserDto,
   UserDto
@@ -2922,6 +2929,1237 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
         TContext
       > => {
       return useMutation(getChatsRegenerateMutationOptions(options), queryClient);
+    }
+
+export type collectionsListResponse200 = {
+  data: CollectionListDto
+  status: 200
+}
+
+export type collectionsListResponseSuccess = (collectionsListResponse200) & {
+  headers: Headers;
+};
+;
+
+export type collectionsListResponse = (collectionsListResponseSuccess)
+
+export const getCollectionsListUrl = () => {
+
+
+
+
+  return `/api/collections`
+}
+
+export const collectionsList = async ( options?: Parameters<typeof apiFetch>[1]): Promise<collectionsListResponse> => {
+
+  return apiFetch<collectionsListResponse>(getCollectionsListUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getCollectionsListQueryKey = () => {
+    return [
+    `/api/collections`
+    ] as const;
+    }
+
+
+export const getCollectionsListQueryOptions = <TData = Awaited<ReturnType<typeof collectionsList>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof collectionsList>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getCollectionsListQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof collectionsList>>> = ({ signal }) => collectionsList({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof collectionsList>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type CollectionsListQueryResult = NonNullable<Awaited<ReturnType<typeof collectionsList>>>
+export type CollectionsListQueryError = unknown
+
+
+export function useCollectionsList<TData = Awaited<ReturnType<typeof collectionsList>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof collectionsList>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof collectionsList>>,
+          TError,
+          Awaited<ReturnType<typeof collectionsList>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useCollectionsList<TData = Awaited<ReturnType<typeof collectionsList>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof collectionsList>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof collectionsList>>,
+          TError,
+          Awaited<ReturnType<typeof collectionsList>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useCollectionsList<TData = Awaited<ReturnType<typeof collectionsList>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof collectionsList>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useCollectionsList<TData = Awaited<ReturnType<typeof collectionsList>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof collectionsList>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getCollectionsListQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export type collectionsCreateResponse201 = {
+  data: CollectionDto
+  status: 201
+}
+
+export type collectionsCreateResponse400 = {
+  data: void
+  status: 400
+}
+
+export type collectionsCreateResponse409 = {
+  data: void
+  status: 409
+}
+
+export type collectionsCreateResponseSuccess = (collectionsCreateResponse201) & {
+  headers: Headers;
+};
+export type collectionsCreateResponseError = (collectionsCreateResponse400 | collectionsCreateResponse409) & {
+  headers: Headers;
+};
+
+export type collectionsCreateResponse = (collectionsCreateResponseSuccess | collectionsCreateResponseError)
+
+export const getCollectionsCreateUrl = () => {
+
+
+
+
+  return `/api/collections`
+}
+
+export const collectionsCreate = async (createCollectionDto: CreateCollectionDto, options?: Parameters<typeof apiFetch>[1]): Promise<collectionsCreateResponse> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<collectionsCreateResponse>(getCollectionsCreateUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(createCollectionDto)
+  }
+);}
+
+
+
+
+
+export const getCollectionsCreateMutationKey = () => ['collectionsCreate'] as const;
+
+export const getCollectionsCreateMutationOptions = <TError = void,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof collectionsCreate>>, TError,CollectionsCreateMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof collectionsCreate>>, TError,CollectionsCreateMutationVariables, TContext> => {
+
+const mutationKey = getCollectionsCreateMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof collectionsCreate>>, CollectionsCreateMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  collectionsCreate(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CollectionsCreateMutationResult = NonNullable<Awaited<ReturnType<typeof collectionsCreate>>>
+    export type CollectionsCreateMutationBody = CreateCollectionDto
+    export type CollectionsCreateMutationError = void
+    export type CollectionsCreateMutationVariables = {data: CreateCollectionDto}
+
+    export const useCollectionsCreate = <TError = void,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof collectionsCreate>>, TError,CollectionsCreateMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof collectionsCreate>>,
+        TError,
+        CollectionsCreateMutationVariables,
+        TContext
+      > => {
+      return useMutation(getCollectionsCreateMutationOptions(options), queryClient);
+    }
+
+export type collectionsDetailResponse200 = {
+  data: CollectionDto
+  status: 200
+}
+
+export type collectionsDetailResponse404 = {
+  data: void
+  status: 404
+}
+
+export type collectionsDetailResponseSuccess = (collectionsDetailResponse200) & {
+  headers: Headers;
+};
+export type collectionsDetailResponseError = (collectionsDetailResponse404) & {
+  headers: Headers;
+};
+
+export type collectionsDetailResponse = (collectionsDetailResponseSuccess | collectionsDetailResponseError)
+
+export const getCollectionsDetailUrl = (id: string,) => {
+
+
+
+
+  return `/api/collections/${id}`
+}
+
+export const collectionsDetail = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<collectionsDetailResponse> => {
+
+  return apiFetch<collectionsDetailResponse>(getCollectionsDetailUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getCollectionsDetailQueryKey = (id: string,) => {
+    return [
+    `/api/collections/${id}`
+    ] as const;
+    }
+
+
+export const getCollectionsDetailQueryOptions = <TData = Awaited<ReturnType<typeof collectionsDetail>>, TError = void>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof collectionsDetail>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getCollectionsDetailQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof collectionsDetail>>> = ({ signal }) => collectionsDetail(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof collectionsDetail>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type CollectionsDetailQueryResult = NonNullable<Awaited<ReturnType<typeof collectionsDetail>>>
+export type CollectionsDetailQueryError = void
+
+
+export function useCollectionsDetail<TData = Awaited<ReturnType<typeof collectionsDetail>>, TError = void>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof collectionsDetail>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof collectionsDetail>>,
+          TError,
+          Awaited<ReturnType<typeof collectionsDetail>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useCollectionsDetail<TData = Awaited<ReturnType<typeof collectionsDetail>>, TError = void>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof collectionsDetail>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof collectionsDetail>>,
+          TError,
+          Awaited<ReturnType<typeof collectionsDetail>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useCollectionsDetail<TData = Awaited<ReturnType<typeof collectionsDetail>>, TError = void>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof collectionsDetail>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useCollectionsDetail<TData = Awaited<ReturnType<typeof collectionsDetail>>, TError = void>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof collectionsDetail>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getCollectionsDetailQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export type collectionsRenameResponse200 = {
+  data: CollectionDto
+  status: 200
+}
+
+export type collectionsRenameResponse400 = {
+  data: void
+  status: 400
+}
+
+export type collectionsRenameResponse404 = {
+  data: void
+  status: 404
+}
+
+export type collectionsRenameResponse409 = {
+  data: void
+  status: 409
+}
+
+export type collectionsRenameResponseSuccess = (collectionsRenameResponse200) & {
+  headers: Headers;
+};
+export type collectionsRenameResponseError = (collectionsRenameResponse400 | collectionsRenameResponse404 | collectionsRenameResponse409) & {
+  headers: Headers;
+};
+
+export type collectionsRenameResponse = (collectionsRenameResponseSuccess | collectionsRenameResponseError)
+
+export const getCollectionsRenameUrl = (id: string,) => {
+
+
+
+
+  return `/api/collections/${id}`
+}
+
+export const collectionsRename = async (id: string,
+    updateCollectionDto: UpdateCollectionDto, options?: Parameters<typeof apiFetch>[1]): Promise<collectionsRenameResponse> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<collectionsRenameResponse>(getCollectionsRenameUrl(id),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(updateCollectionDto)
+  }
+);}
+
+
+
+
+
+export const getCollectionsRenameMutationKey = () => ['collectionsRename'] as const;
+
+export const getCollectionsRenameMutationOptions = <TError = void,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof collectionsRename>>, TError,CollectionsRenameMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof collectionsRename>>, TError,CollectionsRenameMutationVariables, TContext> => {
+
+const mutationKey = getCollectionsRenameMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof collectionsRename>>, CollectionsRenameMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  collectionsRename(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CollectionsRenameMutationResult = NonNullable<Awaited<ReturnType<typeof collectionsRename>>>
+    export type CollectionsRenameMutationBody = UpdateCollectionDto
+    export type CollectionsRenameMutationError = void
+    export type CollectionsRenameMutationVariables = {id: string;data: UpdateCollectionDto}
+
+    export const useCollectionsRename = <TError = void,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof collectionsRename>>, TError,CollectionsRenameMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof collectionsRename>>,
+        TError,
+        CollectionsRenameMutationVariables,
+        TContext
+      > => {
+      return useMutation(getCollectionsRenameMutationOptions(options), queryClient);
+    }
+
+export type collectionsRemoveResponse204 = {
+  data: void
+  status: 204
+}
+
+export type collectionsRemoveResponse404 = {
+  data: void
+  status: 404
+}
+
+export type collectionsRemoveResponseSuccess = (collectionsRemoveResponse204) & {
+  headers: Headers;
+};
+export type collectionsRemoveResponseError = (collectionsRemoveResponse404) & {
+  headers: Headers;
+};
+
+export type collectionsRemoveResponse = (collectionsRemoveResponseSuccess | collectionsRemoveResponseError)
+
+export const getCollectionsRemoveUrl = (id: string,) => {
+
+
+
+
+  return `/api/collections/${id}`
+}
+
+export const collectionsRemove = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<collectionsRemoveResponse> => {
+
+  return apiFetch<collectionsRemoveResponse>(getCollectionsRemoveUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+
+export const getCollectionsRemoveMutationKey = () => ['collectionsRemove'] as const;
+
+export const getCollectionsRemoveMutationOptions = <TError = void,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof collectionsRemove>>, TError,CollectionsRemoveMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof collectionsRemove>>, TError,CollectionsRemoveMutationVariables, TContext> => {
+
+const mutationKey = getCollectionsRemoveMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof collectionsRemove>>, CollectionsRemoveMutationVariables> = (props) => {
+          const {id} = props ?? {};
+
+          return  collectionsRemove(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CollectionsRemoveMutationResult = NonNullable<Awaited<ReturnType<typeof collectionsRemove>>>
+
+    export type CollectionsRemoveMutationError = void
+    export type CollectionsRemoveMutationVariables = {id: string}
+
+    export const useCollectionsRemove = <TError = void,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof collectionsRemove>>, TError,CollectionsRemoveMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof collectionsRemove>>,
+        TError,
+        CollectionsRemoveMutationVariables,
+        TContext
+      > => {
+      return useMutation(getCollectionsRemoveMutationOptions(options), queryClient);
+    }
+
+export type collectionsDocumentsResponse200 = {
+  data: DocumentListDto
+  status: 200
+}
+
+export type collectionsDocumentsResponse404 = {
+  data: void
+  status: 404
+}
+
+export type collectionsDocumentsResponseSuccess = (collectionsDocumentsResponse200) & {
+  headers: Headers;
+};
+export type collectionsDocumentsResponseError = (collectionsDocumentsResponse404) & {
+  headers: Headers;
+};
+
+export type collectionsDocumentsResponse = (collectionsDocumentsResponseSuccess | collectionsDocumentsResponseError)
+
+export const getCollectionsDocumentsUrl = (id: string,) => {
+
+
+
+
+  return `/api/collections/${id}/documents`
+}
+
+export const collectionsDocuments = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<collectionsDocumentsResponse> => {
+
+  return apiFetch<collectionsDocumentsResponse>(getCollectionsDocumentsUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getCollectionsDocumentsQueryKey = (id: string,) => {
+    return [
+    `/api/collections/${id}/documents`
+    ] as const;
+    }
+
+
+export const getCollectionsDocumentsQueryOptions = <TData = Awaited<ReturnType<typeof collectionsDocuments>>, TError = void>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof collectionsDocuments>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getCollectionsDocumentsQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof collectionsDocuments>>> = ({ signal }) => collectionsDocuments(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof collectionsDocuments>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type CollectionsDocumentsQueryResult = NonNullable<Awaited<ReturnType<typeof collectionsDocuments>>>
+export type CollectionsDocumentsQueryError = void
+
+
+export function useCollectionsDocuments<TData = Awaited<ReturnType<typeof collectionsDocuments>>, TError = void>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof collectionsDocuments>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof collectionsDocuments>>,
+          TError,
+          Awaited<ReturnType<typeof collectionsDocuments>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useCollectionsDocuments<TData = Awaited<ReturnType<typeof collectionsDocuments>>, TError = void>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof collectionsDocuments>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof collectionsDocuments>>,
+          TError,
+          Awaited<ReturnType<typeof collectionsDocuments>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useCollectionsDocuments<TData = Awaited<ReturnType<typeof collectionsDocuments>>, TError = void>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof collectionsDocuments>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useCollectionsDocuments<TData = Awaited<ReturnType<typeof collectionsDocuments>>, TError = void>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof collectionsDocuments>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getCollectionsDocumentsQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export type collectionsAddDocumentResponse204 = {
+  data: void
+  status: 204
+}
+
+export type collectionsAddDocumentResponse404 = {
+  data: void
+  status: 404
+}
+
+export type collectionsAddDocumentResponseSuccess = (collectionsAddDocumentResponse204) & {
+  headers: Headers;
+};
+export type collectionsAddDocumentResponseError = (collectionsAddDocumentResponse404) & {
+  headers: Headers;
+};
+
+export type collectionsAddDocumentResponse = (collectionsAddDocumentResponseSuccess | collectionsAddDocumentResponseError)
+
+export const getCollectionsAddDocumentUrl = (id: string,
+    documentId: string,) => {
+
+
+
+
+  return `/api/collections/${id}/documents/${documentId}`
+}
+
+export const collectionsAddDocument = async (id: string,
+    documentId: string, options?: Parameters<typeof apiFetch>[1]): Promise<collectionsAddDocumentResponse> => {
+
+  return apiFetch<collectionsAddDocumentResponse>(getCollectionsAddDocumentUrl(id,documentId),
+  {
+    ...options,
+    method: 'PUT'
+
+
+  }
+);}
+
+
+
+
+
+export const getCollectionsAddDocumentMutationKey = () => ['collectionsAddDocument'] as const;
+
+export const getCollectionsAddDocumentMutationOptions = <TError = void,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof collectionsAddDocument>>, TError,CollectionsAddDocumentMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof collectionsAddDocument>>, TError,CollectionsAddDocumentMutationVariables, TContext> => {
+
+const mutationKey = getCollectionsAddDocumentMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof collectionsAddDocument>>, CollectionsAddDocumentMutationVariables> = (props) => {
+          const {id,documentId} = props ?? {};
+
+          return  collectionsAddDocument(id,documentId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CollectionsAddDocumentMutationResult = NonNullable<Awaited<ReturnType<typeof collectionsAddDocument>>>
+
+    export type CollectionsAddDocumentMutationError = void
+    export type CollectionsAddDocumentMutationVariables = {id: string;documentId: string}
+
+    export const useCollectionsAddDocument = <TError = void,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof collectionsAddDocument>>, TError,CollectionsAddDocumentMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof collectionsAddDocument>>,
+        TError,
+        CollectionsAddDocumentMutationVariables,
+        TContext
+      > => {
+      return useMutation(getCollectionsAddDocumentMutationOptions(options), queryClient);
+    }
+
+export type collectionsRemoveDocumentResponse204 = {
+  data: void
+  status: 204
+}
+
+export type collectionsRemoveDocumentResponse404 = {
+  data: void
+  status: 404
+}
+
+export type collectionsRemoveDocumentResponseSuccess = (collectionsRemoveDocumentResponse204) & {
+  headers: Headers;
+};
+export type collectionsRemoveDocumentResponseError = (collectionsRemoveDocumentResponse404) & {
+  headers: Headers;
+};
+
+export type collectionsRemoveDocumentResponse = (collectionsRemoveDocumentResponseSuccess | collectionsRemoveDocumentResponseError)
+
+export const getCollectionsRemoveDocumentUrl = (id: string,
+    documentId: string,) => {
+
+
+
+
+  return `/api/collections/${id}/documents/${documentId}`
+}
+
+export const collectionsRemoveDocument = async (id: string,
+    documentId: string, options?: Parameters<typeof apiFetch>[1]): Promise<collectionsRemoveDocumentResponse> => {
+
+  return apiFetch<collectionsRemoveDocumentResponse>(getCollectionsRemoveDocumentUrl(id,documentId),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+
+export const getCollectionsRemoveDocumentMutationKey = () => ['collectionsRemoveDocument'] as const;
+
+export const getCollectionsRemoveDocumentMutationOptions = <TError = void,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof collectionsRemoveDocument>>, TError,CollectionsRemoveDocumentMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof collectionsRemoveDocument>>, TError,CollectionsRemoveDocumentMutationVariables, TContext> => {
+
+const mutationKey = getCollectionsRemoveDocumentMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof collectionsRemoveDocument>>, CollectionsRemoveDocumentMutationVariables> = (props) => {
+          const {id,documentId} = props ?? {};
+
+          return  collectionsRemoveDocument(id,documentId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CollectionsRemoveDocumentMutationResult = NonNullable<Awaited<ReturnType<typeof collectionsRemoveDocument>>>
+
+    export type CollectionsRemoveDocumentMutationError = void
+    export type CollectionsRemoveDocumentMutationVariables = {id: string;documentId: string}
+
+    export const useCollectionsRemoveDocument = <TError = void,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof collectionsRemoveDocument>>, TError,CollectionsRemoveDocumentMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof collectionsRemoveDocument>>,
+        TError,
+        CollectionsRemoveDocumentMutationVariables,
+        TContext
+      > => {
+      return useMutation(getCollectionsRemoveDocumentMutationOptions(options), queryClient);
+    }
+
+export type documentsListResponse200 = {
+  data: DocumentListDto
+  status: 200
+}
+
+export type documentsListResponseSuccess = (documentsListResponse200) & {
+  headers: Headers;
+};
+;
+
+export type documentsListResponse = (documentsListResponseSuccess)
+
+export const getDocumentsListUrl = () => {
+
+
+
+
+  return `/api/documents`
+}
+
+export const documentsList = async ( options?: Parameters<typeof apiFetch>[1]): Promise<documentsListResponse> => {
+
+  return apiFetch<documentsListResponse>(getDocumentsListUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getDocumentsListQueryKey = () => {
+    return [
+    `/api/documents`
+    ] as const;
+    }
+
+
+export const getDocumentsListQueryOptions = <TData = Awaited<ReturnType<typeof documentsList>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof documentsList>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getDocumentsListQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof documentsList>>> = ({ signal }) => documentsList({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof documentsList>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type DocumentsListQueryResult = NonNullable<Awaited<ReturnType<typeof documentsList>>>
+export type DocumentsListQueryError = unknown
+
+
+export function useDocumentsList<TData = Awaited<ReturnType<typeof documentsList>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof documentsList>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof documentsList>>,
+          TError,
+          Awaited<ReturnType<typeof documentsList>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useDocumentsList<TData = Awaited<ReturnType<typeof documentsList>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof documentsList>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof documentsList>>,
+          TError,
+          Awaited<ReturnType<typeof documentsList>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useDocumentsList<TData = Awaited<ReturnType<typeof documentsList>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof documentsList>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useDocumentsList<TData = Awaited<ReturnType<typeof documentsList>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof documentsList>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getDocumentsListQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export type documentsUploadResponse200 = {
+  data: DocumentDto
+  status: 200
+}
+
+export type documentsUploadResponse201 = {
+  data: DocumentDto
+  status: 201
+}
+
+export type documentsUploadResponse404 = {
+  data: void
+  status: 404
+}
+
+export type documentsUploadResponse409 = {
+  data: void
+  status: 409
+}
+
+export type documentsUploadResponse413 = {
+  data: void
+  status: 413
+}
+
+export type documentsUploadResponse415 = {
+  data: void
+  status: 415
+}
+
+export type documentsUploadResponse422 = {
+  data: void
+  status: 422
+}
+
+export type documentsUploadResponse503 = {
+  data: void
+  status: 503
+}
+
+export type documentsUploadResponseSuccess = (documentsUploadResponse200 | documentsUploadResponse201) & {
+  headers: Headers;
+};
+export type documentsUploadResponseError = (documentsUploadResponse404 | documentsUploadResponse409 | documentsUploadResponse413 | documentsUploadResponse415 | documentsUploadResponse422 | documentsUploadResponse503) & {
+  headers: Headers;
+};
+
+export type documentsUploadResponse = (documentsUploadResponseSuccess | documentsUploadResponseError)
+
+export const getDocumentsUploadUrl = () => {
+
+
+
+
+  return `/api/documents`
+}
+
+export const documentsUpload = async (documentsUploadBody: DocumentsUploadBody, options?: Parameters<typeof apiFetch>[1]): Promise<documentsUploadResponse> => {
+    const formData = new FormData();
+formData.append(`file`, documentsUploadBody.file);
+if(documentsUploadBody.collectionId !== undefined) {
+ formData.append(`collectionId`, documentsUploadBody.collectionId);
+ }
+
+  return apiFetch<documentsUploadResponse>(getDocumentsUploadUrl(),
+  {
+    ...options,
+    method: 'POST'
+    ,
+    body: formData
+  }
+);}
+
+
+
+
+
+export const getDocumentsUploadMutationKey = () => ['documentsUpload'] as const;
+
+export const getDocumentsUploadMutationOptions = <TError = void,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof documentsUpload>>, TError,DocumentsUploadMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof documentsUpload>>, TError,DocumentsUploadMutationVariables, TContext> => {
+
+const mutationKey = getDocumentsUploadMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof documentsUpload>>, DocumentsUploadMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  documentsUpload(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DocumentsUploadMutationResult = NonNullable<Awaited<ReturnType<typeof documentsUpload>>>
+    export type DocumentsUploadMutationBody = DocumentsUploadBody
+    export type DocumentsUploadMutationError = void
+    export type DocumentsUploadMutationVariables = {data: DocumentsUploadBody}
+
+    export const useDocumentsUpload = <TError = void,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof documentsUpload>>, TError,DocumentsUploadMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof documentsUpload>>,
+        TError,
+        DocumentsUploadMutationVariables,
+        TContext
+      > => {
+      return useMutation(getDocumentsUploadMutationOptions(options), queryClient);
+    }
+
+export type documentsRetryResponse200 = {
+  data: DocumentDto
+  status: 200
+}
+
+export type documentsRetryResponse404 = {
+  data: void
+  status: 404
+}
+
+export type documentsRetryResponse409 = {
+  data: void
+  status: 409
+}
+
+export type documentsRetryResponse503 = {
+  data: void
+  status: 503
+}
+
+export type documentsRetryResponseSuccess = (documentsRetryResponse200) & {
+  headers: Headers;
+};
+export type documentsRetryResponseError = (documentsRetryResponse404 | documentsRetryResponse409 | documentsRetryResponse503) & {
+  headers: Headers;
+};
+
+export type documentsRetryResponse = (documentsRetryResponseSuccess | documentsRetryResponseError)
+
+export const getDocumentsRetryUrl = (id: string,) => {
+
+
+
+
+  return `/api/documents/${id}/retry`
+}
+
+export const documentsRetry = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<documentsRetryResponse> => {
+
+  return apiFetch<documentsRetryResponse>(getDocumentsRetryUrl(id),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getDocumentsRetryMutationKey = () => ['documentsRetry'] as const;
+
+export const getDocumentsRetryMutationOptions = <TError = void,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof documentsRetry>>, TError,DocumentsRetryMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof documentsRetry>>, TError,DocumentsRetryMutationVariables, TContext> => {
+
+const mutationKey = getDocumentsRetryMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof documentsRetry>>, DocumentsRetryMutationVariables> = (props) => {
+          const {id} = props ?? {};
+
+          return  documentsRetry(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DocumentsRetryMutationResult = NonNullable<Awaited<ReturnType<typeof documentsRetry>>>
+
+    export type DocumentsRetryMutationError = void
+    export type DocumentsRetryMutationVariables = {id: string}
+
+    export const useDocumentsRetry = <TError = void,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof documentsRetry>>, TError,DocumentsRetryMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof documentsRetry>>,
+        TError,
+        DocumentsRetryMutationVariables,
+        TContext
+      > => {
+      return useMutation(getDocumentsRetryMutationOptions(options), queryClient);
+    }
+
+export type documentsRemoveResponse204 = {
+  data: void
+  status: 204
+}
+
+export type documentsRemoveResponse404 = {
+  data: void
+  status: 404
+}
+
+export type documentsRemoveResponseSuccess = (documentsRemoveResponse204) & {
+  headers: Headers;
+};
+export type documentsRemoveResponseError = (documentsRemoveResponse404) & {
+  headers: Headers;
+};
+
+export type documentsRemoveResponse = (documentsRemoveResponseSuccess | documentsRemoveResponseError)
+
+export const getDocumentsRemoveUrl = (id: string,) => {
+
+
+
+
+  return `/api/documents/${id}`
+}
+
+export const documentsRemove = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<documentsRemoveResponse> => {
+
+  return apiFetch<documentsRemoveResponse>(getDocumentsRemoveUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+
+export const getDocumentsRemoveMutationKey = () => ['documentsRemove'] as const;
+
+export const getDocumentsRemoveMutationOptions = <TError = void,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof documentsRemove>>, TError,DocumentsRemoveMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof documentsRemove>>, TError,DocumentsRemoveMutationVariables, TContext> => {
+
+const mutationKey = getDocumentsRemoveMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof documentsRemove>>, DocumentsRemoveMutationVariables> = (props) => {
+          const {id} = props ?? {};
+
+          return  documentsRemove(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DocumentsRemoveMutationResult = NonNullable<Awaited<ReturnType<typeof documentsRemove>>>
+
+    export type DocumentsRemoveMutationError = void
+    export type DocumentsRemoveMutationVariables = {id: string}
+
+    export const useDocumentsRemove = <TError = void,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof documentsRemove>>, TError,DocumentsRemoveMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof documentsRemove>>,
+        TError,
+        DocumentsRemoveMutationVariables,
+        TContext
+      > => {
+      return useMutation(getDocumentsRemoveMutationOptions(options), queryClient);
     }
 
 export type healthLiveResponse200 = {

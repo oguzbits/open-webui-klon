@@ -883,6 +883,421 @@
         ]
       }
     },
+    "/api/collections": {
+      "get": {
+        "operationId": "collectionsList",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CollectionListDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "collections"
+        ]
+      },
+      "post": {
+        "operationId": "collectionsCreate",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCollectionDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CollectionDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The name is empty or too long, or the body has unknown fields"
+          },
+          "409": {
+            "description": "A collection with this name already exists"
+          }
+        },
+        "tags": [
+          "collections"
+        ]
+      }
+    },
+    "/api/collections/{id}": {
+      "get": {
+        "operationId": "collectionsDetail",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CollectionDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "collections"
+        ]
+      },
+      "patch": {
+        "operationId": "collectionsRename",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateCollectionDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CollectionDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The name is empty or too long, or the body has unknown fields"
+          },
+          "404": {
+            "description": ""
+          },
+          "409": {
+            "description": "A collection with this name already exists"
+          }
+        },
+        "tags": [
+          "collections"
+        ]
+      },
+      "delete": {
+        "operationId": "collectionsRemove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "The collection is gone; its documents stay"
+          },
+          "404": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "collections"
+        ]
+      }
+    },
+    "/api/collections/{id}/documents": {
+      "get": {
+        "operationId": "collectionsDocuments",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentListDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "collections"
+        ]
+      }
+    },
+    "/api/collections/{id}/documents/{documentId}": {
+      "put": {
+        "operationId": "collectionsAddDocument",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "documentId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "The document is in the collection"
+          },
+          "404": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "collections"
+        ]
+      },
+      "delete": {
+        "operationId": "collectionsRemoveDocument",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "documentId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "The document is no longer in the collection"
+          },
+          "404": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "collections"
+        ]
+      }
+    },
+    "/api/documents": {
+      "get": {
+        "operationId": "documentsList",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentListDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "documents"
+        ]
+      },
+      "post": {
+        "operationId": "documentsUpload",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "file"
+                ],
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary"
+                  },
+                  "collectionId": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The same content was uploaded before",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentDto"
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "A new document, waiting to be read",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The collection does not exist"
+          },
+          "409": {
+            "description": "The document limit is reached"
+          },
+          "413": {
+            "description": "The file is too large"
+          },
+          "415": {
+            "description": "The file type is not supported"
+          },
+          "422": {
+            "description": "There is no file"
+          },
+          "503": {
+            "description": "knowledge_unavailable"
+          }
+        },
+        "tags": [
+          "documents"
+        ]
+      }
+    },
+    "/api/documents/{id}/retry": {
+      "post": {
+        "operationId": "documentsRetry",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": ""
+          },
+          "409": {
+            "description": "The document has not failed"
+          },
+          "503": {
+            "description": "knowledge_unavailable"
+          }
+        },
+        "tags": [
+          "documents"
+        ]
+      }
+    },
+    "/api/documents/{id}": {
+      "delete": {
+        "operationId": "documentsRemove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          },
+          "404": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "documents"
+        ]
+      }
+    },
     "/api/health/live": {
       "get": {
         "operationId": "healthLive",
@@ -1717,6 +2132,144 @@
         "required": [
           "parentId",
           "text"
+        ]
+      },
+      "CollectionDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "documentCount": {
+            "type": "number"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "documentCount",
+          "createdAt"
+        ]
+      },
+      "CollectionListDto": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CollectionDto"
+            }
+          }
+        },
+        "required": [
+          "items"
+        ]
+      },
+      "CreateCollectionDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 100
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "UpdateCollectionDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 100
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "DocumentDto": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "enum": [
+              "pdf",
+              "docx",
+              "markdown",
+              "text"
+            ],
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "pending",
+              "processing",
+              "ready",
+              "failed"
+            ],
+            "type": "string"
+          },
+          "failureReason": {
+            "nullable": true,
+            "enum": [
+              "too_large",
+              "too_many_pages",
+              "unreadable",
+              "timeout",
+              "no_text",
+              "embedding_failed"
+            ],
+            "type": "string"
+          },
+          "pageCount": {
+            "type": "number",
+            "nullable": true
+          },
+          "id": {
+            "type": "string"
+          },
+          "filename": {
+            "type": "string"
+          },
+          "sizeBytes": {
+            "type": "number"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "status",
+          "failureReason",
+          "pageCount",
+          "id",
+          "filename",
+          "sizeBytes",
+          "createdAt"
+        ]
+      },
+      "DocumentListDto": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DocumentDto"
+            }
+          }
+        },
+        "required": [
+          "items"
         ]
       },
       "HealthStatusDto": {

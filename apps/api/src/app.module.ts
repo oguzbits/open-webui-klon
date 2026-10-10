@@ -8,6 +8,7 @@ import { AuditModule } from './database/audit/audit.module.js';
 import { DatabaseModule } from './database/database.module.js';
 import { HealthModule } from './health/health.module.js';
 import { JobsModule } from './jobs/jobs.module.js';
+import { KnowledgeModule } from './knowledge/knowledge.module.js';
 import { AppLoggerModule } from './logging/logger.module.js';
 import { SecurityModule } from './security/security.module.js';
 import { UsersModule } from './users/users.module.js';
@@ -26,6 +27,7 @@ import { ModelsModule } from './models/models.module.js';
     ModelsModule,
     JobsModule,
     ChatsModule,
+    KnowledgeModule,
     HealthModule,
   ],
 })
