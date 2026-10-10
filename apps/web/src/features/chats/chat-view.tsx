@@ -64,6 +64,8 @@ export function ChatSession({ chat, syncToken }: { chat: ChatDetailDto; syncToke
   const lastRequest = useRef<LastRequest | undefined>(undefined);
   const sending = useRef(false);
   const switching = useRef(false);
+  // After a stream ended, until its reload is asked for: a chat loaded meanwhile may not have the exchange yet.
+  const settling = useRef(false);
   const restoreToken = useRef(0);
   const appliedToken = useRef(syncToken);
   const firstSent = useRef(false);
@@ -112,7 +114,9 @@ export function ChatSession({ chat, syncToken }: { chat: ChatDetailDto; syncToke
       onFinish: ({ isAbort, isDisconnect }) => {
         // Also runs after errors. The stream is closed here, so the server has stored what it will store.
         const delay = isAbort || isDisconnect ? ABORT_SETTLE_MS : 0;
+        settling.current = true;
         window.setTimeout(() => {
+          settling.current = false;
           invalidateNow.current();
         }, delay);
       },
@@ -130,10 +134,13 @@ export function ChatSession({ chat, syncToken }: { chat: ChatDetailDto; syncToke
   const busy = status === 'submitted' || status === 'streaming';
   const idle = !busy;
 
-  // The reload brought a newer chat: show its branch, unless something is running.
+  // The reload brought a newer chat: show its branch. A chat loaded while an answer runs, or after it ended but before
+  // its own reload was asked for (settings saved, a title check), predates the exchange: it is skipped for good, or
+  // it would wipe the question and the partial answer. The reload after the stream brings the stored state.
   useEffect(() => {
-    if (!idle || appliedToken.current === syncToken) return;
+    if (appliedToken.current === syncToken) return;
     appliedToken.current = syncToken;
+    if (!idle || settling.current) return;
     switching.current = false;
     setMessages(activePath(chat).map(toUiMessage));
     if (isStreamFailure(error)) clearError();

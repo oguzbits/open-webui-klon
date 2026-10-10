@@ -146,6 +146,19 @@ async function ask(user: ReturnType<typeof userEvent.setup>, text: string) {
   await user.type(screen.getByLabelText('Nachricht'), `${text}{Enter}`);
 }
 
+/**
+ * Lets useChat's throttled message updates (THROTTLE_MS) reach the screen, well within ABORT_SETTLE_MS: a wrongly
+ * applied reload would show by then.
+ */
+async function settleRenders() {
+  await act(
+    () =>
+      new Promise((resolve) => {
+        setTimeout(resolve, 150);
+      })
+  );
+}
+
 const START = { type: 'start', messageId: 'local-a', messageMetadata: IDS };
 const TEXT_START = { type: 'text-start', id: 't1' };
 const delta = (text: string) => ({ type: 'text-delta', id: 't1', delta: text });
@@ -455,6 +468,82 @@ describe('ChatPage: sending', () => {
       await screen.findByText('Die Antwort wurde abgebrochen.', undefined, { timeout: 3000 })
     ).toBeInTheDocument();
     expect(callsTo(fetchMock, 'GET', DETAIL_PATH).length).toBeGreaterThan(loadsBefore);
+  });
+
+  it('keeps the question and the partial answer when a reload finished while the answer ran', async () => {
+    const stream = manualStream();
+    const fetchMock = stubChat({
+      [STREAM]: stream.handler,
+      [`PATCH ${DETAIL_PATH}`]: () => {
+        detail = { ...detail, systemPrompt: 'Antworte kurz.' };
+        return json(200, detail);
+      },
+    });
+    const user = userEvent.setup();
+    await openChat();
+    await ask(user, 'Neue Frage');
+    const sse = await stream.open();
+    sse.send(START);
+    sse.send(TEXT_START);
+    sse.send(delta('Teil'));
+    await within(messageList()).findByText('Teil', { selector: 'p' });
+    const loadsBefore = callsTo(fetchMock, 'GET', DETAIL_PATH).length;
+
+    // Saving the settings reloads the chat while the answer runs: that copy knows nothing of the new exchange.
+    await user.click(screen.getByRole('button', { name: 'Einstellungen' }));
+    await user.type(screen.getByLabelText('Anweisung für das Modell'), 'Antworte kurz.');
+    await user.click(screen.getByRole('button', { name: 'Speichern' }));
+    await waitFor(() => {
+      expect(callsTo(fetchMock, 'GET', DETAIL_PATH).length).toBeGreaterThan(loadsBefore);
+    });
+    await user.click(screen.getByRole('button', { name: 'Stoppen' }));
+    await settleRenders();
+
+    expect(within(messageList()).getByText('Teil', { selector: 'p' })).toBeInTheDocument();
+    expect(within(messageList()).getByText('Neue Frage')).toBeInTheDocument();
+    detail = afterExchange('Teil', MessageDtoStatus.aborted);
+    expect(
+      await screen.findByText('Die Antwort wurde abgebrochen.', undefined, { timeout: 3000 })
+    ).toBeInTheDocument();
+  });
+
+  it('keeps the partial answer when a reload finishes while the stopped answer is being stored', async () => {
+    const stream = manualStream();
+    const fetchMock = stubChat({
+      [STREAM]: stream.handler,
+      [`PATCH ${DETAIL_PATH}`]: () => {
+        detail = { ...detail, systemPrompt: 'Kurz.' };
+        return json(200, detail);
+      },
+    });
+    const user = userEvent.setup();
+    await openChat();
+    await ask(user, 'Neue Frage');
+    const sse = await stream.open();
+    sse.send(START);
+    sse.send(TEXT_START);
+    sse.send(delta('Teil'));
+    await within(messageList()).findByText('Teil', { selector: 'p' });
+    await user.click(screen.getByRole('button', { name: 'Stoppen' }));
+    const loadsAfterStop = callsTo(fetchMock, 'GET', DETAIL_PATH).length;
+
+    // Within the settle time, another reload (here: saving the settings) brings the chat without the exchange.
+    await user.click(screen.getByRole('button', { name: 'Einstellungen' }));
+    await user.type(screen.getByLabelText('Anweisung für das Modell'), 'Kurz.');
+    await user.click(screen.getByRole('button', { name: 'Speichern' }));
+    await waitFor(() => {
+      expect(callsTo(fetchMock, 'GET', DETAIL_PATH).length).toBeGreaterThan(loadsAfterStop);
+    });
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    });
+    await settleRenders();
+
+    expect(within(messageList()).getByText('Teil', { selector: 'p' })).toBeInTheDocument();
+    detail = afterExchange('Teil', MessageDtoStatus.aborted);
+    expect(
+      await screen.findByText('Die Antwort wurde abgebrochen.', undefined, { timeout: 3000 })
+    ).toBeInTheDocument();
   });
 
   it('sends the first message a new chat handed over, once, and clears the router state', async () => {
