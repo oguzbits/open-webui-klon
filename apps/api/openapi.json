@@ -612,6 +612,277 @@
         ]
       }
     },
+    "/api/chats": {
+      "get": {
+        "operationId": "chatsList",
+        "parameters": [
+          {
+            "name": "q",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "maxLength": 200,
+              "type": "string"
+            }
+          },
+          {
+            "name": "cursor",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "maxLength": 500,
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChatListDto"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "The cursor is not valid"
+          }
+        },
+        "tags": [
+          "chats"
+        ]
+      },
+      "post": {
+        "operationId": "chatsCreate",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateChatDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChatDetailDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The model is not available"
+          },
+          "422": {
+            "description": "The system prompt is too long"
+          }
+        },
+        "tags": [
+          "chats"
+        ]
+      }
+    },
+    "/api/chats/{id}": {
+      "get": {
+        "operationId": "chatsDetail",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChatDetailDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "chats"
+        ]
+      },
+      "patch": {
+        "operationId": "chatsUpdate",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateChatDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChatDetailDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": ""
+          },
+          "422": {
+            "description": "The title is blank or the system prompt is too long"
+          }
+        },
+        "tags": [
+          "chats"
+        ]
+      },
+      "delete": {
+        "operationId": "chatsRemove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          },
+          "404": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "chats"
+        ]
+      }
+    },
+    "/api/chats/{id}/stream": {
+      "post": {
+        "operationId": "chatsStream",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StreamChatDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "AI SDK UI message stream (server-sent events)"
+          },
+          "404": {
+            "description": ""
+          },
+          "422": {
+            "description": "The message is empty or too long"
+          },
+          "429": {
+            "description": "Too many answers run at the same time"
+          }
+        },
+        "tags": [
+          "chats"
+        ]
+      }
+    },
+    "/api/chats/{id}/messages/{messageId}/regenerate": {
+      "post": {
+        "operationId": "chatsRegenerate",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "messageId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "AI SDK UI message stream (server-sent events)"
+          },
+          "404": {
+            "description": ""
+          },
+          "422": {
+            "description": "Only an answer can be regenerated"
+          },
+          "429": {
+            "description": "Too many answers run at the same time"
+          }
+        },
+        "tags": [
+          "chats"
+        ]
+      }
+    },
     "/api/health/live": {
       "get": {
         "operationId": "healthLive",
@@ -1186,6 +1457,250 @@
         "required": [
           "models",
           "unavailableConnections"
+        ]
+      },
+      "ChatSummaryDto": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "nullable": true
+          },
+          "id": {
+            "type": "string"
+          },
+          "modelId": {
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "title",
+          "id",
+          "modelId",
+          "updatedAt"
+        ]
+      },
+      "ChatListDto": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ChatSummaryDto"
+            }
+          },
+          "nextCursor": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "items",
+          "nextCursor"
+        ]
+      },
+      "ChatParams": {
+        "type": "object",
+        "properties": {}
+      },
+      "CreateChatDto": {
+        "type": "object",
+        "properties": {
+          "modelId": {
+            "type": "string",
+            "maxLength": 300
+          },
+          "systemPrompt": {
+            "type": "string",
+            "nullable": true,
+            "maxLength": 200000
+          },
+          "params": {
+            "$ref": "#/components/schemas/ChatParams"
+          }
+        },
+        "required": [
+          "modelId"
+        ]
+      },
+      "MessagePartDto": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "enum": [
+              "text"
+            ],
+            "type": "string"
+          },
+          "text": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "text"
+        ]
+      },
+      "MessageDto": {
+        "type": "object",
+        "properties": {
+          "parentId": {
+            "type": "string",
+            "nullable": true
+          },
+          "role": {
+            "enum": [
+              "user",
+              "assistant"
+            ],
+            "type": "string"
+          },
+          "parts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MessagePartDto"
+            }
+          },
+          "status": {
+            "enum": [
+              "complete",
+              "aborted",
+              "error"
+            ],
+            "type": "string"
+          },
+          "errorReason": {
+            "type": "string",
+            "nullable": true
+          },
+          "modelId": {
+            "type": "string",
+            "nullable": true
+          },
+          "id": {
+            "type": "string"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "parentId",
+          "role",
+          "parts",
+          "status",
+          "errorReason",
+          "modelId",
+          "id",
+          "createdAt"
+        ]
+      },
+      "ChatDetailDto": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "nullable": true
+          },
+          "titleSource": {
+            "enum": [
+              "fallback",
+              "generated",
+              "user"
+            ],
+            "type": "string"
+          },
+          "systemPrompt": {
+            "type": "string",
+            "nullable": true
+          },
+          "params": {
+            "$ref": "#/components/schemas/ChatParams"
+          },
+          "activeLeafId": {
+            "type": "string",
+            "nullable": true
+          },
+          "messages": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MessageDto"
+            }
+          },
+          "id": {
+            "type": "string"
+          },
+          "modelId": {
+            "type": "string"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "title",
+          "titleSource",
+          "systemPrompt",
+          "params",
+          "activeLeafId",
+          "messages",
+          "id",
+          "modelId",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "UpdateChatDto": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "maxLength": 200
+          },
+          "modelId": {
+            "type": "string",
+            "maxLength": 300
+          },
+          "systemPrompt": {
+            "type": "string",
+            "nullable": true,
+            "maxLength": 200000
+          },
+          "params": {
+            "$ref": "#/components/schemas/ChatParams"
+          },
+          "activeMessageId": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "StreamChatDto": {
+        "type": "object",
+        "properties": {
+          "parentId": {
+            "type": "string",
+            "nullable": true,
+            "format": "uuid"
+          },
+          "text": {
+            "type": "string",
+            "maxLength": 200000
+          }
+        },
+        "required": [
+          "parentId",
+          "text"
         ]
       },
       "HealthStatusDto": {

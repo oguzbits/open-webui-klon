@@ -26,13 +26,17 @@ export interface FakeRequest {
 
 const OVERSIZED_BYTES = 4096;
 
-function completion(model: string): string {
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function completion(model: string, content: string): string {
   return JSON.stringify({
     id: 'chatcmpl-fake',
     object: 'chat.completion',
     created: 1,
     model,
-    choices: [{ index: 0, message: { role: 'assistant', content: 'pong' }, finish_reason: 'stop' }],
+    choices: [{ index: 0, message: { role: 'assistant', content }, finish_reason: 'stop' }],
     usage: { prompt_tokens: 1, completion_tokens: 1, total_tokens: 2 },
   });
 }
@@ -57,6 +61,10 @@ export class FakeProvider {
   models: string[] = ['llama3:8b', 'mistral:7b'];
   requiredKey: string | undefined = undefined;
   redirectTo = 'http://127.0.0.1:1/elsewhere';
+  /** What a chat completion says: whole in one answer, or in these pieces as a stream. */
+  deltas: string[] = ['pong'];
+  /** Pause between two stream pieces; makes the stream visible in a browser. */
+  streamDelayMs = 0;
   readonly requests: FakeRequest[] = [];
   readonly url: string;
   readonly port: number;
@@ -87,6 +95,17 @@ export class FakeProvider {
         resolve();
       });
     });
+  }
+
+  private async stream(model: string, response: ServerResponse): Promise<void> {
+    response.writeHead(200, { 'content-type': 'text/event-stream' });
+    for (const [index, delta] of this.deltas.entries()) {
+      if (index > 0 && this.streamDelayMs > 0) await sleep(this.streamDelayMs);
+      if (response.destroyed) return;
+      response.write(chunk(model, { role: 'assistant', content: delta }, null));
+    }
+    response.write(chunk(model, {}, 'stop'));
+    response.end('data: [DONE]\n\n');
   }
 
   private handle(request: IncomingMessage, response: ServerResponse): void {
@@ -170,13 +189,10 @@ export class FakeProvider {
       const model =
         'model' in requested && typeof requested.model === 'string' ? requested.model : 'fake';
       if ('stream' in requested && requested.stream === true) {
-        response.writeHead(200, { 'content-type': 'text/event-stream' });
-        response.write(chunk(model, { role: 'assistant', content: 'pong' }, null));
-        response.write(chunk(model, {}, 'stop'));
-        response.end('data: [DONE]\n\n');
+        void this.stream(model, response);
         return;
       }
-      return json(200, completion(model));
+      return json(200, completion(model, this.deltas.join('')));
     }
     return json(404, '{"error":"not found"}');
   }

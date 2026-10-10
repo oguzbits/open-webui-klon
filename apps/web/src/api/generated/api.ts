@@ -28,8 +28,12 @@ import type {
   ApiKeyDto,
   AuthConfigDto,
   ChangePasswordDto,
+  ChatDetailDto,
+  ChatListDto,
+  ChatsListParams,
   ConnectionTestDto,
   CreateApiKeyDto,
+  CreateChatDto,
   CreateProviderConnectionDto,
   CreateUserDto,
   CreatedApiKeyDto,
@@ -40,6 +44,8 @@ import type {
   SessionInfoDto,
   SetUserPasswordDto,
   SignupDto,
+  StreamChatDto,
+  UpdateChatDto,
   UpdateProviderConnectionDto,
   UpdateUserDto,
   UserDto
@@ -2171,6 +2177,752 @@ export function useModelsList<TData = Awaited<ReturnType<typeof modelsList>>, TE
 
 
 
+
+export type chatsListResponse200 = {
+  data: ChatListDto
+  status: 200
+}
+
+export type chatsListResponse422 = {
+  data: void
+  status: 422
+}
+
+export type chatsListResponseSuccess = (chatsListResponse200) & {
+  headers: Headers;
+};
+export type chatsListResponseError = (chatsListResponse422) & {
+  headers: Headers;
+};
+
+export type chatsListResponse = (chatsListResponseSuccess | chatsListResponseError)
+
+export const getChatsListUrl = (params?: ChatsListParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/chats?${stringifiedParams}` : `/api/chats`
+}
+
+export const chatsList = async (params?: ChatsListParams, options?: Parameters<typeof apiFetch>[1]): Promise<chatsListResponse> => {
+
+  return apiFetch<chatsListResponse>(getChatsListUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getChatsListQueryKey = (params?: ChatsListParams,) => {
+    return [
+    `/api/chats`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getChatsListQueryOptions = <TData = Awaited<ReturnType<typeof chatsList>>, TError = void>(params?: ChatsListParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof chatsList>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getChatsListQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof chatsList>>> = ({ signal }) => chatsList(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof chatsList>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ChatsListQueryResult = NonNullable<Awaited<ReturnType<typeof chatsList>>>
+export type ChatsListQueryError = void
+
+
+export function useChatsList<TData = Awaited<ReturnType<typeof chatsList>>, TError = void>(
+ params: undefined |  ChatsListParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof chatsList>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof chatsList>>,
+          TError,
+          Awaited<ReturnType<typeof chatsList>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useChatsList<TData = Awaited<ReturnType<typeof chatsList>>, TError = void>(
+ params?: ChatsListParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof chatsList>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof chatsList>>,
+          TError,
+          Awaited<ReturnType<typeof chatsList>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useChatsList<TData = Awaited<ReturnType<typeof chatsList>>, TError = void>(
+ params?: ChatsListParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof chatsList>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useChatsList<TData = Awaited<ReturnType<typeof chatsList>>, TError = void>(
+ params?: ChatsListParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof chatsList>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getChatsListQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export type chatsCreateResponse201 = {
+  data: ChatDetailDto
+  status: 201
+}
+
+export type chatsCreateResponse404 = {
+  data: void
+  status: 404
+}
+
+export type chatsCreateResponse422 = {
+  data: void
+  status: 422
+}
+
+export type chatsCreateResponseSuccess = (chatsCreateResponse201) & {
+  headers: Headers;
+};
+export type chatsCreateResponseError = (chatsCreateResponse404 | chatsCreateResponse422) & {
+  headers: Headers;
+};
+
+export type chatsCreateResponse = (chatsCreateResponseSuccess | chatsCreateResponseError)
+
+export const getChatsCreateUrl = () => {
+
+
+
+
+  return `/api/chats`
+}
+
+export const chatsCreate = async (createChatDto: CreateChatDto, options?: Parameters<typeof apiFetch>[1]): Promise<chatsCreateResponse> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<chatsCreateResponse>(getChatsCreateUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(createChatDto)
+  }
+);}
+
+
+
+
+
+export const getChatsCreateMutationKey = () => ['chatsCreate'] as const;
+
+export const getChatsCreateMutationOptions = <TError = void,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof chatsCreate>>, TError,ChatsCreateMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof chatsCreate>>, TError,ChatsCreateMutationVariables, TContext> => {
+
+const mutationKey = getChatsCreateMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof chatsCreate>>, ChatsCreateMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  chatsCreate(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ChatsCreateMutationResult = NonNullable<Awaited<ReturnType<typeof chatsCreate>>>
+    export type ChatsCreateMutationBody = CreateChatDto
+    export type ChatsCreateMutationError = void
+    export type ChatsCreateMutationVariables = {data: CreateChatDto}
+
+    export const useChatsCreate = <TError = void,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof chatsCreate>>, TError,ChatsCreateMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof chatsCreate>>,
+        TError,
+        ChatsCreateMutationVariables,
+        TContext
+      > => {
+      return useMutation(getChatsCreateMutationOptions(options), queryClient);
+    }
+
+export type chatsDetailResponse200 = {
+  data: ChatDetailDto
+  status: 200
+}
+
+export type chatsDetailResponse404 = {
+  data: void
+  status: 404
+}
+
+export type chatsDetailResponseSuccess = (chatsDetailResponse200) & {
+  headers: Headers;
+};
+export type chatsDetailResponseError = (chatsDetailResponse404) & {
+  headers: Headers;
+};
+
+export type chatsDetailResponse = (chatsDetailResponseSuccess | chatsDetailResponseError)
+
+export const getChatsDetailUrl = (id: string,) => {
+
+
+
+
+  return `/api/chats/${id}`
+}
+
+export const chatsDetail = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<chatsDetailResponse> => {
+
+  return apiFetch<chatsDetailResponse>(getChatsDetailUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getChatsDetailQueryKey = (id: string,) => {
+    return [
+    `/api/chats/${id}`
+    ] as const;
+    }
+
+
+export const getChatsDetailQueryOptions = <TData = Awaited<ReturnType<typeof chatsDetail>>, TError = void>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof chatsDetail>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getChatsDetailQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof chatsDetail>>> = ({ signal }) => chatsDetail(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof chatsDetail>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ChatsDetailQueryResult = NonNullable<Awaited<ReturnType<typeof chatsDetail>>>
+export type ChatsDetailQueryError = void
+
+
+export function useChatsDetail<TData = Awaited<ReturnType<typeof chatsDetail>>, TError = void>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof chatsDetail>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof chatsDetail>>,
+          TError,
+          Awaited<ReturnType<typeof chatsDetail>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useChatsDetail<TData = Awaited<ReturnType<typeof chatsDetail>>, TError = void>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof chatsDetail>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof chatsDetail>>,
+          TError,
+          Awaited<ReturnType<typeof chatsDetail>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useChatsDetail<TData = Awaited<ReturnType<typeof chatsDetail>>, TError = void>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof chatsDetail>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useChatsDetail<TData = Awaited<ReturnType<typeof chatsDetail>>, TError = void>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof chatsDetail>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getChatsDetailQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export type chatsUpdateResponse200 = {
+  data: ChatDetailDto
+  status: 200
+}
+
+export type chatsUpdateResponse404 = {
+  data: void
+  status: 404
+}
+
+export type chatsUpdateResponse422 = {
+  data: void
+  status: 422
+}
+
+export type chatsUpdateResponseSuccess = (chatsUpdateResponse200) & {
+  headers: Headers;
+};
+export type chatsUpdateResponseError = (chatsUpdateResponse404 | chatsUpdateResponse422) & {
+  headers: Headers;
+};
+
+export type chatsUpdateResponse = (chatsUpdateResponseSuccess | chatsUpdateResponseError)
+
+export const getChatsUpdateUrl = (id: string,) => {
+
+
+
+
+  return `/api/chats/${id}`
+}
+
+export const chatsUpdate = async (id: string,
+    updateChatDto: UpdateChatDto, options?: Parameters<typeof apiFetch>[1]): Promise<chatsUpdateResponse> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<chatsUpdateResponse>(getChatsUpdateUrl(id),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(updateChatDto)
+  }
+);}
+
+
+
+
+
+export const getChatsUpdateMutationKey = () => ['chatsUpdate'] as const;
+
+export const getChatsUpdateMutationOptions = <TError = void,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof chatsUpdate>>, TError,ChatsUpdateMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof chatsUpdate>>, TError,ChatsUpdateMutationVariables, TContext> => {
+
+const mutationKey = getChatsUpdateMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof chatsUpdate>>, ChatsUpdateMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  chatsUpdate(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ChatsUpdateMutationResult = NonNullable<Awaited<ReturnType<typeof chatsUpdate>>>
+    export type ChatsUpdateMutationBody = UpdateChatDto
+    export type ChatsUpdateMutationError = void
+    export type ChatsUpdateMutationVariables = {id: string;data: UpdateChatDto}
+
+    export const useChatsUpdate = <TError = void,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof chatsUpdate>>, TError,ChatsUpdateMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof chatsUpdate>>,
+        TError,
+        ChatsUpdateMutationVariables,
+        TContext
+      > => {
+      return useMutation(getChatsUpdateMutationOptions(options), queryClient);
+    }
+
+export type chatsRemoveResponse204 = {
+  data: void
+  status: 204
+}
+
+export type chatsRemoveResponse404 = {
+  data: void
+  status: 404
+}
+
+export type chatsRemoveResponseSuccess = (chatsRemoveResponse204) & {
+  headers: Headers;
+};
+export type chatsRemoveResponseError = (chatsRemoveResponse404) & {
+  headers: Headers;
+};
+
+export type chatsRemoveResponse = (chatsRemoveResponseSuccess | chatsRemoveResponseError)
+
+export const getChatsRemoveUrl = (id: string,) => {
+
+
+
+
+  return `/api/chats/${id}`
+}
+
+export const chatsRemove = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<chatsRemoveResponse> => {
+
+  return apiFetch<chatsRemoveResponse>(getChatsRemoveUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+
+export const getChatsRemoveMutationKey = () => ['chatsRemove'] as const;
+
+export const getChatsRemoveMutationOptions = <TError = void,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof chatsRemove>>, TError,ChatsRemoveMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof chatsRemove>>, TError,ChatsRemoveMutationVariables, TContext> => {
+
+const mutationKey = getChatsRemoveMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof chatsRemove>>, ChatsRemoveMutationVariables> = (props) => {
+          const {id} = props ?? {};
+
+          return  chatsRemove(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ChatsRemoveMutationResult = NonNullable<Awaited<ReturnType<typeof chatsRemove>>>
+
+    export type ChatsRemoveMutationError = void
+    export type ChatsRemoveMutationVariables = {id: string}
+
+    export const useChatsRemove = <TError = void,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof chatsRemove>>, TError,ChatsRemoveMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof chatsRemove>>,
+        TError,
+        ChatsRemoveMutationVariables,
+        TContext
+      > => {
+      return useMutation(getChatsRemoveMutationOptions(options), queryClient);
+    }
+
+export type chatsStreamResponse200 = {
+  data: void
+  status: 200
+}
+
+export type chatsStreamResponse404 = {
+  data: void
+  status: 404
+}
+
+export type chatsStreamResponse422 = {
+  data: void
+  status: 422
+}
+
+export type chatsStreamResponse429 = {
+  data: void
+  status: 429
+}
+
+export type chatsStreamResponseSuccess = (chatsStreamResponse200) & {
+  headers: Headers;
+};
+export type chatsStreamResponseError = (chatsStreamResponse404 | chatsStreamResponse422 | chatsStreamResponse429) & {
+  headers: Headers;
+};
+
+export type chatsStreamResponse = (chatsStreamResponseSuccess | chatsStreamResponseError)
+
+export const getChatsStreamUrl = (id: string,) => {
+
+
+
+
+  return `/api/chats/${id}/stream`
+}
+
+export const chatsStream = async (id: string,
+    streamChatDto: StreamChatDto, options?: Parameters<typeof apiFetch>[1]): Promise<chatsStreamResponse> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<chatsStreamResponse>(getChatsStreamUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(streamChatDto)
+  }
+);}
+
+
+
+
+
+export const getChatsStreamMutationKey = () => ['chatsStream'] as const;
+
+export const getChatsStreamMutationOptions = <TError = void,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof chatsStream>>, TError,ChatsStreamMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof chatsStream>>, TError,ChatsStreamMutationVariables, TContext> => {
+
+const mutationKey = getChatsStreamMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof chatsStream>>, ChatsStreamMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  chatsStream(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ChatsStreamMutationResult = NonNullable<Awaited<ReturnType<typeof chatsStream>>>
+    export type ChatsStreamMutationBody = StreamChatDto
+    export type ChatsStreamMutationError = void
+    export type ChatsStreamMutationVariables = {id: string;data: StreamChatDto}
+
+    export const useChatsStream = <TError = void,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof chatsStream>>, TError,ChatsStreamMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof chatsStream>>,
+        TError,
+        ChatsStreamMutationVariables,
+        TContext
+      > => {
+      return useMutation(getChatsStreamMutationOptions(options), queryClient);
+    }
+
+export type chatsRegenerateResponse200 = {
+  data: void
+  status: 200
+}
+
+export type chatsRegenerateResponse404 = {
+  data: void
+  status: 404
+}
+
+export type chatsRegenerateResponse422 = {
+  data: void
+  status: 422
+}
+
+export type chatsRegenerateResponse429 = {
+  data: void
+  status: 429
+}
+
+export type chatsRegenerateResponseSuccess = (chatsRegenerateResponse200) & {
+  headers: Headers;
+};
+export type chatsRegenerateResponseError = (chatsRegenerateResponse404 | chatsRegenerateResponse422 | chatsRegenerateResponse429) & {
+  headers: Headers;
+};
+
+export type chatsRegenerateResponse = (chatsRegenerateResponseSuccess | chatsRegenerateResponseError)
+
+export const getChatsRegenerateUrl = (id: string,
+    messageId: string,) => {
+
+
+
+
+  return `/api/chats/${id}/messages/${messageId}/regenerate`
+}
+
+export const chatsRegenerate = async (id: string,
+    messageId: string, options?: Parameters<typeof apiFetch>[1]): Promise<chatsRegenerateResponse> => {
+
+  return apiFetch<chatsRegenerateResponse>(getChatsRegenerateUrl(id,messageId),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getChatsRegenerateMutationKey = () => ['chatsRegenerate'] as const;
+
+export const getChatsRegenerateMutationOptions = <TError = void,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof chatsRegenerate>>, TError,ChatsRegenerateMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof chatsRegenerate>>, TError,ChatsRegenerateMutationVariables, TContext> => {
+
+const mutationKey = getChatsRegenerateMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof chatsRegenerate>>, ChatsRegenerateMutationVariables> = (props) => {
+          const {id,messageId} = props ?? {};
+
+          return  chatsRegenerate(id,messageId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ChatsRegenerateMutationResult = NonNullable<Awaited<ReturnType<typeof chatsRegenerate>>>
+
+    export type ChatsRegenerateMutationError = void
+    export type ChatsRegenerateMutationVariables = {id: string;messageId: string}
+
+    export const useChatsRegenerate = <TError = void,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof chatsRegenerate>>, TError,ChatsRegenerateMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof chatsRegenerate>>,
+        TError,
+        ChatsRegenerateMutationVariables,
+        TContext
+      > => {
+      return useMutation(getChatsRegenerateMutationOptions(options), queryClient);
+    }
 
 export type healthLiveResponse200 = {
   data: HealthStatusDto

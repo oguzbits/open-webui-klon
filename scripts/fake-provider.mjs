@@ -14,6 +14,10 @@ if (!Object.values(FAKE_MODE).includes(mode)) {
 const provider = await FakeProvider.start(Number(port), '0.0.0.0');
 provider.mode = mode;
 provider.requiredKey = key;
+// A chat answers in three pieces, 200 ms apart, so the stream is visible in the browser. A non-streaming
+// request (the title job) gets the same text joined; the title is then the whole answer.
+provider.deltas = ['Hallo ', 'aus dem ', 'Testanbieter.'];
+provider.streamDelayMs = 200;
 console.log(`fake provider on port ${provider.port}, mode ${mode}${key ? ', key required' : ''}`);
 
 process.on('SIGINT', async () => {

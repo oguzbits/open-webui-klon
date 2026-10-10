@@ -109,6 +109,19 @@ check(
     (anonymousConnections.headers.get('content-type') ?? '').includes('application/problem+json')
 );
 
+const chatsWithoutSession = await fetch(`${BASE_URL}/api/chats`);
+check('chat list needs a session', chatsWithoutSession.status === 401);
+
+const streamWithoutSession = await fetch(
+  `${BASE_URL}/api/chats/00000000-0000-4000-8000-000000000000/stream`,
+  {
+    method: 'POST',
+    headers: { 'content-type': 'application/json', origin: BASE_URL },
+    body: JSON.stringify({ parentId: null, text: 'x' }),
+  }
+);
+check('chat stream needs a session', streamWithoutSession.status === 401);
+
 if (failures.length > 0) {
   console.error(`\n${failures.length} check(s) failed`);
   process.exit(1);
