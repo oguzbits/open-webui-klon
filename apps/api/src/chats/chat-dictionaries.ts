@@ -13,8 +13,6 @@ export const CHAT_TITLE_SOURCE = {
 } as const;
 export type ChatTitleSource = (typeof CHAT_TITLE_SOURCE)[keyof typeof CHAT_TITLE_SOURCE];
 
-export const CHAT_JOB = { GENERATE_TITLE: 'chat.generate-title' } as const;
-
 /** The only error text that reaches the client from inside a stream; the web app maps it to a message. */
 export const STREAM_ERROR_TEXT = 'stream_failed';
 

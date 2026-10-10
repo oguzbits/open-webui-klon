@@ -10,7 +10,8 @@ import { chatModel } from '../testing/chat-model.js';
 import { createDbTestApp } from '../testing/create-db-test-app.js';
 import { FakeJobQueue } from '../testing/fake-job-queue.js';
 import { authed, type Http, type Login, signupUser } from '../testing/http-session.js';
-import { CHAT_JOB, CHAT_TITLE_SOURCE } from './chat-dictionaries.js';
+import { CHAT_JOB } from '../jobs/job-names.js';
+import { CHAT_TITLE_SOURCE } from './chat-dictionaries.js';
 import type { ChatDetailDto } from './chats.dto.js';
 
 const MODEL_ID = 'connection-1:fake-model';

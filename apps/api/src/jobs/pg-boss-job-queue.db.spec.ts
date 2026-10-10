@@ -5,9 +5,10 @@ import { testDatabaseUrl } from '../../test/db-global-setup.js';
 import { AppConfigModule } from '../config/app-config.module.js';
 import { AppLoggerModule } from '../logging/logger.module.js';
 import { BASE_TEST_ENV } from '../testing/create-test-app.js';
+import { CHAT_JOB } from './job-names.js';
 import { PgBossJobQueue } from './pg-boss-job-queue.js';
 
-const NAME = 'test.job-queue';
+const NAME = CHAT_JOB.GENERATE_TITLE;
 
 describe('PgBossJobQueue (database)', () => {
   let queue: PgBossJobQueue;

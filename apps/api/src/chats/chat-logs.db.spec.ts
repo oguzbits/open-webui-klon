@@ -11,7 +11,7 @@ import { FakeJobQueue } from '../testing/fake-job-queue.js';
 import { authed, signupUser } from '../testing/http-session.js';
 import { capturingLogger } from '../testing/provider-fixtures.js';
 import { JOB_QUEUE } from '../jobs/job-queue.js';
-import { CHAT_JOB } from './chat-dictionaries.js';
+import { CHAT_JOB } from '../jobs/job-names.js';
 import type { ChatDetailDto } from './chats.dto.js';
 
 const MESSAGE = 'GEHEIME-NACHRICHT-4711';

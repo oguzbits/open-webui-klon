@@ -8,7 +8,8 @@ import { PinoLogger } from 'nestjs-pino';
 import { PgBoss } from 'pg-boss';
 
 import type { Env } from '../config/env.js';
-import type { ChatJobData, JobQueue } from './job-queue.js';
+import type { JobName, JobPayload } from './job-names.js';
+import type { JobQueue } from './job-queue.js';
 
 const RETRY_LIMIT = 2;
 const RETRY_DELAY_SECONDS = 1;
@@ -39,7 +40,7 @@ export class PgBossJobQueue implements JobQueue, OnApplicationBootstrap, BeforeA
     await boss.stop({ graceful: true, timeout: SHUTDOWN_TIMEOUT_MS });
   }
 
-  async send(name: string, data: ChatJobData): Promise<void> {
+  async send<N extends JobName>(name: N, data: JobPayload[N]): Promise<void> {
     const boss = await this.started();
     await boss.createQueue(name);
     await boss.send(name, data, {
@@ -49,10 +50,13 @@ export class PgBossJobQueue implements JobQueue, OnApplicationBootstrap, BeforeA
     });
   }
 
-  async work(name: string, handler: (data: ChatJobData) => Promise<void>): Promise<void> {
+  async work<N extends JobName>(
+    name: N,
+    handler: (data: JobPayload[N]) => Promise<void>
+  ): Promise<void> {
     const boss = await this.started();
     await boss.createQueue(name);
-    await boss.work<ChatJobData>(name, async (jobs) => {
+    await boss.work<JobPayload[N]>(name, async (jobs) => {
       for (const job of jobs) await handler(job.data);
     });
   }

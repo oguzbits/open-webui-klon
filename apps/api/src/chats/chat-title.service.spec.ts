@@ -2,7 +2,8 @@ import { describe, expect, it } from 'vitest';
 
 import { FakeJobQueue } from '../testing/fake-job-queue.js';
 import { silentLogger } from '../testing/provider-fixtures.js';
-import { CHAT_JOB, CHAT_TITLE_SOURCE, type ChatTitleSource } from './chat-dictionaries.js';
+import { CHAT_JOB } from '../jobs/job-names.js';
+import { CHAT_TITLE_SOURCE, type ChatTitleSource } from './chat-dictionaries.js';
 import { ChatTitleService } from './chat-title.service.js';
 
 function service(options: { answers: number; titleSource?: ChatTitleSource }) {
