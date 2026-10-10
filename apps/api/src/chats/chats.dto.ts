@@ -1,6 +1,9 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import {
+  ArrayMaxSize,
+  ArrayUnique,
+  IsArray,
   IsInt,
   IsNotEmpty,
   IsOptional,
@@ -21,10 +24,11 @@ import {
   type MessageRole,
   type MessageStatus,
 } from './chat-dictionaries.js';
-import { ChatParams, type MessagePart } from './chat-params.js';
+import { ChatParams, type MessagePart, type MessageSource } from './chat-params.js';
 
 /** Hard ceilings of the DTOs; the configured limits (smaller) are checked in the services. */
 export const DTO_TEXT_CEILING = 200000;
+export const MAX_CHAT_COLLECTIONS = 10;
 
 export class CreateChatDto {
   @IsString()
@@ -72,6 +76,15 @@ export class UpdateChatDto {
   @IsOptional()
   @IsUUID()
   activeMessageId?: string;
+
+  /** Collections searched for every answer (replaces the list). Each must belong to the user, else 404. */
+  @ApiPropertyOptional({ type: [String], maxItems: MAX_CHAT_COLLECTIONS })
+  @IsOptional()
+  @IsArray()
+  @ArrayMaxSize(MAX_CHAT_COLLECTIONS)
+  @ArrayUnique()
+  @IsUUID('all', { each: true })
+  collectionIds?: string[];
 }
 
 export class ListChatsQueryDto {
@@ -114,6 +127,16 @@ export class MessagePartDto {
   text!: string;
 }
 
+export class MessageSourceDto {
+  @ApiProperty({ minimum: 1 })
+  n!: number;
+  documentId!: string;
+  filename!: string;
+  @ApiProperty({ type: Number, nullable: true })
+  page!: number | null;
+  excerpt!: string;
+}
+
 export class MessageDto {
   id!: string;
   @ApiProperty({ type: String, nullable: true })
@@ -122,6 +145,9 @@ export class MessageDto {
   role!: MessageRole;
   @ApiProperty({ type: [MessagePartDto] })
   parts!: MessagePart[];
+  /** The sources sent to the model for this answer; null if no search ran. */
+  @ApiProperty({ type: [MessageSourceDto], nullable: true })
+  sources!: MessageSource[] | null;
   @ApiProperty({ enum: Object.values(MESSAGE_STATUS) })
   status!: MessageStatus;
   @ApiProperty({ type: String, nullable: true })
@@ -142,6 +168,9 @@ export class ChatDetailDto {
   systemPrompt!: string | null;
   @ApiProperty({ type: ChatParams })
   params!: ChatParams;
+  /** Collections searched for every answer; deleted ones are left out. */
+  @ApiProperty({ type: [String] })
+  collectionIds!: string[];
   @ApiProperty({ type: String, nullable: true })
   activeLeafId!: string | null;
   createdAt!: Date;

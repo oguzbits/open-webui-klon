@@ -13,6 +13,9 @@ import type { Response } from 'express';
 import { PinoLogger } from 'nestjs-pino';
 
 import type { Env } from '../config/env.js';
+import { CollectionsService } from '../knowledge/collections.service.js';
+import { buildKnowledgeContext, verifyCitations } from '../knowledge/knowledge-context.js';
+import { KnowledgeSearchService } from '../knowledge/knowledge-search.service.js';
 import { ProviderError } from '../http/safe-fetch/provider-error.js';
 import { ModelRegistryService, type ResolvedModel } from '../models/model-registry.service.js';
 import {
@@ -22,7 +25,7 @@ import {
   STREAM_ERROR_TEXT,
 } from './chat-dictionaries.js';
 import { buildHistory } from './chat-history.js';
-import type { MessagePart } from './chat-params.js';
+import type { MessagePart, MessageSource } from './chat-params.js';
 import { ChatTitleService } from './chat-title.service.js';
 import type { Chat } from './chat.entity.js';
 import type { StreamChatDto } from './chats.dto.js';
@@ -36,6 +39,8 @@ interface Run {
   resolved: ResolvedModel;
   /** The user message the answer hangs under; the history ends here. */
   userMessageId: string;
+  /** Set when the chat searched its collections for this answer. */
+  knowledge: { prompt: string; sources: MessageSource[] } | undefined;
 }
 
 /** Looks through the `cause` chain for a provider error; everything else is "internal". */
@@ -90,6 +95,7 @@ export class ChatStreamService {
   private readonly contextMax: number;
   private readonly outputMax: number;
   private readonly durationMs: number;
+  private readonly contextCharsMax: number;
 
   constructor(
     private readonly chats: ChatsService,
@@ -97,6 +103,8 @@ export class ChatStreamService {
     private readonly registry: ModelRegistryService,
     private readonly slots: StreamSlots,
     private readonly titles: ChatTitleService,
+    private readonly collections: CollectionsService,
+    private readonly search: KnowledgeSearchService,
     private readonly logger: PinoLogger,
     config: ConfigService<Env, true>
   ) {
@@ -105,6 +113,7 @@ export class ChatStreamService {
     this.contextMax = config.get('CHAT_CONTEXT_MAX_CHARS', { infer: true });
     this.outputMax = config.get('CHAT_MAX_OUTPUT_TOKENS', { infer: true });
     this.durationMs = config.get('CHAT_STREAM_MAX_DURATION_MS', { infer: true });
+    this.contextCharsMax = config.get('RAG_CONTEXT_MAX_CHARS', { infer: true });
   }
 
   /** New user message under `input.parentId`, then the answer as an event stream. */
@@ -122,13 +131,15 @@ export class ChatStreamService {
     try {
       const chat = await this.chats.getOwned(userId, chatId);
       const resolved = await this.registry.resolve(chat.modelId);
+      // The search comes first: if it fails (503), the question has not been stored.
+      const knowledge = await this.searchCollections(userId, chat, text);
       const { messageId } = await this.tree.appendUserMessage(
         userId,
         chatId,
         input.parentId,
         input.text
       );
-      await this.run({ userId, chat, resolved, userMessageId: messageId }, response);
+      await this.run({ userId, chat, resolved, userMessageId: messageId, knowledge }, response);
     } finally {
       release();
     }
@@ -145,15 +156,41 @@ export class ChatStreamService {
     try {
       const chat = await this.chats.getOwned(userId, chatId);
       const resolved = await this.registry.resolve(chat.modelId);
-      const { userMessageId } = await this.tree.prepareRegenerate(userId, chatId, messageId);
-      await this.run({ userId, chat, resolved, userMessageId }, response);
+      // prepareRegenerate only checks and reads; nothing is written before the search has succeeded.
+      const { userMessageId, userText } = await this.tree.prepareRegenerate(
+        userId,
+        chatId,
+        messageId
+      );
+      const knowledge = await this.searchCollections(userId, chat, userText);
+      await this.run({ userId, chat, resolved, userMessageId, knowledge }, response);
     } finally {
       release();
     }
   }
 
+  /** Undefined when the chat has no (remaining) collection: no embedding call, the prompt stays as it is. */
+  private async searchCollections(
+    userId: string,
+    chat: Chat,
+    question: string
+  ): Promise<Run['knowledge']> {
+    const collectionIds = await this.collections.ownedIds(userId, chat.collectionIds);
+    if (collectionIds.length === 0) return undefined;
+    const startedAt = Date.now();
+    const hits = await this.search.search(userId, collectionIds, question);
+    const context = buildKnowledgeContext(hits, this.contextCharsMax);
+    this.logger.info({
+      chatId: chat.id,
+      hits: hits.length,
+      sources: context.sources.length,
+      durationMs: Date.now() - startedAt,
+    });
+    return context;
+  }
+
   private async run(run: Run, response: Response): Promise<void> {
-    const { userId, chat, resolved, userMessageId } = run;
+    const { userId, chat, resolved, userMessageId, knowledge } = run;
     const startedAt = Date.now();
     const assistantMessageId = randomUUID();
 
@@ -177,7 +214,11 @@ export class ChatStreamService {
 
     const result = streamText({
       model: resolved.model,
-      system: chat.systemPrompt ?? undefined,
+      // The excerpts come after the chat's own prompt, never before it.
+      system:
+        [chat.systemPrompt, knowledge?.prompt]
+          .filter((part): part is string => part !== null && part !== undefined && part !== '')
+          .join('\n\n') || undefined,
       messages,
       abortSignal,
       maxRetries: 0,
@@ -190,12 +231,17 @@ export class ChatStreamService {
       stream: result.stream,
       onError: () => STREAM_ERROR_TEXT,
       messageMetadata: ({ part }) =>
-        part.type === 'start' ? { userMessageId, assistantMessageId } : undefined,
+        part.type === 'start'
+          ? { userMessageId, assistantMessageId, sources: knowledge?.sources }
+          : undefined,
       onEnd: async (event) => {
         const status = statusOf(event.outcome, event.isAborted);
-        const joined = event.responseMessage.parts
+        const raw = event.responseMessage.parts
           .flatMap((part) => (part.type === 'text' ? [part.text] : []))
           .join('');
+        // Only numbers that were sent to the model stay citations.
+        const joined =
+          knowledge === undefined ? raw : verifyCitations(raw, knowledge.sources.length);
         const parts: MessagePart[] = joined === '' ? [] : [{ type: 'text', text: joined }];
         const usage = status === MESSAGE_STATUS.COMPLETE ? await result.usage : undefined;
         const saved = await this.tree.saveAssistant({
@@ -205,6 +251,7 @@ export class ChatStreamService {
           parentId: userMessageId,
           status,
           parts,
+          sources: knowledge?.sources ?? null,
           errorReason:
             status === MESSAGE_STATUS.ERROR
               ? reasonOf(event.outcome.status === 'failed' ? event.outcome.error : undefined)

@@ -40,6 +40,7 @@ export * from './messageDtoRole.ts';
 export * from './messageDtoStatus.ts';
 export * from './messagePartDto.ts';
 export * from './messagePartDtoType.ts';
+export * from './messageSourceDto.ts';
 export * from './modelDto.ts';
 export * from './modelDtoProviderType.ts';
 export * from './modelListDto.ts';

@@ -1976,6 +1976,35 @@
           "text"
         ]
       },
+      "MessageSourceDto": {
+        "type": "object",
+        "properties": {
+          "n": {
+            "type": "number",
+            "minimum": 1
+          },
+          "page": {
+            "type": "number",
+            "nullable": true
+          },
+          "documentId": {
+            "type": "string"
+          },
+          "filename": {
+            "type": "string"
+          },
+          "excerpt": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "n",
+          "page",
+          "documentId",
+          "filename",
+          "excerpt"
+        ]
+      },
       "MessageDto": {
         "type": "object",
         "properties": {
@@ -1994,6 +2023,13 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/MessagePartDto"
+            }
+          },
+          "sources": {
+            "nullable": true,
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MessageSourceDto"
             }
           },
           "status": {
@@ -2024,6 +2060,7 @@
           "parentId",
           "role",
           "parts",
+          "sources",
           "status",
           "errorReason",
           "modelId",
@@ -2052,6 +2089,12 @@
           },
           "params": {
             "$ref": "#/components/schemas/ChatParams"
+          },
+          "collectionIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           },
           "activeLeafId": {
             "type": "string",
@@ -2083,6 +2126,7 @@
           "titleSource",
           "systemPrompt",
           "params",
+          "collectionIds",
           "activeLeafId",
           "messages",
           "id",
@@ -2094,6 +2138,15 @@
       "UpdateChatDto": {
         "type": "object",
         "properties": {
+          "collectionIds": {
+            "uniqueItems": true,
+            "maxItems": 10,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
           "title": {
             "type": "string",
             "maxLength": 200

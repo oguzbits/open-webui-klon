@@ -17,7 +17,7 @@ import {
   type MessageStatus,
 } from './chat-dictionaries.js';
 import type { HistoryRow } from './chat-history.js';
-import type { MessagePart } from './chat-params.js';
+import type { MessagePart, MessageSource } from './chat-params.js';
 import { fallbackTitle } from './chat-title.js';
 import type { MessageDto } from './chats.dto.js';
 
@@ -28,6 +28,8 @@ export interface SaveAssistantInput {
   parentId: string;
   status: MessageStatus;
   parts: MessagePart[];
+  /** Every source sent to the model; null if no search ran. */
+  sources: MessageSource[] | null;
   errorReason: string | null;
   modelId: string;
   inputTokens: number | null;
@@ -39,6 +41,7 @@ interface MessageRow {
   parent_id: string | null;
   role: MessageRole;
   parts: MessagePart[];
+  sources: MessageSource[] | null;
   status: MessageStatus;
   error_reason: string | null;
   model_id: string | null;
@@ -62,7 +65,7 @@ export class MessageTreeService {
 
   async listMessages(userId: string, chatId: string): Promise<MessageDto[]> {
     const rows: MessageRow[] = await this.dataSource.query(
-      `SELECT m.id, m.parent_id, m.role, m.parts, m.status, m.error_reason, m.model_id, m.created_at
+      `SELECT m.id, m.parent_id, m.role, m.parts, m.sources, m.status, m.error_reason, m.model_id, m.created_at
          FROM message m JOIN chat c ON c.id = m.chat_id
         WHERE m.chat_id = $1 AND c.user_id = $2
         ORDER BY m.created_at, m.id`,
@@ -73,6 +76,7 @@ export class MessageTreeService {
       parentId: row.parent_id,
       role: row.role,
       parts: row.parts,
+      sources: row.sources,
       status: row.status,
       errorReason: row.error_reason,
       modelId: row.model_id,
@@ -162,13 +166,19 @@ export class MessageTreeService {
     userId: string,
     chatId: string,
     messageId: string
-  ): Promise<{ userMessageId: string }> {
+  ): Promise<{ userMessageId: string; userText: string }> {
     return this.dataSource.transaction(async (manager) => {
       await this.lockChat(manager, userId, chatId);
       await this.checkRoom(manager, chatId);
-      const rows: { role: MessageRole; parent_id: string | null }[] = await manager.query(
-        `SELECT m.role, m.parent_id
-           FROM message m JOIN chat c ON c.id = m.chat_id
+      const rows: {
+        role: MessageRole;
+        parent_id: string | null;
+        user_parts: MessagePart[] | null;
+      }[] = await manager.query(
+        `SELECT m.role, m.parent_id, q.parts AS user_parts
+           FROM message m
+           JOIN chat c ON c.id = m.chat_id
+           LEFT JOIN message q ON q.id = m.parent_id AND q.chat_id = m.chat_id
           WHERE m.id = $1 AND m.chat_id = $2 AND c.user_id = $3`,
         [messageId, chatId, userId]
       );
@@ -177,7 +187,8 @@ export class MessageTreeService {
       if (row.role !== MESSAGE_ROLE.ASSISTANT || row.parent_id === null) {
         throw new UnprocessableEntityException('Only an answer can be regenerated');
       }
-      return { userMessageId: row.parent_id };
+      const userText = (row.user_parts ?? []).map((part) => part.text).join('');
+      return { userMessageId: row.parent_id, userText };
     });
   }
 
@@ -185,9 +196,9 @@ export class MessageTreeService {
   async saveAssistant(input: SaveAssistantInput): Promise<boolean> {
     return this.dataSource.transaction(async (manager) => {
       const inserted: { id: string }[] = await manager.query(
-        `INSERT INTO message (id, chat_id, parent_id, role, parts, status, error_reason, model_id, input_tokens, output_tokens)
-         SELECT $1, $2, $3, $4, $5::jsonb, $6, $7, $8, $9, $10
-          WHERE EXISTS (SELECT 1 FROM chat WHERE id = $2 AND user_id = $11)
+        `INSERT INTO message (id, chat_id, parent_id, role, parts, sources, status, error_reason, model_id, input_tokens, output_tokens)
+         SELECT $1, $2, $3, $4, $5::jsonb, $6::jsonb, $7, $8, $9, $10, $11
+          WHERE EXISTS (SELECT 1 FROM chat WHERE id = $2 AND user_id = $12)
           RETURNING id`,
         [
           input.id,
@@ -195,6 +206,7 @@ export class MessageTreeService {
           input.parentId,
           MESSAGE_ROLE.ASSISTANT,
           JSON.stringify(input.parts),
+          input.sources === null ? null : JSON.stringify(input.sources),
           input.status,
           input.errorReason,
           input.modelId,

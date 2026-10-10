@@ -149,11 +149,12 @@ export class CollectionsService {
       throw new NotFoundException('Document not found in this collection');
   }
 
-  /** Of these ids the ones that are collections of the user; what a chat may search in. */
+  /** Of these ids the ones that are collections of the user, in the order given; what a chat may search in. */
   async ownedIds(userId: string, ids: string[]): Promise<string[]> {
     if (ids.length === 0) return [];
     const rows: { id: string }[] = await this.dataSource.query(
-      'SELECT id FROM collection WHERE user_id = $1 AND id = ANY($2::uuid[])',
+      `SELECT id FROM collection WHERE user_id = $1 AND id = ANY($2::uuid[])
+        ORDER BY array_position($2::uuid[], id)`,
       [userId, ids]
     );
     return rows.map((row) => row.id);

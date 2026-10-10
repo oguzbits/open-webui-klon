@@ -4,6 +4,7 @@ import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 
 import type { Env } from '../config/env.js';
+import { CollectionsService } from '../knowledge/collections.service.js';
 import { ModelRegistryService } from '../models/model-registry.service.js';
 import { CHAT_TITLE_SOURCE } from './chat-dictionaries.js';
 import { Chat } from './chat.entity.js';
@@ -35,6 +36,7 @@ export class ChatsService {
     @InjectDataSource() private readonly dataSource: DataSource,
     private readonly registry: ModelRegistryService,
     private readonly tree: MessageTreeService,
+    private readonly collections: CollectionsService,
     config: ConfigService<Env, true>
   ) {
     this.systemPromptMax = config.get('CHAT_SYSTEM_PROMPT_MAX_LENGTH', { infer: true });
@@ -65,6 +67,7 @@ export class ChatsService {
   async getDetail(userId: string, chatId: string): Promise<ChatDetailDto> {
     const chat = await this.getOwned(userId, chatId);
     const messages = await this.tree.listMessages(userId, chatId);
+    const collectionIds = await this.collections.ownedIds(userId, chat.collectionIds);
     return {
       id: chat.id,
       title: chat.title,
@@ -72,6 +75,7 @@ export class ChatsService {
       modelId: chat.modelId,
       systemPrompt: chat.systemPrompt,
       params: chat.params,
+      collectionIds,
       activeLeafId: chat.activeLeafId,
       createdAt: chat.createdAt,
       updatedAt: chat.updatedAt,
@@ -129,6 +133,14 @@ export class ChatsService {
       chat.systemPrompt = dto.systemPrompt;
     }
     if (dto.params !== undefined) chat.params = dto.params;
+    if (dto.collectionIds !== undefined) {
+      // Nothing is saved unless every id is a collection of this user (the same 404 for "foreign" and "missing").
+      const owned = await this.collections.ownedIds(userId, dto.collectionIds);
+      if (owned.length !== dto.collectionIds.length) {
+        throw new NotFoundException('Collection not found');
+      }
+      chat.collectionIds = dto.collectionIds;
+    }
     if (dto.title !== undefined) {
       chat.title = dto.title.trim();
       chat.titleSource = CHAT_TITLE_SOURCE.USER;

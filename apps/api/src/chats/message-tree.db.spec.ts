@@ -216,13 +216,21 @@ describe('MessageTreeService (database)', () => {
   describe('prepareRegenerate', () => {
     it('accepts an answer and returns the user message it answers', async () => {
       const { ann, chat } = await setup();
-      const q = await insertMessage(dataSource, chat.id);
+      const q = await insertMessage(dataSource, chat.id, {
+        parts: [
+          { type: 'text', text: 'Frage ' },
+          { type: 'text', text: 'Zwei' },
+        ],
+      });
       const a = await insertMessage(dataSource, chat.id, {
         parentId: q.id,
         role: MESSAGE_ROLE.ASSISTANT,
       });
 
-      expect(await tree.prepareRegenerate(ann.id, chat.id, a.id)).toEqual({ userMessageId: q.id });
+      expect(await tree.prepareRegenerate(ann.id, chat.id, a.id)).toEqual({
+        userMessageId: q.id,
+        userText: 'Frage Zwei',
+      });
     });
 
     it('refuses a user message (422) and a foreign or unknown message (404)', async () => {
@@ -249,6 +257,7 @@ describe('MessageTreeService (database)', () => {
     const base = {
       status: MESSAGE_STATUS.COMPLETE,
       parts: [{ type: 'text' as const, text: 'Antwort' }],
+      sources: null,
       errorReason: null,
       modelId: 'c:m',
       inputTokens: 3,
@@ -274,6 +283,28 @@ describe('MessageTreeService (database)', () => {
       ]);
       expect(rows[0].active_leaf_id).toBe(id);
       expect(await tree.countCompletedAnswers(chat.id)).toBe(1);
+    });
+
+    it('stores the sources as sent, an empty list as empty and none as null', async () => {
+      const { ann, chat } = await setup();
+      const { messageId } = await tree.appendUserMessage(ann.id, chat.id, null, 'Frage');
+      const source = { n: 1, documentId: randomUUID(), filename: 'a.md', page: 2, excerpt: 'Text' };
+      const ids = [randomUUID(), randomUUID(), randomUUID()];
+      const inputs = [[source], [], null];
+
+      for (const [index, sources] of inputs.entries()) {
+        await tree.saveAssistant({
+          ...base,
+          sources,
+          userId: ann.id,
+          chatId: chat.id,
+          id: ids[index] ?? randomUUID(),
+          parentId: messageId,
+        });
+      }
+
+      const read = await tree.listMessages(ann.id, chat.id);
+      expect(ids.map((id) => read.find((message) => message.id === id)?.sources)).toEqual(inputs);
     });
 
     it('does not count aborted or failed answers as completed', async () => {

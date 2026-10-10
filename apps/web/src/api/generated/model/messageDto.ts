@@ -7,12 +7,15 @@
 import type { MessageDtoRole } from './messageDtoRole.ts';
 import type { MessageDtoStatus } from './messageDtoStatus.ts';
 import type { MessagePartDto } from './messagePartDto.ts';
+import type { MessageSourceDto } from './messageSourceDto.ts';
 
 export interface MessageDto {
   /** @nullable */
   parentId: string | null;
   role: MessageDtoRole;
   parts: MessagePartDto[];
+  /** @nullable */
+  sources: MessageSourceDto[] | null;
   status: MessageDtoStatus;
   /** @nullable */
   errorReason: string | null;

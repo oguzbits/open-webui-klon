@@ -15,6 +15,7 @@ export interface ChatDetailDto {
   /** @nullable */
   systemPrompt: string | null;
   params: ChatParams;
+  collectionIds: string[];
   /** @nullable */
   activeLeafId: string | null;
   messages: MessageDto[];

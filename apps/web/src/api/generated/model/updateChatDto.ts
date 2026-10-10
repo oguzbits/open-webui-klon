@@ -7,6 +7,8 @@
 import type { ChatParams } from './chatParams.ts';
 
 export interface UpdateChatDto {
+  /** @maxItems 10 */
+  collectionIds?: string[];
   /** @maxLength 200 */
   title?: string;
   /** @maxLength 300 */
