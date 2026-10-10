@@ -22,6 +22,8 @@ RUN rm -rf /usr/local/lib/node_modules/npm /usr/local/lib/node_modules/corepack 
     && apt-get update \
     && apt-get upgrade -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
+# Uploaded documents: a named volume mounted here inherits this owner on first use (the image itself is read-only).
+RUN mkdir -p /var/lib/owui/files && chown node:node /var/lib/owui/files
 WORKDIR /app
 COPY --from=build --chown=node:node /out/ ./
 USER node

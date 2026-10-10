@@ -49,6 +49,32 @@ describe('validateEnv', () => {
     );
   });
 
+  it('has defaults for the knowledge limits and rejects values outside their range', () => {
+    const env = validateEnv(VALID);
+
+    expect(env.EMBEDDING_MODEL_ID).toBeUndefined();
+    expect(env.FILE_STORAGE_PATH).toBe('./data/files');
+    expect(env.RAG_UPLOAD_MAX_BYTES).toBe(20971520);
+    expect(env.RAG_MAX_DOCUMENTS_PER_USER).toBe(200);
+    expect(env.RAG_MAX_PAGES).toBe(300);
+    expect(env.RAG_PARSE_TIMEOUT_MS).toBe(60000);
+    expect(env.RAG_PARSE_MEMORY_MB).toBe(512);
+    expect(env.RAG_CHUNK_CHARS).toBe(1000);
+    expect(env.RAG_CHUNK_OVERLAP_CHARS).toBe(150);
+    expect(env.RAG_CANDIDATES).toBe(30);
+    expect(env.RAG_TOP_K).toBe(6);
+    expect(env.RAG_CONTEXT_MAX_CHARS).toBe(12000);
+
+    expect(validateEnv({ ...VALID, EMBEDDING_MODEL_ID: '' }).EMBEDDING_MODEL_ID).toBeUndefined();
+    expect(() => validateEnv({ ...VALID, RAG_UPLOAD_MAX_BYTES: '0' })).toThrow(
+      /RAG_UPLOAD_MAX_BYTES/
+    );
+    expect(() => validateEnv({ ...VALID, RAG_TOP_K: '0' })).toThrow(/RAG_TOP_K/);
+    expect(() => validateEnv({ ...VALID, RAG_PARSE_MEMORY_MB: 'lots' })).toThrow(
+      /RAG_PARSE_MEMORY_MB/
+    );
+  });
+
   it('converts numbers and splits the CORS origin list', () => {
     const env = validateEnv({
       ...VALID,

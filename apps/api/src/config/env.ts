@@ -239,6 +239,78 @@ export class Env {
   @Max(100000)
   CHAT_MAX_MESSAGES_PER_CHAT = 1000;
 
+  /** `connectionId:rawModelId` of the embedding model. Without it the knowledge features answer 503. */
+  @Transform(emptyToUndefined)
+  @IsOptional()
+  @IsString()
+  @MaxLength(300)
+  EMBEDDING_MODEL_ID?: string;
+
+  @IsString()
+  @MinLength(1)
+  @MaxLength(1000)
+  FILE_STORAGE_PATH = './data/files';
+
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  @Max(1073741824)
+  RAG_UPLOAD_MAX_BYTES = 20971520;
+
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  @Max(100000)
+  RAG_MAX_DOCUMENTS_PER_USER = 200;
+
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  @Max(10000)
+  RAG_MAX_PAGES = 300;
+
+  @Type(() => Number)
+  @IsInt()
+  @Min(1000)
+  @Max(600000)
+  RAG_PARSE_TIMEOUT_MS = 60000;
+
+  @Type(() => Number)
+  @IsInt()
+  @Min(64)
+  @Max(8192)
+  RAG_PARSE_MEMORY_MB = 512;
+
+  @Type(() => Number)
+  @IsInt()
+  @Min(100)
+  @Max(20000)
+  RAG_CHUNK_CHARS = 1000;
+
+  @Type(() => Number)
+  @IsInt()
+  @Min(0)
+  @Max(5000)
+  RAG_CHUNK_OVERLAP_CHARS = 150;
+
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  @Max(500)
+  RAG_CANDIDATES = 30;
+
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  @Max(50)
+  RAG_TOP_K = 6;
+
+  @Type(() => Number)
+  @IsInt()
+  @Min(1000)
+  @Max(200000)
+  RAG_CONTEXT_MAX_CHARS = 12000;
+
   @Transform(emptyToUndefined)
   @IsOptional()
   @Matches(HTTP_URL_PATTERN, { message: 'OTEL_EXPORTER_OTLP_ENDPOINT must be an http(s) URL' })

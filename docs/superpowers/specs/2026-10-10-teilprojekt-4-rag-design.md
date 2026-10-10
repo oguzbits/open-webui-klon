@@ -51,9 +51,12 @@ Stand 2026-10-10, geprüft in den installierten Typen, im Quellcode und in der n
 | Magic Bytes | Eigene Prüfung statt `file-type`: PDF beginnt mit `%PDF-`, DOCX ist ZIP (`PK\x03\x04`) mit Eintrag `[Content_Types].xml` und `word/`, Text ist gültiges UTF-8 ohne NUL-Byte. | Entscheidung (YAGNI) |
 | Parser-Isolation | `worker_threads` mit `resourceLimits.maxOldGenerationSizeMb`; Überschreitung meldet `ERR_WORKER_OUT_OF_MEMORY` (lokal belegt), `terminate()` für die Zeitgrenze. Die Worker-Datei muss als `.js` in `dist` liegen. | sicher (lokal), Build **offen** |
 
-**Im Plan 4a zuerst zu prüfen (Spike je Punkt, vor dem Einsatz):** (a) `migration:generate` mit `halfvec` ohne Länge
-und `tsvector` STORED, sonst Raw-SQL-Migration nach Regel 9; (b) Ollama `/v1/embeddings` mit dem gewählten Modell;
-(c) Worker-Datei im `nest build`; (d) `unpdf` und `mammoth` ohne Installationsskripte.
+**Spike-Ergebnisse (Plan 4a, Task 1, 2026-10-10):**
+
+- **(a) Migration:** `migration:generate` erzeugt gültiges SQL für `halfvec` ohne Länge und für `search_vector tsvector GENERATED ALWAYS AS (to_tsvector('simple', content)) STORED`. Einen **GIN-Index** kann die Entity nicht ausdrücken (`IndexOptions` kennt kein `using`), und ein per Raw-SQL angelegter Index würde vom nächsten `migration:generate` wieder gelöscht. Entscheidung: **kein GIN-Index in 4a**; die Volltextsuche liest nur die Chunks des Nutzers (Index `(user_id, document_id)`), das genügt für die erwarteten Mengen. Ein GIN-Index steht im Backlog, sobald eine Messung ihn verlangt.
+- **(b) Embedding-Vertrag:** `createOpenAICompatible(...).embeddingModel(id)` schickt `POST {baseURL}/embeddings` mit `model` und `input` (Liste) über die übergebene `fetch`, Bearer-Schlüssel inklusive, und `embedMany` liefert die Vektoren in Eingabereihenfolge und `usage.tokens` (belegt in `models/embedding.contract.spec.ts`). Echtes Ollama bleibt offen bis zur Eval in Task 10.
+- **(c) Worker:** Eine eigenständige `parse-worker.ts` (importiert nur Pakete) lädt unter Vitest direkt als `.ts` (Node-Typentfernung, Node ≥ 24 laut `engines`), und `nest build` legt `dist/knowledge/parse-worker.js` ab. Die Worker-URL wählt die Endung nach `import.meta.url`.
+- **(d) Installationsskripte:** `pnpm add unpdf mammoth` löst keine blockierten Skripte aus; `allowBuilds` bleibt unverändert.
 
 ## 3. Daten
 
@@ -69,7 +72,7 @@ Neue Entities, einzutragen in `database/entities.ts` (Regel 9). Werte, die Logik
   Ein Dokument ohne Zuordnung bleibt in der Dokumentenliste des Nutzers erhalten und kann gelöscht werden.
 - **`Chunk`**: `id`, `documentId`, `userId` (denormalisiert für das SQL-Filtern), `ordinal`, `content`, `page`
   (nullable), `embedding` (`halfvec` ohne feste Dimension), `embeddingModelId`, `searchVector` (`tsvector`, erzeugte
-  Spalte aus `content` mit Konfiguration `simple`, GIN-Index). **Kein ANN-Index** (Entscheidung A): Die exakte Suche ist
+  Spalte aus `content` mit Konfiguration `simple`; kein GIN-Index, siehe Abschnitt 2). **Kein ANN-Index** (Entscheidung A): Die exakte Suche ist
   auf Nutzer und Sammlungen begrenzt; HNSW steht im Backlog, bis eine Messung ihn verlangt.
 - **`Chat.collectionIds`** (`uuid[]`, Standard leer) und **`Message.sources`** (`jsonb`, nullable, Liste aus
   `{ n, documentId, filename, page, excerpt }`). Beide sind Änderungen an Entities aus Teilprojekt 3.
