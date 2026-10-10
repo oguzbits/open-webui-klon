@@ -193,6 +193,7 @@
       "provider": "Anbieter"
     },
     "empty": "Noch sind keine Modelle verfügbar. Ein Administrator muss zuerst einen Anbieter verbinden.",
+    "emptyUnreachable": "Im Moment ist kein Modell erreichbar.",
     "refresh": "Aktualisieren",
     "refreshing": "Wird aktualisiert …",
     "unavailable": {

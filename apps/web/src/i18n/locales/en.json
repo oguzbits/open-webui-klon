@@ -189,6 +189,7 @@
       "provider": "Provider"
     },
     "empty": "No models are available yet. An administrator has to connect a provider first.",
+    "emptyUnreachable": "No model is reachable at the moment.",
     "refresh": "Refresh",
     "refreshing": "Refreshing …",
     "unavailable": {

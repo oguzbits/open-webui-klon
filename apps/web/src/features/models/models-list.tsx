@@ -66,7 +66,9 @@ export function ModelsList() {
         </Alert>
       )}
       {available.length === 0 ? (
-        <p className="text-muted-foreground text-sm">{t('models.empty')}</p>
+        <p className="text-muted-foreground text-sm">
+          {unavailableConnections.length > 0 ? t('models.emptyUnreachable') : t('models.empty')}
+        </p>
       ) : (
         <Table>
           <TableHeader>

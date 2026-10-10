@@ -102,7 +102,7 @@ describe('ModelsPage', () => {
     expect(await rowOf('llama3:8b')).toBeInTheDocument();
   });
 
-  it('shows the notice and the empty text together when every provider is down', async () => {
+  it('does not ask to connect a provider when every connected provider is down', async () => {
     stubMember({
       'GET /api/models': () =>
         json(
@@ -117,7 +117,8 @@ describe('ModelsPage', () => {
     await openModels();
 
     expect(await screen.findByRole('alert')).toHaveTextContent('Server B');
-    expect(screen.getByText(/Noch sind keine Modelle verfügbar/)).toBeInTheDocument();
+    expect(screen.getByText('Im Moment ist kein Modell erreichbar.')).toBeInTheDocument();
+    expect(screen.queryByText(/muss zuerst einen Anbieter verbinden/)).not.toBeInTheDocument();
     expect(screen.queryByRole('table')).not.toBeInTheDocument();
   });
 
