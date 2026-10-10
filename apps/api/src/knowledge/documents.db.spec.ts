@@ -29,6 +29,7 @@ import {
   linkDocument,
 } from '../testing/knowledge-fixtures.js';
 import { USER_ROLE } from '../users/user-role.js';
+import { quotaLockKey } from './documents.service.js';
 import type { DocumentDto, DocumentListDto } from './knowledge.dto.js';
 import {
   DOCUMENT_FAILURE,
@@ -294,6 +295,41 @@ describe('documents (database)', () => {
 
       expect(await rows()).toHaveLength(3);
       expect(queue.sent).toHaveLength(3);
+    });
+
+    it('keeps to the limit when many different files arrive at once', async () => {
+      await start({ RAG_MAX_DOCUMENTS_PER_USER: '2' });
+
+      const answers = await Promise.all(
+        Array.from({ length: 15 }, (_, index) => upload(ann, `inhalt ${index}`, `d${index}.txt`))
+      );
+
+      expect(answers.filter((answer) => answer.status === 201)).toHaveLength(2);
+      expect(answers.filter((answer) => answer.status === 409)).toHaveLength(13);
+      expect(await rows()).toHaveLength(2);
+      expect(queue.sent).toHaveLength(2);
+    });
+
+    it('waits for the quota lock of the user, so counting and inserting cannot interleave', async () => {
+      await start({ RAG_MAX_DOCUMENTS_PER_USER: '1' });
+      const holder = dataSource.createQueryRunner();
+      await holder.connect();
+      await holder.startTransaction();
+      await holder.query('SELECT pg_advisory_xact_lock(hashtext($1))', [quotaLockKey(ann.user.id)]);
+      let answered = false;
+      const waiting = upload(ann, 'inhalt', 'a.txt').then((answer) => {
+        answered = true;
+        return answer;
+      });
+
+      await new Promise((resolve) => setTimeout(resolve, 400));
+      const answeredWhileLocked = answered;
+      await holder.commitTransaction();
+      await holder.release();
+      const answer = await waiting;
+
+      expect(answeredWhileLocked).toBe(false);
+      expect(answer.status).toBe(201);
     });
 
     it('does not hand out the document of another user when its own limit is reached', async () => {

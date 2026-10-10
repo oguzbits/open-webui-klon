@@ -27,6 +27,11 @@ import {
   type DocumentFailure,
 } from './rag-dictionaries.js';
 
+/** Uploads of one user take turns on this lock while the limit is checked and the row is inserted. */
+export function quotaLockKey(userId: string): string {
+  return `document-quota:${userId}`;
+}
+
 export interface UploadedFile {
   originalname: string;
   buffer: Buffer;
@@ -76,15 +81,19 @@ export class DocumentsService {
 
     const sha256 = createHash('sha256').update(file.buffer).digest('hex');
     const storageKey = randomUUID();
-    // One statement does the quota, the duplicate check and the insert, so concurrent uploads cannot slip past.
-    const inserted: DocumentRow[] = await this.dataSource.query(
-      `INSERT INTO document (user_id, sha256, filename, type, size_bytes, storage_key)
+    // One statement counts, checks for the duplicate and inserts; the lock makes uploads of one user take turns,
+    // so two different files cannot both see "one place left".
+    const inserted: DocumentRow[] = await this.dataSource.transaction(async (manager) => {
+      await manager.query('SELECT pg_advisory_xact_lock(hashtext($1))', [quotaLockKey(userId)]);
+      return manager.query(
+        `INSERT INTO document (user_id, sha256, filename, type, size_bytes, storage_key)
        SELECT $1::uuid, $2, $3, $4, $5::int, $6::uuid
         WHERE (SELECT count(*) FROM document WHERE user_id = $1::uuid) < $7::int
        ON CONFLICT (user_id, sha256) DO NOTHING
        RETURNING ${documentColumns('document')}`,
-      [userId, sha256, filename, type, file.buffer.length, storageKey, this.maxDocuments]
-    );
+        [userId, sha256, filename, type, file.buffer.length, storageKey, this.maxDocuments]
+      );
+    });
     const row = inserted[0];
 
     if (row === undefined) {
@@ -130,11 +139,19 @@ export class DocumentsService {
     try {
       await this.queue.send(RAG_JOB.INGEST_DOCUMENT, { documentId });
     } catch (error) {
-      await this.dataSource.query(
-        `UPDATE document SET status = $3, failure_reason = $4, updated_at = now()
-          WHERE id = $1 AND user_id = $2`,
-        [documentId, userId, DOCUMENT_STATUS.FAILED, row.previous_failure]
-      );
+      try {
+        await this.dataSource.query(
+          `UPDATE document SET status = $3, failure_reason = $4, updated_at = now()
+            WHERE id = $1 AND user_id = $2`,
+          [documentId, userId, DOCUMENT_STATUS.FAILED, row.previous_failure]
+        );
+      } catch (restoreError) {
+        this.logger.error({
+          documentId,
+          errorName: restoreError instanceof Error ? restoreError.name : 'unknown',
+          msg: 'could not put a document back to failed',
+        });
+      }
       throw error;
     }
     return toDocumentDto(row);
