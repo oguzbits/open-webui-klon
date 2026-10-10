@@ -6,6 +6,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 
 import { createTestApp } from '../testing/create-test-app.js';
 import { fakeAuth } from '../testing/fake-auth.js';
+import { ChatStreamService } from './chat-stream.service.js';
 import { ChatsController } from './chats.controller.js';
 import { ChatsService } from './chats.service.js';
 
@@ -45,7 +46,11 @@ describe('ChatsController (HTTP, no database)', () => {
   async function start() {
     app = await createTestApp({
       controllers: [ChatsController],
-      providers: [...auth.providers, { provide: ChatsService, useValue: fake }],
+      providers: [
+        ...auth.providers,
+        { provide: ChatsService, useValue: fake },
+        { provide: ChatStreamService, useValue: {} },
+      ],
     });
     return request(app.getHttpServer());
   }
@@ -57,6 +62,8 @@ describe('ChatsController (HTTP, no database)', () => {
     ['get', `/api/chats/${ID}`],
     ['patch', `/api/chats/${ID}`],
     ['delete', `/api/chats/${ID}`],
+    ['post', `/api/chats/${ID}/stream`],
+    ['post', `/api/chats/${ID}/messages/${randomUUID()}/regenerate`],
   ] as const;
 
   it.each(routes)(
