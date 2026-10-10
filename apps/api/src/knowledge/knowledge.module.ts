@@ -10,10 +10,9 @@ import { CollectionsService } from './collections.service.js';
 import { DocumentsController } from './documents.controller.js';
 import { DocumentsService } from './documents.service.js';
 import { EmbeddingService } from './embedding.service.js';
-import { FILE_STORAGE } from './file-storage.js';
+import { FileStorageModule } from './file-storage.module.js';
 import { IngestionService } from './ingestion.service.js';
 import { KnowledgeSearchService } from './knowledge-search.service.js';
-import { LocalFileStorage } from './local-file-storage.js';
 import { ParserService } from './parser.service.js';
 
 /** Fields of the upload form besides the file: only `collectionId`, so a handful of small ones is a ceiling. */
@@ -22,6 +21,7 @@ const MAX_FIELD_BYTES = 1024;
 
 @Module({
   imports: [
+    FileStorageModule,
     ModelsModule,
     JobsModule,
     MulterModule.registerAsync({
@@ -45,13 +45,7 @@ const MAX_FIELD_BYTES = 1024;
     ParserService,
     IngestionService,
     KnowledgeSearchService,
-    {
-      provide: FILE_STORAGE,
-      inject: [ConfigService],
-      useFactory: (config: ConfigService<Env, true>) =>
-        new LocalFileStorage(config.get('FILE_STORAGE_PATH', { infer: true })),
-    },
   ],
-  exports: [CollectionsService, EmbeddingService, KnowledgeSearchService, FILE_STORAGE],
+  exports: [CollectionsService, EmbeddingService, KnowledgeSearchService, FileStorageModule],
 })
 export class KnowledgeModule {}
