@@ -432,6 +432,33 @@ describe('chats with collections (database)', () => {
     });
   });
 
+  describe('after a failed search', () => {
+    it('frees the place of the user and keeps the regenerate request side-effect free', async () => {
+      await start({ env: { CHAT_MAX_CONCURRENT_STREAMS: '1' } });
+      const { chatId, collectionId } = await chatWithCollection(ann);
+      await seed(ann.user.id, collectionId, 'Text');
+      await ask(ann, chatId, 'Erste Frage').expect(200);
+      const before = await detail(ann, chatId);
+      const answerId = before.messages[1]?.id ?? '';
+      const regenerate = () =>
+        authed(http, ann).post(`/api/chats/${chatId}/messages/${answerId}/regenerate`);
+      embedQuery.mockRejectedValue(new ServiceUnavailableException());
+
+      await regenerate().expect(503);
+      await ask(ann, chatId, 'Zweite Frage', answerId).expect(503);
+
+      const failed = await detail(ann, chatId);
+      expect(failed.messages.map((message) => message.id)).toEqual(
+        before.messages.map((message) => message.id)
+      );
+      embedQuery.mockImplementation((text: string) =>
+        Promise.resolve({ modelId: EMBED_MODEL, vector: fakeEmbedding(text) })
+      );
+      await regenerate().expect(200);
+      expect((await detail(ann, chatId)).messages).toHaveLength(3);
+    });
+  });
+
   describe('regenerate', () => {
     it('searches with the question above the answer, not with the last message of the chat', async () => {
       await start();

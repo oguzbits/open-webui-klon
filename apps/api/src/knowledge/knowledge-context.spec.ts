@@ -100,6 +100,15 @@ describe('verifyCitations', () => {
     expect(verifyCitations('x [99999999999999999999999] y', 3)).toBe('x  y');
   });
 
+  it('leaves code and markdown links alone: only prose citations are checked', () => {
+    const fenced = 'Code:\n```js\nitems[0] = arr[7];\n```\nund `x[3]` sowie [5](http://y)';
+    const unclosed = 'Abbruch:\n```js\nitems[0] = arr[7];';
+
+    expect(verifyCitations(fenced, 0)).toBe(fenced);
+    expect(verifyCitations(unclosed, 0)).toBe(unclosed);
+    expect(verifyCitations('Text [9] und `a[9]` [9]', 0)).toBe('Text  und `a[9]` ');
+  });
+
   it('removes every citation when no source was sent', () => {
     expect(verifyCitations('Laut [1] ja.', 0)).toBe('Laut  ja.');
   });

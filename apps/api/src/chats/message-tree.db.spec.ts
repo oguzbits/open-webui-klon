@@ -305,6 +305,11 @@ describe('MessageTreeService (database)', () => {
 
       const read = await tree.listMessages(ann.id, chat.id);
       expect(ids.map((id) => read.find((message) => message.id === id)?.sources)).toEqual(inputs);
+      const nulls: { is_null: boolean }[] = await dataSource.query(
+        'SELECT sources IS NULL AS is_null FROM message WHERE id = $1',
+        [ids[2]]
+      );
+      expect(nulls[0]?.is_null).toBe(true);
     });
 
     it('does not count aborted or failed answers as completed', async () => {

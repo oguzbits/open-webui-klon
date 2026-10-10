@@ -77,9 +77,16 @@ export function buildKnowledgeContext(
   return { prompt: `${INSTRUCTION}\n\n<documents>\n${blocks.join('\n')}\n</documents>`, sources };
 }
 
-/** Removes `[n]` for numbers that were not sent to the model; everything else stays byte for byte. */
+/** Fenced code (also an unclosed one, as in a cut-off answer) and inline code: left exactly as written. */
+const CODE_OR_CITATION = /(```[\s\S]*?(?:```|$)|`[^`\n]*`)|\[(\d+)\](?!\()/g;
+
+/**
+ * Removes `[n]` in prose for numbers that were not sent to the model; everything else stays byte for byte,
+ * including code (`items[0]`) and markdown links (`[1](url)`).
+ */
 export function verifyCitations(text: string, sentCount: number): string {
-  return text.replace(/\[(\d+)\]/g, (match, digits: string) => {
+  return text.replace(CODE_OR_CITATION, (match, code: string | undefined, digits: string) => {
+    if (code !== undefined) return match;
     const n = Number(digits);
     return n >= 1 && n <= sentCount ? match : '';
   });

@@ -32,6 +32,7 @@ const RRF_K = 60;
 export class KnowledgeSearchService {
   private readonly candidates: number;
   private readonly topK: number;
+  private readonly queryChars: number;
 
   constructor(
     @InjectDataSource() private readonly dataSource: DataSource,
@@ -40,6 +41,8 @@ export class KnowledgeSearchService {
   ) {
     this.candidates = config.get('RAG_CANDIDATES', { infer: true });
     this.topK = config.get('RAG_TOP_K', { infer: true });
+    // A question is never embedded longer than two chunks: a pasted log must not exceed the model's input limit.
+    this.queryChars = config.get('RAG_CHUNK_CHARS', { infer: true }) * 2;
   }
 
   async search(
@@ -49,7 +52,9 @@ export class KnowledgeSearchService {
     signal?: AbortSignal
   ): Promise<KnowledgeHit[]> {
     if (collectionIds.length === 0 || query.trim() === '') return [];
-    const { modelId, vector } = await this.embedding.embedQuery(query, signal);
+    // By code points, so a cut never splits a surrogate pair.
+    const question = [...query].slice(0, this.queryChars).join('');
+    const { modelId, vector } = await this.embedding.embedQuery(question, signal);
 
     const rows: HitRow[] = await this.dataSource.query(
       `WITH scope AS (
@@ -85,7 +90,15 @@ export class KnowledgeSearchService {
         WHERE vec.id IS NOT NULL OR fts.id IS NOT NULL
         ORDER BY coalesce(1.0 / (${RRF_K} + vec.rank), 0) + coalesce(1.0 / (${RRF_K} + fts.rank), 0) DESC, s.id
         LIMIT $7`,
-      [userId, collectionIds, modelId, `[${vector.join(',')}]`, query, this.candidates, this.topK]
+      [
+        userId,
+        collectionIds,
+        modelId,
+        `[${vector.join(',')}]`,
+        question,
+        this.candidates,
+        this.topK,
+      ]
     );
 
     return rows.map((row) => ({

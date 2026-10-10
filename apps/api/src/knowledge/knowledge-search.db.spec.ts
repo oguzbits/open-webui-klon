@@ -292,6 +292,16 @@ describe('knowledge search (database)', () => {
       }
     );
 
+    it('cuts a very long question to two chunks before it is embedded, without splitting a character', async () => {
+      await start({ RAG_CHUNK_CHARS: '100' });
+      const mine = await insertCollection(dataSource, ann.user.id);
+      const long = `${'a'.repeat(199)}😀${'b'.repeat(500)}`;
+
+      await search.search(ann.user.id, [mine.id], long);
+
+      expect(embedQuery).toHaveBeenCalledWith(`${'a'.repeat(199)}😀`, undefined);
+    });
+
     it('asks the embedding model for the question and passes the signal on', async () => {
       await start();
       const mine = await insertCollection(dataSource, ann.user.id);
