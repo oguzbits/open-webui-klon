@@ -4,7 +4,7 @@
       (Body-Typ `StreamChatDto` aus dem Client). `ChatParams` ist im OpenAPI-Schema typisiert (Task 1);
       `pnpm openapi` erzeugt `apps/api/openapi.json` und `apps/web/src/api/generated/**` ohne Abweichung
       (`git diff --exit-code` ohne Unterschied, 2026-10-10).
-- [x] Tests: `pnpm test` grün (35 Web-Dateien, 396 Tests; API unverändert bis auf einen neuen Test für
+- [x] Tests: `pnpm test` grün (35 Web-Dateien, 400 Tests; API unverändert bis auf einen neuen Test für
       `ChatParams` im Schema: 36 Dateien, 479 Tests; Hook-Tests 108), `pnpm check` grün (Typen, ESLint, Prettier,
       dependency-cruiser ohne Verstoß, 367 Module). Mutationsproben, jeweils rot gesehen:
   - Task 3 (Transport): `parentId` fest auf `null` gesetzt, zwei Tests rot.
@@ -21,6 +21,10 @@
   - Task 9 (Chatansicht): Neuladen nach Fehler, Wartezeit nach dem Stopp, Sperre gegen doppeltes Senden, Sperre des
     Versionswechsels, Rückgabe von Text bei Fehler vor dem Stream, `settling`-Schutz gegen ein zu früh geladenes
     Chat-Objekt (jeweils rot). Zwei Proben bleiben grün, weil der Schutz dort doppelt vorhanden ist (der Ref `firstSent` neben `sending`, die Prüfung auf „beschäftigt“ neben `settling`); beide Schutzteile bleiben als zweite Absicherung.
+    Nach der Abschlussprüfung: gerenderte statt SDK-Nachrichten in `onFinish` (1 rot), Rückgabe in `onError` bzw.
+    `onFinish` entfernt (4 bzw. 1 rot), `settling`-Prüfung und Wartezeit 0 mit festgehaltenem Timer (1 bzw. 3 rot),
+    Schließ-Sperre und `fieldset` des Einstellungsdialogs (je rot), 422- und 404-Zuordnung beim Anlegen (je rot). Die
+    Prüfung `isStreamFailure` in `onFinish` ist jetzt doppelt (ein Fehler im Stream kommt erst nach den IDs), Probe grün.
   - Task 10 (Neuer Chat): Sperre des Feldes und der Modellauswahl (die zweite war zuerst nicht abgedeckt, Assertion
     ergänzt), `onError`, Router-State der ersten Nachricht, Einstellungen im Body (je rot).
   - Task 11: `zod-config.spec.ts` rot vor, grün nach dem Fix `45d182d`.
@@ -95,24 +99,34 @@ Nicht oder nur teilweise geprüft:
 
 - Entwicklungsmodus mit StrictMode (die erste Nachricht genau einmal): nur durch den Test mit dem Ref belegt.
 - Wartezeit nach dem Stopp (500 ms): in einem Lauf der Handprobe ohne Verlust des Teiltexts; eine Heuristik (Backlog).
-  Unter Last (parallele Testläufe) trat zweimal ein Fehlschlag des Tests „does not give the text back when the
-  connection breaks after the answer began“ in `chat-page.spec.tsx` auf (siehe Abschlussprüfung).
+  In den Tests halten die beiden Fälle „keeps the partial answer …“/„keeps the question and the partial answer …“
+  den Timer der Wartezeit fest, statt real im Fenster von 500 ms zu warten (siehe Abschlussprüfung).
 - Helles Thema: nicht angesehen (nur dunkel und Telefonbreite).
 - Zwischenablage: geprüft wurde das Argument von `writeText` (der Code ohne den letzten Zeilenumbruch des Zauns),
   nicht das Zurücklesen aus der System-Zwischenablage (hing an einer Berechtigungsabfrage).
-- „Neu erzeugen“ während eines Streams: der Knopf wird dann nicht gezeigt (strenger als gesperrt), kein Test auf
-  „gesperrt“ im Browser.
+- „Neu erzeugen“ während eines Streams: an der gerade entstehenden Antwort fehlt der Knopf, ältere Antworten zeigen
+  ihn gesperrt (Unit-Test „locks the actions while something is running“ in `message-item.spec.tsx`); im Browser
+  nicht eigens geprüft.
 - Echter Anbieter (Ollama, OpenAI-kompatibel): alles gegen den Fake-Anbieter.
 - Bildschirmleser: nur Rollen und Namen in Tests, kein Lauf mit einem Bildschirmleser.
 - Chrome meldet für das Nachrichtenfeld und das Suchfeld einen Autofill-Hinweis (kein `name`); kein Fehler, im Backlog.
 
-Abschlussprüfung des ganzen Zweigs: der unabhängige Prüfer (Plan 3b, Schritt 8) läuft nach diesem Commit; sein Ergebnis
-und behobene Funde werden hier nachgetragen. Bekannte, zurückgestellte kleine Funde aus den Prüfungen je Task (Auswahl):
-Wartezeit nach Stopp und `questionIsStored` lesen verzögerten React-Zustand (höchstens 50 ms); `isDisconnect` erkennt nur
-`TypeError` von `fetch`; der Test „does not give the text back …“ wartet real 150 ms im Fenster von 500 ms und
-schlug unter paralleler Last zweimal fehl (bekannter Flake, bei Wiederholung grün, noch nicht behoben); die Sperre des
-Zweiges in `handleRegenerate` stirbt nur an einer unbehandelten Ablehnung des SDK; ein Bild innerhalb eines Links erzeugt ein verschachteltes `<a>`; GFM-Fußnoten tragen eine englische Überschrift; `main.tsx` hat keinen Test für die
-Reihenfolge des zod-Imports (die Konsolenprobe ist der Wächter).
+Abschlussprüfung des ganzen Zweigs (2026-10-10): Der unabhängige Prüfer fand zwei wichtige Funde und keinen
+kritischen. Erstens las `questionIsStored` den gedrosselten React-Zustand: Brach die Verbindung in den ersten etwa
+50 ms nach dem ersten Teil des Streams ab, kam der Text zurück ins Eingabefeld, obwohl der Server die Frage schon
+gespeichert hatte. Das war auch die Ursache des Flakes von „does not give the text back …“. Die Entscheidung fällt
+jetzt in `onFinish` anhand der Nachrichten des SDK, mit einem Test, der vorher rot war (`f387da9`). Zweitens hing der
+Test „keeps the partial answer when a reload finishes while the stopped answer is being stored“ an einem echten
+Fenster von 500 ms und schlug unter paralleler Last in 8 von 10 Läufen fehl; die Wartezeit wird jetzt im Test
+gesteuert (`9165817`; eigene Messung mit fünf parallelen Läufen der Web-Tests: vorher 5 von 5 rot, danach 0 von 5).
+Außerdem lässt sich der Einstellungsdialog während des Speicherns nicht mehr schließen und nicht mehr bearbeiten,
+sodass ein Fehler beim Speichern sichtbar bleibt (`2a34f32`); beim Anlegen eines Chats nennt ein 422 jetzt die
+Anweisung statt der Nachricht (`684d0c3`). Die übrigen kleinen Funde (Markdown-Randfälle, Chatliste, Eingabefeld
+beim Anlegen) bleiben bewusst offen und stehen im Backlog. Weiter zurückgestellt aus den Prüfungen je Task:
+`isDisconnect` erkennt nur `TypeError` von `fetch`; die Sperre in `handleRegenerate` stirbt nur an einer
+unbehandelten Ablehnung des SDK; `main.tsx` hat keinen Test für die Reihenfolge des zod-Imports (die Konsolenprobe
+ist der Wächter). Unter paralleler Last scheitern außerdem Tests anderer Dateien an Zeitgrenzen (etwa „lists the
+chats of the user as links to them“); einzeln und im normalen Lauf grün.
 
 Aufräumen: Compose-Projekt `owui-probe` samt Volume, Fake-Anbieter und Hilfsserver beendet, Wegwerf-Dateien und der
 Scratch-Worktree für die Größenmessung gelöscht; `git status` war danach sauber.
